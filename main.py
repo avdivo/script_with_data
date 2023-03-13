@@ -13,53 +13,42 @@ https://metanit.com/python/tkinter/4.1.php
 
 """
 
-#
-# from tkinter import *
-#
-#
-# # Интерфейс
-# root = Tk()
-#
-# # Размер экране
-# w = root.winfo_screenwidth()
-# h = root.winfo_screenheight()
-#
-# # Размер окна
-# win_w = 700
-# win_h = 600
-#
-# root.title("Редактор скриптов")
-# root.geometry(f'{win_w}x{win_h}+{(w-win_w)//2}+{(h-win_h)//2}')  # Рисуем окно
 
-
-import tkinter as tk
+from tkinter import *
 from tkinter import ttk
 
-# def select():
-#     for i in tree.selection():
-#         item_iid = i
-#         print ("".join([str(tree.item(i)['text'])])# for i in curItems]))
+# Интерфейс
+root = Tk()
+
+# Размер экране
+w = root.winfo_screenwidth()
+h = root.winfo_screenheight()
+
+# Размер окна
+win_w = 800
+win_h = 600
+
+root.title("Редактор скриптов")
+root.geometry(f'{win_w}x{win_h}+{(w-win_w)//2}+{(h-win_h)//2}')  # Рисуем окно
+
+# Create an instance of Style widget
+style=ttk.Style()
+style.theme_use('clam')
+
+tree = ttk.Treeview(root, show="", columns=('size', 'modified'), selectmode="extended", height=28)
+tree.column("# 1", stretch=NO, width=80)
+# tree.heading("# 1", text="ID")
+tree.column("# 2", stretch=NO, width=300)
+# tree.heading("# 2", text="Programming Language")
 
 
-import tkinter as tk
-from tkinter import ttk
-
-root = tk.Tk()
-
-tree = ttk.Treeview(root, show="headings", columns=('size', 'modified'), selectmode='browse')
-
-tree.heading('size', text='SIZE')
-tree.heading('modified', text='MODIFIED')
-
-tree.insert('', 0, 'gallery1', text='Applications1')
-tree.insert('gallery1', 0, 'gallery3', text='Applications1')
-tree.insert('gallery1', 0, 'gallery4', text='Applications1')
-
-tree.insert('', 1, 'gallery2', text='Applications2')
+tree.insert('', 0, 'gallery1', values=(1, 'Один'))
+tree.insert('', 0, 'gallery3', values=(2, 'Два'))
+tree.insert('', 0, 'gallery4', values=(100, 'Три'))
+tree.insert('', 0, 'gallery2', values=(1000, 'Четыре'))
 
 tree.selection_set('gallery1')
-
 tree.focus_set()
+tree.place(x=0, y=0)
 
-tree.grid()
 root.mainloop()
