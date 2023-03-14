@@ -46,6 +46,7 @@ tree.insert('', 0, 'gallery1', values=(1, 'Один'))
 tree.insert('', 0, 'gallery3', values=(2, 'Два'))
 tree.insert('', 0, 'gallery4', values=(100, 'Три'))
 tree.insert('', 0, 'gallery2', values=(1000, 'Четыре'))
+tree.insert('', 0, 'gallery0', values=('', ''))
 
 tree.selection_set('gallery1')
 tree.focus_set()
