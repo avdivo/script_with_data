@@ -77,15 +77,39 @@ tree.place(x=0, y=0)
 
 INDENT = 400  # Отступ второй колонки от левого края окна
 
+
+
+
 # Источник данных
-frame = Frame(root, width=100, height=100, border=2)
-frame.place(x=INDENT, y=0)
-la = Label(frame, text='Источник данных', anchor="w")
-la.place(x=0, y=0)
-# la.place(anchor=NW)
-# frame.place(x=INDENT, y=0)
-# data_source = Message(root, text='Источник данных', width=390, anchor='w', relief=SUNKEN)
-# data_source.place(x=INDENT, y=30)
-# data_source['text'] = 'Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три '
+data_source = StringVar()
+frame1 = LabelFrame(root, width=385, height=100, text='Источник данных')
+frame1.place(x=INDENT, y=0)
+Message(frame1, text='Источник данных', width=390, anchor='w', textvariable=data_source).place(x=0, y=0)
+data_source.set('Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три '
+                'Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три Раз два три '
+                'Раз два три Раз два три')
+
+
+# Запись и воспроизведение
+icon1=PhotoImage(file="icon/record.png")
+icon2=PhotoImage(file="icon/stop.png")
+icon3=PhotoImage(file="icon/play.png")
+
+Button(command='', image=icon1).place(x=12, y=win_h-36, width=100)
+Button(command='', image=icon2).place(x=137, y=win_h-36, width=100)
+Button(command='', image=icon3).place(x=262, y=win_h-36, width=100)
+
+
+# Редактор команд
+commands = ['Клик левой клавишей мыши', 'Клик правой клавишей мыши', 'Двойной клик мыши']
+commands_var = StringVar(value=commands[0])
+frame2 = LabelFrame(root, width=385, height=100, text='Редактор команд')
+frame2.place(x=INDENT, y=120)
+ttk.Combobox(frame2, values=commands, width=30, textvariable=commands_var, state="readonly").place(x=0, y=0)
+Label(frame2, text='x=').place(x=10, y=40)
+Entry(frame2, width=5).place(x=30, y=40)
+Label(frame2, text='y=').place(x=100, y=40)
+Entry(frame2, width=5).place(x=120, y=40)
+# Label(frame1, text='Источник данных', anchor="w").place(x=0, y=0)
 
 root.mainloop()
