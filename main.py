@@ -67,7 +67,7 @@ tree.column("# 2", stretch=NO, width=300)
 
 tree.insert('', 1000, 'gallery1', values=(1, 'Клик левой клавишей мыши'))
 tree.insert('', 1000, 'gallery3', values=(2, 'Клик правой клавишей мыши'))
-tree.insert('', 1000, 'gallery4', values=(3, 'Клик левой клавишей мыши'))
+tree.insert('', 1000, 'gallery4', values=(3, "Следующий элемент поля 'field_name'"))
 tree.insert('', 1000, 'gallery2', values=(4, 'Двойной клик мыши'))
 tree.insert('', 0, 'gallery0', values=('', ''))
 
@@ -176,7 +176,8 @@ frame4 = LabelFrame(root, width=385, height=135, text='Информация', fo
 frame4.place(x=INDENT, y=430)
 
 Message(frame4, width=390, anchor='w', textvariable=information).place(x=0, y=0)
-information.set('Редактор и исполнитель скриптов с подстановкой данных.')
+information.set('Поле таблицы (столбец) представлено в виде списка данных.\nЭта команда '
+                'переводит указатель чтения к следующему элементу списка')
 
 
 # История ---------------------------------------
