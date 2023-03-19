@@ -14,7 +14,7 @@ class DataInput(ABC):
     def __init__(self, **kvargs):
         self.func_event = kvargs['func_event']
         self.obj = None
-        print("Выполняю...")
+        print("Выполняю...", kvargs)
 
     def widget_event(self, event):
         """ Определяет одно (нужное для работы) событие и выполняет функцию назначенную при создании объекта"""
@@ -26,8 +26,9 @@ class FieldInt(DataInput):
     def __init__(self, root, **kvargs):
         super().__init__(**kvargs)
         print('Выполнил')
-        en = Entry(root, width=5).place(x=34, y=71)
-        en.bind('<Click>', kvargs['func_event'])
+        en = Entry(root, width=5)
+        en.place(x=34, y=71)
+        en.bind('<Control-a>', kvargs['func_event'])
 
 
 
