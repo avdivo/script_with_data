@@ -5,6 +5,10 @@
 # Позволяет получать и менять отдельные настройки при прямом обращении к атрибуту объекта,
 # возвращать все настройки в словаре и устанавливать их из словаря.
 
+from tkinter import *
+
+from data_input import DataInput, FieldInt
+
 class Settings(object):
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -12,19 +16,20 @@ class Settings(object):
         return cls.instance
 
     def __init__(self):
-        self.key_pause = 0.1            # пауза между нажатием клавиш клавиатуры (после отпускания)
-        self.click_pause = 0.5          # пауза после клика мыши
-        self.command_pause = 0          # пауза между командами
-        self.confirm_element = True     # убеждаться, что нужный элемент (кнопка, иконка ...) присутствует
-        self.search_attempt = 3         # сколько раз следует повторить паузу в 1 секунду
-        self.full_screen_search = True  # производить поиск элемента на всем экране
-        self.error_no_element = 'stop'  # остановить выполнение скрипта при исключении 'no element'
-        self.error_no_data = 'ignore'   # остановить выполнение скрипта при исключении 'no data'
-        self.description = ''           # комментарий
+        self.key_pause = (0.1, 'Пауза между нажатием клавиш клавиатуры (после отпускания)')
+        self.click_pause = (0.5, 'Пауза после клика мыши')
+        self.command_pause = (0, 'Пауза между командами')
+        self.confirm_element = (True, 'Убеждаться, что нужный элемент (кнопка, иконка ...) присутствует')
+        self.search_attempt = (3, 'Сколько раз следует повторить паузу в 1 секунду')
+        self.full_screen_search = (True, 'Производить поиск элемента на всем экране')
+        self.error_no_element = ('stop', "Остановить выполнение скрипта при исключении 'no element'")
+        self.error_no_data = ('ignore', "Остановить выполнение скрипта при исключении 'no data'")
+        self.description = ('', 'Описание скрипта')
 
     def get_dict_settings(self) -> dict:
         """ Возвращает все настройки в словаре """
-        return {var: val for var, val in self.__dict__.items()}
+        print(self.__dict__['error_no_data'][1])
+        return {var: val[0] for var, val in self.__dict__.items()}
 
     def set_settings_from_dict(self, settings_dict: dict):
         """ Перезаписывает настройки
@@ -36,9 +41,37 @@ class Settings(object):
          """
         for var, val in settings_dict.items():
             if var in self.__dict__:
-                self.__dict__[var] = type(self.__dict__[var])(val)
+                self.__dict__[var] = (type(self.__dict__[var][0])(val), self.__dict__[var][1])
             else:
-                self.__dict__[var] = val
+                self.__dict__[var] = (val, self.__dict__[var][1])
+
+    def __getattribute__(self, name):
+        print(type(self).__name__, '--', name)
+        if type(self).__name__ == name:
+            print("Internal call")
+        if isinstance(object.__getattribute__(self, name), tuple):
+            return object.__getattribute__(self, name)[0]
+        return object.__getattribute__(self, name)
+
+    def test(self):
+        window = Tk()
+        window.title("Проверка")
+        a = FieldInt(window, text='Надпись', x=30, y=50, func_event=self.test_event)
+        window.mainloop()
+
+    def test_event(self, event):
+        print(self, event)
 
 
-settings = Settings()
+
+a = Settings()
+a.test()
+
+
+# settings = Settings()
+# print(settings.get_dict_settings())
+# settings.set_settings_from_dict({'key_pause': 4, 'click_pause': 4})
+# print(settings.get_dict_settings())
+# print(settings.key_pause)
+
+
