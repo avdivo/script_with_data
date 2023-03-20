@@ -81,7 +81,7 @@ class FieldStr(FieldInt):
     """
 
     def is_valid(self, val):
-        """ Пускает только целое число или пустую строку """
+        """ Пропускает строку с заданными параметрами """
 
         for i in self.black_list:
             if i in val:
@@ -106,7 +106,7 @@ class FieldFloat(FieldInt):
     """
 
     def is_valid(self, val):
-        """ Пускает только целое число или с точкой между цифрами """
+        """ Пускает целое число, дробное, пустую строку """
 
         if not val:
             return True  # Строка может быть пустой
