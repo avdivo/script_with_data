@@ -5,7 +5,7 @@ import re
 from tkinter import *
 
 
-class DataInput():
+class DataInput:
     """ Базовый класс
 
      В зависимости от типа принимаемых данных создает объект (виджет)
@@ -13,26 +13,45 @@ class DataInput():
      Валидирует ввод, запускает переданную функцию по определенному событию.
 
      """
-    def __init__(self, **kvargs):
-
-        # Параметры по умолчанию
-        self.x = self.y = 0
-        self.width = 5
-        self.length = 1000
-        self.black_list = ''
-        self.func_event = None
-
-        # Создаем атрибуты всех присланных параметров
-        for key, val in kvargs.items():
-            self.__dict__[key] = val
-
-        self.obj = None  # Сюда сохраняем объект виджета
 
     def widget_event(self, event):
         """ Определяет одно (нужное для работы) событие и выполняет функцию назначенную при создании объекта"""
         return self.func_event(event)
 
+    @classmethod
+    def CreateInput(cls, root, type='str', x=0, y=0, width=20, length=30, func_event=None, black_list='',
+                    value=None, cast=[]):
+        """ Общий интерфейс для всех типов полей ввода
 
+        Параметры:
+        root - родительский виджет
+        type - тип поля текстом
+        x, y - координаты на родительском виджета
+        width - ширина виджета в символах
+        length - ограничение по длине
+        func_event - функция, обрабатывающая нажатие Enter (или другое событие ввода)
+        black_list - список запрещенных символов (для строк)
+        value - значение при инициализации
+        cast - список значений для ComboBox
+
+        """
+        # Установка параметров
+        cls.root = root
+        cls.type = type
+        cls.x = x
+        cls.y = y
+        cls.width = width
+        cls.length = length
+        cls.func_event = func_event
+        cls.black_list = black_list
+        cls.value = value
+        cls.cast = cast
+        cls.obj = None  # Сюда сохраняем объект виджета
+
+        if type == 'int':
+            return FieldInt()
+
+    # Источник: https: // pythonstart.ru / osnovy / classmethod - staticmethod - python
 class FieldInt(DataInput):
     """ Ввод целых чисел
 
@@ -43,28 +62,29 @@ class FieldInt(DataInput):
     length - ограничение по длине
     func_event - функция, обрабатывающая нажатие Enter
 
+
     """
 
-    def __init__(self, root, **kvargs):
-        super().__init__(**kvargs)
+    def __init__(self):
+        super().__init__()
 
-        check = (root.register(self.is_valid), "%P")  # Назначаем функцию валидации
+        check = (self.root.register(self.is_valid), "%P")  # Назначаем функцию валидации
 
-        en = Entry(root, width=kvargs['width'], validate="key", validatecommand=check)
-        en.place(x=kvargs['x'], y=kvargs['y'])
+        en = Entry(self.root, width=self.width, validate="key", validatecommand=check)
+        en.place(x=self.x, y=self.y)
 
         en.bind('<Return>', self.func_event)  # Ловим нажатие Enter
 
     def is_valid(self, val):
         """ Пускает только целое число или пустую строку """
-
+        print(val)
         if not val:
             return True  # Строка может быть пустой
 
         if len(val) > self.length:
             return False  # Недопустимая длина
 
-        return re.fullmatch('\d+', val)  # Строка состоит только из цифр
+        return bool(re.fullmatch(r'\d+', val))  # Строка состоит только из цифр
 
 
 class FieldStr(FieldInt):
@@ -114,6 +134,6 @@ class FieldFloat(FieldInt):
         if len(val) > self.length:
             return False  # Недопустимая длина
 
-        return re.fullmatch('^\d+(?:[\.,]\d*)?$', val) # Пропускает целые и дробные числа
+        return bool(re.fullmatch(r'^\d+(?:[\.,]\d*)?$', val))  # Пропускает целые и дробные числа
 
 

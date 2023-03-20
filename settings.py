@@ -56,7 +56,7 @@ class Settings(object):
     def test(self):
         window = Tk()
         window.title("Проверка")
-        a = FieldFloat(window, x=30, y=50, width=10, length=5, func_event=self.test_event)
+        a = DataInput.CreateInput(window, type='int', x=30, y=50, width=5, length=4, func_event=self.test_event)
         window.mainloop()
 
     def test_event(self, event):
@@ -69,11 +69,9 @@ class Settings(object):
 a = Settings()
 a.test()
 
-
 # settings = Settings()
 # print(settings.get_dict_settings())
 # settings.set_settings_from_dict({'key_pause': 4, 'click_pause': 4})
 # print(settings.get_dict_settings())
 # print(settings.key_pause)
-
 
