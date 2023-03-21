@@ -48,8 +48,9 @@ class DataInput:
         cls.cast = cast
         cls.obj = None  # Сюда сохраняем объект виджета
 
-        if type == 'int':
-            return FieldInt()
+        class_name = f'Field{type.capitalize()}'  # Формируем имя класса из типа переменной
+        required_class = globals()[class_name]
+        return required_class()
 
     # Источник: https: // pythonstart.ru / osnovy / classmethod - staticmethod - python
 class FieldInt(DataInput):
@@ -137,3 +138,43 @@ class FieldFloat(FieldInt):
         return bool(re.fullmatch(r'^\d+(?:[\.,]\d*)?$', val))  # Пропускает целые и дробные числа
 
 
+class FieldBool(DataInput):
+    """ Ввод логического значения
+
+    Параметры:
+    root - родительский виджет
+    x, y - координаты на родительском виджете
+    width - ширина виджета в символах
+    func_event - функция, обрабатывающая нажатие Enter
+
+
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.enabled = IntVar()
+
+        en = Checkbutton(self.root, width=self.width, text="Включить", variable=self.enabled, command=self.func_event)
+        en.place(x=self.x, y=self.y)
+
+
+class Field(DataInput):
+    """ Ввод логического значения
+
+    Параметры:
+    root - родительский виджет
+    x, y - координаты на родительском виджете
+    width - ширина виджета в символах
+    func_event - функция, обрабатывающая нажатие Enter
+
+
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.enabled = IntVar()
+
+        en = Checkbutton(self.root, width=self.width, text="Включить", variable=self.enabled, command=self.func_event)
+        en.place(x=self.x, y=self.y)

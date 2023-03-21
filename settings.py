@@ -56,11 +56,11 @@ class Settings(object):
     def test(self):
         window = Tk()
         window.title("Проверка")
-        a = DataInput.CreateInput(window, type='int', x=30, y=50, width=5, length=4, func_event=self.test_event)
+        a = DataInput.CreateInput(window, type='bool', x=30, y=50, width=10, length=4, func_event=self.test_event)
         window.mainloop()
 
-    def test_event(self, event):
-        print(self, event)
+    def test_event(self):
+        print(self)
 
 # FieldInt(window, x=30, y=50, width=5, func_event=self.test_event)
 # FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)
