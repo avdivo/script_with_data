@@ -19,8 +19,7 @@ class DataInput:
         return self.func_event(event)
 
     @classmethod
-    def CreateInput(cls, root, type='str', x=0, y=0, width=20, length=30, func_event=None, black_list='',
-                    value=None, cast=[]):
+    def CreateInput(cls, root, value, x=0, y=0, width=20, length=30, func_event=None, black_list=''):
         """ Общий интерфейс для всех типов полей ввода
 
         Параметры:
@@ -32,12 +31,13 @@ class DataInput:
         func_event - функция, обрабатывающая нажатие Enter (или другое событие ввода)
         black_list - список запрещенных символов (для строк)
         value - значение при инициализации
-        cast - список значений для ComboBox
 
         """
+
+
         # Установка параметров
         cls.root = root
-        cls.type = type
+        cls.type = type(value)
         cls.x = x
         cls.y = y
         cls.width = width
@@ -45,10 +45,9 @@ class DataInput:
         cls.func_event = func_event
         cls.black_list = black_list
         cls.value = value
-        cls.cast = cast
         cls.obj = None  # Сюда сохраняем объект виджета
 
-        class_name = f'Field{type.capitalize()}'  # Формируем имя класса из типа переменной
+        class_name = f'Field{type(value).__name__.capitalize()}'  # Формируем имя класса из типа переменной
         required_class = globals()[class_name]
         return required_class()
 
@@ -62,7 +61,7 @@ class FieldInt(DataInput):
     width - ширина виджета в символах
     length - ограничение по длине
     func_event - функция, обрабатывающая нажатие Enter
-
+    value - значение при инициализации
 
     """
 
@@ -71,14 +70,14 @@ class FieldInt(DataInput):
 
         check = (self.root.register(self.is_valid), "%P")  # Назначаем функцию валидации
 
-        en = Entry(self.root, width=self.width, validate="key", validatecommand=check)
+        self.value = StringVar(value=self.value)  # Переменная хранящая введенный текст
+        en = Entry(self.root, width=self.width, validate="key", validatecommand=check, textvariable=self.value)
         en.place(x=self.x, y=self.y)
 
         en.bind('<Return>', self.func_event)  # Ловим нажатие Enter
 
     def is_valid(self, val):
         """ Пускает только целое число или пустую строку """
-        print(val)
         if not val:
             return True  # Строка может быть пустой
 
@@ -159,8 +158,11 @@ class FieldBool(DataInput):
         en.place(x=self.x, y=self.y)
 
 
-class Field(DataInput):
-    """ Ввод логического значения
+class FieldLlist(DataInput):
+    """ Ввод имени метки в скрипте
+
+    Для хранения метки используется специальный тип данных llist
+    он предоставляет список всех меток, а его экземпляры хранят выбранные метки
 
     Параметры:
     root - родительский виджет

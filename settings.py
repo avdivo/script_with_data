@@ -56,7 +56,8 @@ class Settings(object):
     def test(self):
         window = Tk()
         window.title("Проверка")
-        a = DataInput.CreateInput(window, type='bool', x=30, y=50, width=10, length=4, func_event=self.test_event)
+        a = DataInput.CreateInput(window, 0.25, x=30, y=50, width=10,
+                                  length=4, func_event=self.test_event)
         window.mainloop()
 
     def test_event(self):
