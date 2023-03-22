@@ -25,13 +25,16 @@ class DataInput:
 
         Параметры:
         root - родительский виджет
-        type - тип поля текстом
         x, y - координаты на родительском виджета
         width - ширина виджета в символах
         length - ограничение по длине
         func_event - функция, обрабатывающая нажатие Enter (или другое событие ввода)
         black_list - список запрещенных символов (для строк)
         value - значение при инициализации
+
+        Вывод данных:
+        свойство value каждого объекта содержит результат ввода данных,
+        свойство widget каждого объекта - доступ к выведенному виджету
 
         """
 
@@ -46,7 +49,6 @@ class DataInput:
         cls.func_event = func_event
         cls.black_list = black_list
         cls.value = value
-        cls.obj = None  # Сюда сохраняем объект виджета
 
         class_name = f'Field{type(value).__name__.capitalize()}'  # Формируем имя класса из типа переменной
         required_class = globals()[class_name]
@@ -204,6 +206,24 @@ class FieldLEres(DataInput):
 
     def __init__(self):
         super().__init__()
+
+        # Выбор реакции
+        self.selected_react = StringVar(value=self.value.react)
+
+        long = len(max(self.value.react_list, key=len))
+        combobox = ttk.Combobox(self.root, values=self.value.react_list,
+                                textvariable=self.selected_react, state="readonly")
+        combobox.place(x=self.x, y=self.y)
+
+        combobox.configure(width=long)
+        combobox.bind("<<ComboboxSelected>>", self.change_react)
+
+        # Выбор метки
+        DataInput.CreateInput((self.root, llist('name 4'), x=30, y=50, width=10,
+                                  length=4, func_event=self.test_event)
+
+    def change_react(self):
+        if self.
 
         self.selected = StringVar(value=self.value)
 
