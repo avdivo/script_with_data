@@ -8,7 +8,7 @@
 from tkinter import *
 
 from data_input import DataInput, FieldInt, FieldStr, FieldFloat
-from data_types import llist
+from data_types import llist, eres
 
 
 class Settings(object):
@@ -48,7 +48,6 @@ class Settings(object):
                 self.__dict__[var] = (val, self.__dict__[var][1])
 
     def __getattribute__(self, name):
-        print(type(self).__name__, '--', name)
         if type(self).__name__ == name:
             print("Internal call")
         if isinstance(object.__getattribute__(self, name), tuple):
@@ -58,12 +57,12 @@ class Settings(object):
     def test(self):
         window = Tk()
         window.title("Проверка")
-        self.a = DataInput.CreateInput(window, 120, x=30, y=50, width=10,
+        self.a = DataInput.CreateInput(window, eres('stop:'), x=30, y=50, width=10,
                                   length=4, func_event=self.test_event)
         window.mainloop()
 
-    def test_event(self, event):
-        print(self.a.value)
+    def test_event(self, event=None):
+        print(self.a.result)
 
 # FieldInt(window, x=30, y=50, width=5, func_event=self.test_event)
 # FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)

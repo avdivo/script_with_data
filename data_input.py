@@ -6,6 +6,8 @@ from tkinter import *
 from tkinter import ttk
 import tkinter.font as tkfont
 
+from data_types import llist
+
 class DataInput:
     """ Базовый класс
 
@@ -18,6 +20,11 @@ class DataInput:
     def widget_event(self, event):
         """ Определяет одно (нужное для работы) событие и выполняет функцию назначенную при создании объекта"""
         return self.func_event(event)
+
+    @property
+    def result(self):
+        """ Возвращает результат нужного типа """
+        return self.type(self.value.get())
 
     @classmethod
     def CreateInput(cls, root, value, x=0, y=0, width=20, length=30, func_event=None, black_list=''):
@@ -74,10 +81,10 @@ class FieldInt(DataInput):
         check = (self.root.register(self.is_valid), "%P")  # Назначаем функцию валидации
 
         self.value = StringVar(value=self.value)  # Переменная хранящая введенный текст
-        en = Entry(self.root, width=self.width, validate="key", validatecommand=check, textvariable=self.value)
-        en.place(x=self.x, y=self.y)
+        self.widget = Entry(self.root, width=self.width, validate="key", validatecommand=check, textvariable=self.value)
+        self.widget.place(x=self.x, y=self.y)
 
-        en.bind('<Return>', self.func_event)  # Ловим нажатие Enter
+        self.widget.bind('<Return>', self.func_event)  # Ловим нажатие Enter
 
     def is_valid(self, val):
         """ Пускает только целое число или пустую строку """
@@ -88,6 +95,10 @@ class FieldInt(DataInput):
             return False  # Недопустимая длина
 
         return bool(re.fullmatch(r'\d+', val))  # Строка состоит только из цифр
+
+    @property
+    def result(self):
+        return self.type(self.value.get())
 
 
 class FieldStr(FieldInt):
@@ -156,8 +167,8 @@ class FieldBool(DataInput):
 
         self.value = IntVar(value=self.value)
 
-        en = Checkbutton(self.root, width=self.width, variable=self.value, command=self.func_event)
-        en.place(x=self.x, y=self.y)
+        self.widget = Checkbutton(self.root, width=self.width, variable=self.value, command=self.func_event)
+        self.widget.place(x=self.x, y=self.y)
 
 
 class FieldLlist(DataInput):
@@ -175,18 +186,23 @@ class FieldLlist(DataInput):
 
     def __init__(self):
         super().__init__()
-        self.selected = StringVar(value=self.value)
 
-        long = len(max(self.value.labels, key=len))
-        combobox = ttk.Combobox(self.root, values=self.value.labels,
-                                textvariable=self.selected, state="readonly")
-        combobox.place(x=self.x, y=self.y)
+        values = self.value.labels  # Список для вывода
+        self.value = StringVar(value=self.value)
+        long = len(max(values, key=len))  # Длина самого длинного элемента, для задания ширин виджета
 
-        combobox.configure(width=long)
-        combobox.bind("<<ComboboxSelected>>", self.func_event)
+        self.widget = ttk.Combobox(self.root, values=values, textvariable=self.value, state="readonly")
+        self.widget.place(x=self.x, y=self.y)
+
+        self.widget.configure(width=long)
+        self.widget.bind("<<ComboboxSelected>>", self.func_event)
+
+    def update(self, value: llist):
+        """ Обновляем список, выставляя новое значение """
+        self.value.set(value.label)
 
 
-class FieldLEres(DataInput):
+class FieldEres(DataInput):
     """ Выбор реакции на ошибку
 
     Могут быть 3 типа реакции на ошибку:
@@ -219,16 +235,26 @@ class FieldLEres(DataInput):
         combobox.bind("<<ComboboxSelected>>", self.change_react)
 
         # Выбор метки
-        DataInput.CreateInput((self.root, llist('name 4'), x=30, y=50, width=10,
-                                  length=4, func_event=self.test_event)
+        self.widget = DataInput.CreateInput(self.root, self.value.label, x=self.x+70, y=self.y,
+                                            func_event=self.func_event)
 
-    def change_react(self):
-        if self.
+        self.change_react(None)  # Вызов функции реакции на изменение первого списка, чтобы задать активность второго
 
-        self.selected = StringVar(value=self.value)
+    def change_react(self, event):
+        """ Реакция на изменение первого списка
 
-        combobox = ttk.Combobox(self.root, values=self.value.labels, textvariable=self.selected, state="readonly")
-        combobox.place(x=self.x, y=self.y)
-
-        combobox.bind("<<ComboboxSelected>>", self.func_event)
-
+        При инициализации значение приходит типа eres, это значение будет и на выходе.
+        Эта функция меняет значение вошедшей переменной, второй список в ней тоже меняется,
+        затем обновляет второй виджет.
+        И в соответствии с логикой типа eres активирует или деактивирует второй виджет. """
+        self.value.react = self.selected_react.get()
+        self.widget.update(self.value)
+        if self.value.react == 'run':
+            self.widget.widget['state'] = 'readonly'
+        else:
+            self.widget.widget['state'] = 'disabled'
+            # self.func_event()
+    @property
+    def result(self):
+        """ Возвращает результат нужного типа, переопределение метода родительского класса """
+        return self.value

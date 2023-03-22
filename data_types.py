@@ -52,11 +52,31 @@ class eres:
         react, label = sting.split(':')
         if react not in self.react_list:
             raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
-        self.label = llist(label)  # Тип данных - метки
-        self.react = react
+        self._label = llist(label)  # Тип данных - метки
+        self._react = react
 
     def __str__(self):
-        return f'{self.react}:{self.label}'
+        return f'{self._react}:{self._label} ====='
+
+    @property
+    def react(self):
+        return self._react
+
+    @property
+    def label(self):
+        return self._label
+
+    @react.setter
+    def react(self, react: str):
+        if react not in self.react_list:
+            raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
+        self._react = react
+        self.label = ''  # Тип данных - метки
+
+    @label.setter
+    def label(self, label: str):
+        self._label = llist(label)  # Тип данных - метки
+
 
 llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
 a = llist()
