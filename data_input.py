@@ -3,7 +3,8 @@
 
 import re
 from tkinter import *
-
+from tkinter import ttk
+import tkinter.font as tkfont
 
 class DataInput:
     """ Базовый класс
@@ -146,15 +147,14 @@ class FieldBool(DataInput):
     width - ширина виджета в символах
     func_event - функция, обрабатывающая нажатие Enter
 
-
     """
 
     def __init__(self):
         super().__init__()
 
-        self.enabled = IntVar()
+        self.value = IntVar(value=self.value)
 
-        en = Checkbutton(self.root, width=self.width, text="Включить", variable=self.enabled, command=self.func_event)
+        en = Checkbutton(self.root, width=self.width, variable=self.value, command=self.func_event)
         en.place(x=self.x, y=self.y)
 
 
@@ -167,16 +167,48 @@ class FieldLlist(DataInput):
     Параметры:
     root - родительский виджет
     x, y - координаты на родительском виджете
-    width - ширина виджета в символах
     func_event - функция, обрабатывающая нажатие Enter
 
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.selected = StringVar(value=self.value)
+
+        long = len(max(self.value.labels, key=len))
+        combobox = ttk.Combobox(self.root, values=self.value.labels,
+                                textvariable=self.selected, state="readonly")
+        combobox.place(x=self.x, y=self.y)
+
+        combobox.configure(width=long)
+        combobox.bind("<<ComboboxSelected>>", self.func_event)
+
+
+class FieldLEres(DataInput):
+    """ Выбор реакции на ошибку
+
+    Могут быть 3 типа реакции на ошибку:
+    stop - остановит скрипт
+    ignore - проигнорировать ошибку
+    run - запустить скрипт с указанной метки
+    Для выбора используется 2 ComboBox списка, в первом - реакция (3 варианта),
+    во втором тип llist определяющий метку в скрипте, если в 1 списке выбран run.
+    Принимает и возвращает тип eres
+
+    Параметры:
+    root - родительский виджет
+    x, y - координаты первого виджета на родительском, второй идет справа
+    func_event - функция, обрабатывающая нажатие Enter
 
     """
 
     def __init__(self):
         super().__init__()
 
-        self.enabled = IntVar()
+        self.selected = StringVar(value=self.value)
 
-        en = Checkbutton(self.root, width=self.width, text="Включить", variable=self.enabled, command=self.func_event)
-        en.place(x=self.x, y=self.y)
+        combobox = ttk.Combobox(self.root, values=self.value.labels, textvariable=self.selected, state="readonly")
+        combobox.place(x=self.x, y=self.y)
+
+        combobox.bind("<<ComboboxSelected>>", self.func_event)
+

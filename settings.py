@@ -8,6 +8,8 @@
 from tkinter import *
 
 from data_input import DataInput, FieldInt, FieldStr, FieldFloat
+from data_types import llist
+
 
 class Settings(object):
     def __new__(cls):
@@ -56,12 +58,12 @@ class Settings(object):
     def test(self):
         window = Tk()
         window.title("Проверка")
-        a = DataInput.CreateInput(window, 0.25, x=30, y=50, width=10,
+        a = DataInput.CreateInput(window, llist('name 4'), x=30, y=50, width=10,
                                   length=4, func_event=self.test_event)
         window.mainloop()
 
-    def test_event(self):
-        print(self)
+    def test_event(self, event):
+        print(event)
 
 # FieldInt(window, x=30, y=50, width=5, func_event=self.test_event)
 # FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)

@@ -16,8 +16,8 @@ class llist:
 
     labels = []
 
-    def __init__(self, label=None):
-        if label not in self.labels:
+    def __init__(self, label=''):
+        if label and label not in self.labels:
             raise ValueError(f'Неверное значение. Mетка "{label}" отсутствует в списке.')
         self.label = label
 
@@ -58,6 +58,6 @@ class eres:
     def __str__(self):
         return f'{self.react}:{self.label}'
 
-llist.set_list(['name'])
-a = llist('name')
-print(type(a).__name__)
+llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
+a = llist()
+print(a)
