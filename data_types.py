@@ -56,7 +56,7 @@ class eres:
         self._react = react
 
     def __str__(self):
-        return f'{self._react}:{self._label} ====='
+        return f'{self._react}:{self._label}'
 
     @property
     def react(self):
@@ -74,8 +74,8 @@ class eres:
         self.label = ''  # Тип данных - метки
 
     @label.setter
-    def label(self, label: str):
-        self._label = llist(label)  # Тип данных - метки
+    def label(self, label: llist):
+        self._label = label  # Тип данных - метки
 
 
 llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])

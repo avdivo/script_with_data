@@ -17,6 +17,19 @@ class DataInput:
 
      """
 
+    def __init__(self, root, value, x, y, func_event, black_list='', width=None, length=None):
+
+        # Установка параметров
+        self.root = root
+        self.type = type(value)
+        self.x = x
+        self.y = y
+        self.width = width
+        self.length = length
+        self.func_event = func_event
+        self.black_list = black_list
+        self.value = value
+
     def widget_event(self, event):
         """ Определяет одно (нужное для работы) событие и выполняет функцию назначенную при создании объекта"""
         return self.func_event(event)
@@ -27,7 +40,7 @@ class DataInput:
         return self.type(self.value.get())
 
     @classmethod
-    def CreateInput(cls, root, value, x=0, y=0, width=20, length=30, func_event=None, black_list=''):
+    def CreateInput(cls, root, value, width=None, length=None, x=0, y=0, func_event=None, black_list=''):
         """ Общий интерфейс для всех типов полей ввода
 
         Параметры:
@@ -45,21 +58,10 @@ class DataInput:
 
         """
 
-
-        # Установка параметров
-        cls.root = root
-        cls.type = type(value)
-        cls.x = x
-        cls.y = y
-        cls.width = width
-        cls.length = length
-        cls.func_event = func_event
-        cls.black_list = black_list
-        cls.value = value
-
         class_name = f'Field{type(value).__name__.capitalize()}'  # Формируем имя класса из типа переменной
         required_class = globals()[class_name]
-        return required_class()
+        return required_class(root, value, x=x, y=y, func_event=func_event,
+                              black_list=black_list, width=width, length=length)
 
     # Источник: https: // pythonstart.ru / osnovy / classmethod - staticmethod - python
 class FieldInt(DataInput):
@@ -75,8 +77,13 @@ class FieldInt(DataInput):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, root, value, x, y, func_event, black_list, width, length):
+        super().__init__(root, value, x=x, y=y, func_event=func_event, black_list=black_list,
+                         width=width, length=length)
+
+        # Если значения не заданы, определяем по умолчанию
+        self.width = width if width else 6
+        self.length = length if length else 6
 
         check = (self.root.register(self.is_valid), "%P")  # Назначаем функцию валидации
 
@@ -162,8 +169,8 @@ class FieldBool(DataInput):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, root, value, x, y, func_event, **kwargs):
+        super().__init__(root, value, x=x, y=y, func_event=func_event)
 
         self.value = IntVar(value=self.value)
 
@@ -184,8 +191,8 @@ class FieldLlist(DataInput):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, root, value, x, y, func_event, **kwargs):
+        super().__init__(root, value, x=x, y=y, func_event=func_event)
 
         values = self.value.labels  # Список для вывода
         self.value = StringVar(value=self.value)
@@ -220,8 +227,8 @@ class FieldEres(DataInput):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, root, value, x, y, func_event, **kwargs):
+        super().__init__(root, value, x=x, y=y, func_event=func_event)
 
         # Выбор реакции
         self.selected_react = StringVar(value=self.value.react)
@@ -233,12 +240,11 @@ class FieldEres(DataInput):
 
         combobox.configure(width=long)
         combobox.bind("<<ComboboxSelected>>", self.change_react)
-
         # Выбор метки
         self.widget = DataInput.CreateInput(self.root, self.value.label, x=self.x+70, y=self.y,
-                                            func_event=self.func_event)
+                                            func_event=self.change_label)
 
-        self.change_react(None)  # Вызов функции реакции на изменение первого списка, чтобы задать активность второго
+        self.set_status_label()  # Активность второго виджета
 
     def change_react(self, event):
         """ Реакция на изменение первого списка
@@ -249,11 +255,20 @@ class FieldEres(DataInput):
         И в соответствии с логикой типа eres активирует или деактивирует второй виджет. """
         self.value.react = self.selected_react.get()
         self.widget.update(self.value)
+        self.change_label()
+        self.set_status_label()
+
+    def change_label(self, event=None):
+        self.value.label = self.widget.result
+        self.func_event()
+
+    def set_status_label(self):
+        """ Активирует/деактивирует виджет выбора метки (второй) """
         if self.value.react == 'run':
             self.widget.widget['state'] = 'readonly'
         else:
             self.widget.widget['state'] = 'disabled'
-            # self.func_event()
+
     @property
     def result(self):
         """ Возвращает результат нужного типа, переопределение метода родительского класса """
