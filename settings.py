@@ -5,9 +5,9 @@
 # Позволяет получать и менять отдельные настройки при прямом обращении к атрибуту объекта,
 # возвращать все настройки в словаре и устанавливать их из словаря.
 
-from tkinter import *
+import tkinter as tk
 
-from data_input import DataInput, FieldInt, FieldStr, FieldFloat
+from data_input import *
 from data_types import llist, eres
 
 
@@ -17,15 +17,15 @@ class Settings(object):
             cls.instance = super(Settings, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self):
+    def __init__(self, root, w=1366, h=768):
         self.key_pause = (0.1, 'Пауза между нажатием клавиш клавиатуры (после отпускания)')
         self.click_pause = (0.5, 'Пауза после клика мыши')
         self.command_pause = (0, 'Пауза между командами')
         self.confirm_element = (True, 'Убеждаться, что нужный элемент (кнопка, иконка ...) присутствует')
         self.search_attempt = (3, 'Сколько раз следует повторить паузу в 1 секунду')
         self.full_screen_search = (True, 'Производить поиск элемента на всем экране')
-        self.error_no_element = ('stop', "Остановить выполнение скрипта при исключении 'no element'")
-        self.error_no_data = ('ignore', "Остановить выполнение скрипта при исключении 'no data'")
+        self.error_no_element = (eres('stop:'), "Реакция скрипта на исключении 'Нет элемента'")
+        self.error_no_data = (eres('ignore:'), "Реакция скрипта на исключении 'Нет данных'")
         self.description = ('', 'Описание скрипта')
 
     def get_dict_settings(self) -> dict:
@@ -47,18 +47,23 @@ class Settings(object):
             else:
                 self.__dict__[var] = (val, self.__dict__[var][1])
 
-    def __getattribute__(self, name):
-        if type(self).__name__ == name:
-            print("Internal call")
-        if isinstance(object.__getattribute__(self, name), tuple):
-            return object.__getattribute__(self, name)[0]
-        return object.__getattribute__(self, name)
+    def show_window_settings(self, root, w=1366, h=768):
+        """ Отрытие окна настроек
 
-    def test(self):
-        window = Tk()
-        window.title("Проверка")
-        self.a = DataInput.CreateInput(window, eres('stop:'), x=30, y=50, func_event=self.test_event)
-        window.mainloop()
+        Аргументы: ссылка на родительское окно, ширина и высота экрана
+
+        """
+
+        top = tk.Toplevel()  # Новое окно
+        top.title("Настройки")
+        top.transient(root)  # по верх окна
+
+        # Размер окна
+        win_w = 600
+        win_h = 300
+        top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
+        top.resizable(width=False, height=False)
+        self.a = DataInput.CreateInput(top, eres('stop:'), x=30, y=50, func_event=self.test_event)
 
     def test_event(self, event=None):
         print(self.a.result)
@@ -67,12 +72,20 @@ class Settings(object):
 # FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)
 
 
-a = Settings()
-a.test()
+# a = Settings()
+# a.test()
 
 # settings = Settings()
 # print(settings.get_dict_settings())
 # settings.set_settings_from_dict({'key_pause': 4, 'click_pause': 4})
 # print(settings.get_dict_settings())
-# print(settings.key_pause)
+# print(settings.key_pause[0])
 
+# import tkinter as tk
+#
+#
+#
+# root = tk.Tk()
+# tk.Text(root, height=10, width=30).pack()  # что бы с начало отображался текст
+# root.after(100, settings.show_window_settings())   # а потом окно с фото
+# root.mainloop()

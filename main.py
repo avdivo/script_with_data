@@ -18,6 +18,8 @@ from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
 
+from settings import Settings
+
 
 # Интерфейс
 root = Tk()
@@ -33,6 +35,8 @@ win_h = 610
 root.title("Редактор скриптов")
 root.geometry(f'{win_w}x{win_h}+{(w-win_w)//2}+{(h-win_h)//2}')  # Рисуем окно
 
+settings = Settings()  # Создание объекта настроек
+
 # Меню
 mainmenu = Menu(root)
 root.config(menu=mainmenu)
@@ -47,10 +51,9 @@ filemenu.add_command(label="Источник данных")
 filemenu.add_separator()
 filemenu.add_command(label="Выход")
 
-mainmenu.add_cascade(label="Файл",
-                     menu=filemenu)
+mainmenu.add_cascade(label="Файл", menu=filemenu)
 
-mainmenu.add_cascade(label="Настройки скрипта")
+mainmenu.add_cascade(label="Настройки скрипта", compound=settings.show_window_settings)
 
 
 # Список команд скрипта ------------------------------
