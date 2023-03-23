@@ -173,10 +173,8 @@ class FieldBool(DataInput):
         super().__init__(root, value, x=x, y=y, func_event=func_event)
 
         self.value = IntVar(value=self.value)
-
-        self.widget = Checkbutton(self.root, width=self.width, variable=self.value, command=self.func_event)
+        self.widget = Checkbutton(self.root, variable=self.value, command=self.func_event)
         self.widget.place(x=self.x, y=self.y)
-
 
 class FieldLlist(DataInput):
     """ Ввод имени метки в скрипте

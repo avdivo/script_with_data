@@ -35,7 +35,8 @@ win_h = 610
 root.title("Редактор скриптов")
 root.geometry(f'{win_w}x{win_h}+{(w-win_w)//2}+{(h-win_h)//2}')  # Рисуем окно
 
-settings = Settings()  # Создание объекта настроек
+# Создание объекта настроек, передаем ему ссылку на родительское окно и разрешение экрана
+settings = Settings()
 
 # Меню
 mainmenu = Menu(root)
@@ -53,8 +54,8 @@ filemenu.add_command(label="Выход")
 
 mainmenu.add_cascade(label="Файл", menu=filemenu)
 
-mainmenu.add_cascade(label="Настройки скрипта", compound=settings.show_window_settings)
-
+mainmenu.add_command(label="Настройки скрипта",
+                     command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
 
 # Список команд скрипта ------------------------------
 
