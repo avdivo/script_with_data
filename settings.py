@@ -7,10 +7,11 @@
 import tkinter as tk
 
 from data_input import *
-from data_types import llist, eres
+from data_types import eres
 
 
 class Settings(object):
+    """ Класс настроек """
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Settings, cls).__new__(cls)
@@ -36,13 +37,13 @@ class Settings(object):
     def set_settings_from_dict(self, settings_dict: dict):
         """ Перезаписывает настройки
 
-         Принимает словарь с настройками в текстовом виде. Настройки (ключи) из словаря находятся в названиях
+         Принимает словарь с настройками. Настройки (ключи) из словаря находятся в названиях
          атрибутов, если атрибут найден, ему присваивается новое значение из словаря, но оно приводится к
          прежнему типу атрибута. Если такого атрибута не было, создается новый, с текстовым типом.
 
          """
         for var, val in settings_dict.items():
-            if var[:2] == 's_':
+            if var[:2] != 's_':
                 continue  # Пропускаем, если атрибут не настройка
 
             if var in self.__dict__:
@@ -58,38 +59,37 @@ class Settings(object):
 
     def show_window_settings(self, root, w, h):
         """ Отрытие окна настроек """
-        top = tk.Toplevel()  # Новое окно
-        top.title("Настройки")
-        top.transient(root)  # по верх окна
+        self.top = tk.Toplevel()  # Новое окно
+        self.top.title("Настройки")
+        self.top.transient(root)  # по верх окна
 
         # Размер окна
         win_w = 700
         win_h = 300
-        top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
-        top.resizable(width=False, height=False)
+        self.top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
+        self.top.resizable(width=False, height=False)
 
         # Вывод настроек в окно, запоминаем возвращаемые объекты, чтоб собрать настройки после подтверждения
         self.obj = dict()
         start = 20
         for var, val in self.__dict__.items():
             if var[:2] != 's_':
-                continue
-            Label(top, text=self.__dict__[var][1]).place(x=20, y=start)  # Название настройки
+                continue  # Обработка только настроек
+            Label(self.top, text=self.__dict__[var][1]).place(x=20, y=start)  # Название настройки
             if var == 's_description':
-                print(var)
-                self.obj[var] = DataInput.CreateInput(top, val[0], x=195, y=start, width=50, length=50,
-                                                 func_event=lambda *args, var=var: self.func_event(args, var))  # Для описания отдельно
+                self.obj[var] = DataInput.CreateInput(self.top, val[0], x=195, y=start, width=50, length=50,
+                                func_event=lambda *args, var=var: self.func_event(args, var))  # Для описания отдельно
             else:
-                self.obj[var] = DataInput.CreateInput(top, val[0], x=430, y=start,
-                                                 func_event=lambda *args, var=var: self.func_event(args, var))  # Виджет настройки
+                self.obj[var] = DataInput.CreateInput(self.top, val[0], x=430, y=start,
+                                func_event=lambda *args, var=var: self.func_event(args, var))  # Виджет настройки
             start += 25
 
-        Button(top, command=self.save, text='Сохранить').place(x=585, y=start+15)
+        Button(self.top, command=self.save, text='Сохранить').place(x=585, y=start+15)
 
-        top.transient(root)
-        top.grab_set()
-        top.focus_set()
-        top.wait_window()
+        self.top.transient(root)
+        self.top.grab_set()
+        self.top.focus_set()
+        self.top.wait_window()
 
     def func_event(self, *args):
         """ Результат в виджете печатает при событии """
@@ -97,26 +97,8 @@ class Settings(object):
 
     def save(self):
         """ Сохранение настроек в объекте """
-        for var, val in self.obj:
+        for var, val in self.obj.items():
+            self.obj[var] = val.result  # Собираем результаты настроек
+        self.set_settings_from_dict(self.obj)  # Эта же функция используется при чтении настроек из файла
+        self.top.destroy()  # Закрытие окна
 
-# FieldInt(window, x=30, y=50, width=5, func_event=self.test_event)
-# FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)
-
-
-# a = Settings()
-# a.test()
-
-# settings = Settings()
-# print(settings.get_dict_settings())
-# settings.set_settings_from_dict({'key_pause': 4, 'click_pause': 4})
-# print(settings.get_dict_settings())
-# print(settings.key_pause[0])
-
-# import tkinter as tk
-#
-#
-#
-# root = tk.Tk()
-# tk.Text(root, height=10, width=30).pack()  # что бы с начало отображался текст
-# root.after(100, settings.show_window_settings())   # а потом окно с фото
-# root.mainloop()

@@ -47,13 +47,25 @@ class eres:
     """
 
     react_list = ['stop', 'ignore', 'run']
+    def __new__(cls, arg):
+        """ Позволяем принимать аргументы своего типа, при этом не создавая новый объект """
+        if isinstance(arg, cls):
+            return arg
+        else:
+            return super().__new__(cls)
 
-    def __init__(self, string: str):
-        react, label = string.split(':')
-        if react not in self.react_list:
-            raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
-        self._label = llist(label)  # Тип данных - метки
-        self._react = react
+    def __init__(self, string):
+        if isinstance(string, str):
+            # Принимает только данные типа str для создания объекта
+            if ':' not in string:
+                raise ValueError('Неверное значение. Нет разделителя ":".')
+            react, label = string.split(':')
+            if react not in self.react_list:
+                raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
+            self._label = llist(label)  # Тип данных - метки
+            self._react = react
+        elif not isinstance(string, eres):
+            raise ValueError(f'Тип данных "{type(string).__name__}" не поддерживается.')
 
     def __str__(self):
         return f'{self._react}:{self._label}'
@@ -78,7 +90,7 @@ class eres:
         self._label = label  # Тип данных - метки
 
 
-# llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
+llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
 # a = llist()
 # print(a)
 
