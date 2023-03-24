@@ -69,24 +69,31 @@ class Settings(object):
         top.resizable(width=False, height=False)
 
         # Вывод настроек в окно, запоминаем возвращаемые объекты, чтоб собрать настройки после подтверждения
-        obj = {}
+        self.obj = dict()
         start = 20
         for var, val in self.__dict__.items():
             if var[:2] != 's_':
                 continue
             Label(top, text=self.__dict__[var][1]).place(x=20, y=start)  # Название настройки
             if var == 's_description':
-                DataInput.CreateInput(top, val[0], x=195, y=start, width=50, length=50)  # Для описания отдельно
+                print(var)
+                self.obj[var] = DataInput.CreateInput(top, val[0], x=195, y=start, width=50, length=50,
+                                                 func_event=lambda *args, var=var: self.func_event(args, var))  # Для описания отдельно
             else:
-                DataInput.CreateInput(top, val[0], x=430, y=start)  # Виджет настройки
+                self.obj[var] = DataInput.CreateInput(top, val[0], x=430, y=start,
+                                                 func_event=lambda *args, var=var: self.func_event(args, var))  # Виджет настройки
             start += 25
 
         Button(top, command='', text='Сохранить').place(x=585, y=start+15)
 
+        top.transient(root)
+        top.grab_set()
+        top.focus_set()
+        top.wait_window()
 
-
-    def test_event(self, event=None):
-        print(self.a.result)
+    def func_event(self, *args):
+        """ Результат в виджете печатает при событии """
+        print(self.obj[args[1]].result)
 
 # FieldInt(window, x=30, y=50, width=5, func_event=self.test_event)
 # FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)

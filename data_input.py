@@ -37,7 +37,12 @@ class DataInput:
     @property
     def result(self):
         """ Возвращает результат нужного типа """
-        return self.type(self.value.get())
+        try:
+            res = self.type(self.value.get())
+        except ValueError:
+            # При типе int и float пустая строка выдает ошибку
+            res = self.type(0)
+        return res
 
     @classmethod
     def CreateInput(cls, root, value, width=None, length=None, x=0, y=0, func_event=None, black_list=''):
@@ -102,10 +107,6 @@ class FieldInt(DataInput):
             return False  # Недопустимая длина
 
         return bool(re.fullmatch(r'\d+', val))  # Строка состоит только из цифр
-
-    @property
-    def result(self):
-        return self.type(self.value.get())
 
 
 class FieldStr(FieldInt):
