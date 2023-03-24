@@ -84,7 +84,7 @@ class Settings(object):
                                                  func_event=lambda *args, var=var: self.func_event(args, var))  # Виджет настройки
             start += 25
 
-        Button(top, command='', text='Сохранить').place(x=585, y=start+15)
+        Button(top, command=self.save, text='Сохранить').place(x=585, y=start+15)
 
         top.transient(root)
         top.grab_set()
@@ -94,6 +94,10 @@ class Settings(object):
     def func_event(self, *args):
         """ Результат в виджете печатает при событии """
         print(self.obj[args[1]].result)
+
+    def save(self):
+        """ Сохранение настроек в объекте """
+        for var, val in self.obj:
 
 # FieldInt(window, x=30, y=50, width=5, func_event=self.test_event)
 # FieldStr(window, x=30, y=50, width=5, length=3, black_list='1', func_event=self.test_event)

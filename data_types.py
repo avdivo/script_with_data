@@ -48,8 +48,8 @@ class eres:
 
     react_list = ['stop', 'ignore', 'run']
 
-    def __init__(self, sting: str):
-        react, label = sting.split(':')
+    def __init__(self, string: str):
+        react, label = string.split(':')
         if react not in self.react_list:
             raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
         self._label = llist(label)  # Тип данных - метки
@@ -78,6 +78,7 @@ class eres:
         self._label = label  # Тип данных - метки
 
 
-llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
-a = llist()
-print(a)
+# llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
+# a = llist()
+# print(a)
+
