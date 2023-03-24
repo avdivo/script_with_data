@@ -61,7 +61,7 @@ class Settings(object):
         """ Отрытие окна настроек """
         self.top = tk.Toplevel()  # Новое окно
         self.top.title("Настройки")
-        self.top.transient(root)  # по верх окна
+        self.top.transient(root)  # Поверх окна
 
         # Размер окна
         win_w = 700
