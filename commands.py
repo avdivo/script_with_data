@@ -51,7 +51,15 @@ class MouseClickLeft:
 
         # Изображение элемента
         self.element_image = PhotoImage(file=self.image)
-        element_button = Button(self.root, command='', image=self.element_image, width=96, height=96, relief=FLAT)
+        element_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96, relief=FLAT)
         element_button.place(x=273, y=5)
         ToolTip(element_button, msg="Изображение элемента", delay=0.5)
 
+    def load_image(self):
+        """ Загрузка изображения элемента """
+        self.image = fd.askopenfilename(
+            filetypes=(("image", "*.jpg;*.png"),
+                       ("All files", "*.*")))
+        if self.image:
+            print(self.image)
+            self.element_image = PhotoImage(file=self.image)

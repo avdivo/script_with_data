@@ -205,7 +205,7 @@ delete_button.place(x=602, y=win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
-a = MouseClickLeft(*[5, 7, "elements/elem_230228_163525.png"], root=frame2)
+a = MouseClickLeft(*[7, 7, "elements/elem_230228_163525.png"], root=frame2)
 
 
 
