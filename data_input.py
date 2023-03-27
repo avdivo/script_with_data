@@ -7,7 +7,6 @@
 import re
 from tkinter import *
 from tkinter import ttk
-import tkinter.font as tkfont
 
 from data_types import llist
 

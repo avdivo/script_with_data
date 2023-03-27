@@ -21,13 +21,12 @@
 Он передается методам объектов команд в качестве аргумента.
 
 """
-
-
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
 
 from settings import Settings
+from commands import *
 
 
 # Интерфейс
@@ -132,16 +131,16 @@ comment.place(x=5, y=37)
 ToolTip(comment, msg="Комментарий", delay=0.5)
 
 # Поля ввода
-Label(frame2, text='x=').place(x=10, y=71)
-Entry(frame2, width=5).place(x=34, y=71)
-Label(frame2, text='y=').place(x=100, y=71)
-Entry(frame2, width=5).place(x=124, y=71)
+# Label(frame2, text='x=').place(x=10, y=71)
+# Entry(frame2, width=5).place(x=34, y=71)
+# Label(frame2, text='y=').place(x=100, y=71)
+# Entry(frame2, width=5).place(x=124, y=71)
 
 # Изображение элемента
 element_image = PhotoImage(file="elements/elem_230228_163525.png")
-element_button = Button(frame2, command='', image=element_image, width=96, height=96, relief=FLAT)
-element_button.place(x=273, y=5)
-ToolTip(element_button, msg="Изображение элемента", delay=0.5)
+# element_button = Button(frame2, command='', image=element_image, width=96, height=96, relief=FLAT)
+# element_button.place(x=273, y=5)
+# ToolTip(element_button, msg="Изображение элемента", delay=0.5)
 
 # Кнопки
 icon4 = PhotoImage(file="icon/new.png")
@@ -205,8 +204,8 @@ delete_button = Button(root, command='', image=icon11, width=160, height=34)
 delete_button.place(x=602, y=win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
-# Label(frame1, text='Источник данных', anchor="w").place(x=0, y=0)
 
+a = MouseClickLeft(frame2)
 
 
 

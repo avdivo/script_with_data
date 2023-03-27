@@ -31,3 +31,10 @@ class DataForWorer:
         self.data_source = dict()  # Источник данных
         self.pointers_data_source = dict()  # Указатели на позицию чтения из поля
 
+        self.func_execute_command = None  # Функция выполняющая 1 команду макроса
+
+    def next_id(self):
+        """ Генерирует id новой команды """
+        self.id_command += 1
+        return f'cmd{self.id_command}'
+
