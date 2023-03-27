@@ -26,7 +26,7 @@ from tkinter import ttk
 from tktooltip import ToolTip
 
 from settings import Settings
-from commands import *
+from commands import MouseClickLeft
 
 
 # Интерфейс
@@ -205,7 +205,7 @@ delete_button.place(x=602, y=win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
-a = MouseClickLeft(frame2)
+a = MouseClickLeft(*[5, 7, "elements/elem_230228_163525.png"], root=frame2)
 
 
 
