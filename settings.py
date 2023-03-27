@@ -18,8 +18,10 @@ class Settings(object):
         return cls.instance
 
     def __init__(self):
+        # Настройки для программы
+        self.path_to_elements = 'elements/'  # Путь к папке с изображениями элементов интерфейса
 
-        # Все настройки начинаются с s_
+        # Все настройки скрипта начинаются с s_
         self.s_key_pause = (0.1, 'Пауза между нажатием клавиш клавиатуры')
         self.s_click_pause = (0.5, 'Пауза после клика мыши')
         self.s_command_pause = (0, 'Пауза между командами')
@@ -102,3 +104,6 @@ class Settings(object):
         self.set_settings_from_dict(self.obj)  # Эта же функция используется при чтении настроек из файла
         self.top.destroy()  # Закрытие окна
 
+
+# Создание объекта настроек, передаем ему ссылку на родительское окно и разрешение экрана
+settings = Settings()

@@ -1,3 +1,4 @@
+
 # ---------------------------------------------------------------------------
 # Редактор и исполнитель скриптов с подстановкой данных
 #
@@ -25,8 +26,8 @@ from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
 
-from settings import Settings
-from commands import MouseClickLeft
+from settings import settings
+from commands import CommandClasses
 
 
 # Интерфейс
@@ -42,9 +43,6 @@ win_h = 610
 
 root.title("Редактор скриптов")
 root.geometry(f'{win_w}x{win_h}+{(w-win_w)//2}+{(h-win_h)//2}')  # Рисуем окно
-
-# Создание объекта настроек, передаем ему ссылку на родительское окно и разрешение экрана
-settings = Settings()
 
 # Меню
 mainmenu = Menu(root)
@@ -204,8 +202,9 @@ delete_button = Button(root, command='', image=icon11, width=160, height=34)
 delete_button.place(x=602, y=win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
+args = [17, 71, f"{settings.path_to_elements}elem_230228_163525.png"]
 
-a = MouseClickLeft(*[7, 7, "elements/elem_230228_163525.png"], root=frame2)
+a = CommandClasses.create_command(*args, command='MouseClickLeft', root=frame2)
 
 
 
