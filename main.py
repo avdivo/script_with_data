@@ -123,10 +123,10 @@ frame2.place(x=INDENT, y=100)
 # Список команд
 ttk.Combobox(frame2, values=commands, width=30, textvariable=commands_var, state="readonly").place(x=5, y=5)
 
-# Комментарий
-comment = Entry(frame2, width=32)
-comment.place(x=5, y=37)
-ToolTip(comment, msg="Комментарий", delay=0.5)
+# # Комментарий
+# comment = Entry(frame2, width=32)
+# comment.place(x=5, y=37)
+# ToolTip(comment, msg="Комментарий", delay=0.5)
 
 # Поля ввода
 # Label(frame2, text='x=').place(x=10, y=71)
@@ -204,7 +204,7 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 args = [17, 71, f"{settings.path_to_elements}elem_230228_163525.png"]
 
-a = CommandClasses.create_command(*args, command='MouseClickLeft', root=frame2)
+a = CommandClasses.create_command(*args, command='MouseClickDouble', root=frame2, description='Ок')
 
 
 
