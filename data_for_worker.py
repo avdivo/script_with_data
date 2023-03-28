@@ -9,7 +9,7 @@
 from collections import deque
 
 
-class DataForWorer:
+class DataForWorker:
     """ Данные для исполнителя скрипта """
     def __init__(self):
         """ Инициализация
@@ -28,7 +28,7 @@ class DataForWorer:
         # В качестве источника данных используются 2 словаря. В качестве ключей в них Имена полей
         # В первом словаре значения - это списки данных {'key': [list data]}
         # Во втором указатели на элементы списков первого словаря {'key': int}
-        self.data_source = dict()  # Источник данных
+        self.data_source = {'one': 1, 'two': 2} # dict()  # Источник данных
         self.pointers_data_source = dict()  # Указатели на позицию чтения из поля
 
         self.func_execute_command = None  # Функция выполняющая 1 команду макроса
@@ -38,3 +38,6 @@ class DataForWorer:
         self.id_command += 1
         return f'cmd{self.id_command}'
 
+    def get_fields(self):
+        """ Возвращает список полей таблицы данных """
+        return [i for i in self.data_source.keys()]

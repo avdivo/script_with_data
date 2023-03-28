@@ -17,13 +17,20 @@ import os
 
 from data_input import DataInput
 from settings import settings
+from exceptions import DataError
 
 
 class CommandClasses(ABC):
-    """ Класс, для создания классов команд """
-    def __init__(self, root, description):
+    """ Класс, для создания классов команд
+
+    Свойства класса необходимо определить до создания экземпляров команд
+
+    """
+    root = None  # Родительский виджет, куда выводятся виджеты ввода
+    data = None  # Объект с данными о выполнении скрипта
+
+    def __init__(self, description):
         """ Принимает ссылку на виджет редактора """
-        self.root = root  # Родительский виджет, куда выводятся виджеты ввода
         self.description = description  # Описание
 
         # Комментарий
@@ -31,17 +38,16 @@ class CommandClasses(ABC):
         ToolTip(self.widget_description.widget, msg="Комментарий", delay=0.5)
 
     @classmethod
-    def create_command(cls, *args, command: str, root=None, description=''):
+    def create_command(cls, *args, command: str, description=''):
         """ Метод для создания объектов команд с помощью дочерних классов
 
-        Получает имя команды (класса) чей экземпляр нужно создать, ссылку на родительский
-        виджет (куда выводить виджеты ввода) и позиционные аргументы, для акждой команды
-        своя последовательность.
+        Получает имя команды (класса) чей экземпляр нужно создать, описание команды (пользовательское),
+        и позиционные аргументы, для каждой команды своя последовательность.
 
         """
-        args = args + ('', '', '')  # Заполняем не пришедшие аргументы пустыми строками
+        args = args + ('', '', '' '', '')  # Заполняем не пришедшие аргументы пустыми строками
         required_class = globals()[command]  # В command название класса, создаем его объект
-        return required_class(*args, root=root, description=description)
+        return required_class(*args, description=description)
 
     @abstractmethod
     def save(self):
@@ -66,14 +72,14 @@ class MouseClickRight(CommandClasses):
     command_name = 'Клик правой кнопкой мыши'
     command_description = 'x, y - координаты на экране.'
 
-    def __init__(self, *args, root, description):
+    def __init__(self, *args, description):
         """ Принимает координаты в списке """
-        super().__init__(root=root, description=description)
+        super().__init__(description=description)
         self.x = args[0]
         self.y = args[1]
         self.widget_x = None
         self.widget_y = None
-        if root:
+        if self.root:
             # Виджет не нужно выводить, если приложение выполняется в консольном режиме
             self.paint_widgets()
 
@@ -113,14 +119,14 @@ class MouseClickLeft(MouseClickRight):
                          'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
                          'в соответствии с настройками скрипта.'
 
-    def __init__(self, *args, root, description):
+    def __init__(self, *args, description):
         """ Принимает координаты и изображение в списке """
         self.description = args[3]
-        super().__init__(*args, root=root, description=description)
+        super().__init__(*args, description=description)
         self.image = args[2]
         self.element_image = None
         self.widget_button = None
-        if root:
+        if self.root:
             # Виджет не нужно выводить, если приложение выполняется в консольном режиме
             self.paint_widgets_1()
 
@@ -166,9 +172,9 @@ class KeyDown(CommandClasses):
     command_name = 'Нажать клавишу на клавиатуре'
     command_description = 'Нажатие клавиши на клавиатуре. Для отпускания клавиши есть отдельная команда.'
 
-    def __init__(self, *args, root, description):
+    def __init__(self, *args, description):
         """ Принимает название клавиши """
-        super().__init__(root=root, description=description)
+        super().__init__(description=description)
         self.widget = None
         self.values = ['backspace', 'tab', 'enter', 'shift', 'ctrl', 'alt', 'pause', 'caps_lock', 'esc', 'space',
                        'page_up', 'page_down', 'end', 'home', 'left', 'up', 'right', 'down', 'insert', 'delete',
@@ -216,3 +222,63 @@ class KeyUp(KeyDown):
     """ Отпустить клавишу клавиатуры """
     command_name = 'Отпустить клавишу клавиатуры'
     command_description = 'Отпускание клавиши клавиатуры. Для нажатия клавиши есть отдельная команда.'
+
+
+class GteDataFromField(CommandClasses):
+    """ Получить данные из текущей позиции поля """
+    command_name = 'Получить данные из поля'
+    command_description = 'Столбцы выбранной таблицы с данными - это поля. Данные будут считаны из указанного поля ' \
+                          'и вставлены на место курсора. Переход к следующей строке в столбце осуществляется командой ' \
+                          'Следующий элемент поля.'
+
+    def __init__(self, *args, description):
+        """ Принимает имя поля """
+        super().__init__(description=description)
+        self.widget = None
+        self.current_value = args[0]
+        self.values = self.data.get_fields()  # Получаем имена всех полей
+        if self.current_value not in self.values:
+            raise DataError(f'Нет поля "{self.current_value}" в источнике данных')
+        self.value = self.value = StringVar(value=self.current_value)
+        self.paint_widgets()
+
+    def __str__(self):
+        return self.command_name
+
+    def paint_widgets(self):
+        """ Отрисовка виджета """
+        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value, state="readonly")
+        self.widget.place(x=10, y=71)
+        long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
+        self.widget.configure(width=long)
+        self.value.set(self.current_value)
+
+    def save(self):
+        """ Записывает содержимое виджетов в объект.
+
+         Метод реализуется в наследниках.
+
+         """
+        pass
+
+    def commant_to_dict(self):
+        """ Возвращает словарь с содержимым команды.
+
+         {'ClassName': [параметры]}
+         """
+        pass
+
+
+class NextElementField(GteDataFromField):
+    """ Следующий элемент поля """
+    command_name = 'Следующий элемент поля '
+    command_description = 'Поле таблицы (столбец) представлено в виде списка данных. Эта команда переводит ' \
+                          'указатель чтения к следующему элементу списка'
+
+
+class CycleForField(GteDataFromField):
+    """ Цикл по полю"""
+    command_name = 'Цикл по полю'
+    command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
+                          'Окончание блока - команда Конец цикла.'
+

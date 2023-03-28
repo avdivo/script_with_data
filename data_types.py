@@ -94,4 +94,3 @@ class eres:
 llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
 # a = llist()
 # print(a)
-

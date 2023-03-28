@@ -28,7 +28,7 @@ from tktooltip import ToolTip
 
 from settings import settings
 from commands import CommandClasses
-
+from data_for_worker import DataForWorker
 
 # Интерфейс
 root = Tk()
@@ -217,8 +217,12 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
 
-args = ['']
-a = CommandClasses.create_command(*args, command='KeyUp', root=frame2, description='Ок')
+args = ['one']
+data = DataForWorker()
+CommandClasses.root = frame2
+CommandClasses.data = data
+
+a = CommandClasses.create_command(*args, command='NextElementField', description='Ок')
 
 
 
