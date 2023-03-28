@@ -144,11 +144,23 @@ element_image = PhotoImage(file="elements/elem_230228_163525.png")
 icon4 = PhotoImage(file="icon/new.png")
 icon5 = PhotoImage(file="icon/edit.png")
 
-new_button = Button(frame2, command='', image=icon4, width=100, height=34)
+def button(event=None):
+    a.save()
+    print(a.command_name)
+    print(a.command_description)
+    print(a.description)
+    print(a.value.get())
+    # print(a.x)
+    # print(a.y)
+    # print(a.image)
+
+
+
+new_button = Button(frame2, command=button, image=icon4, width=100, height=34)
 new_button.place(x=10, y=106)
 ToolTip(new_button, msg="Добавить команду", delay=0.5)
 
-edit_button = Button(frame2, command='', image=icon5, width=100, height=34)
+edit_button = Button(frame2, command=button, image=icon5, width=100, height=34)
 edit_button.place(x=130, y=106)
 ToolTip(edit_button, msg="Изменить команду", delay=0.5)
 
@@ -202,9 +214,11 @@ delete_button = Button(root, command='', image=icon11, width=160, height=34)
 delete_button.place(x=602, y=win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
-args = [17, 71, f"{settings.path_to_elements}elem_230228_163525.png"]
 
-a = CommandClasses.create_command(*args, command='MouseClickDouble', root=frame2, description='Ок')
+
+
+args = ['']
+a = CommandClasses.create_command(*args, command='KeyUp', root=frame2, description='Ок')
 
 
 

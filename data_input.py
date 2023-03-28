@@ -70,7 +70,6 @@ class DataInput:
         return required_class(root, value, x=x, y=y, func_event=func_event,
                               black_list=black_list, width=width, length=length)
 
-    # Источник: https: // pythonstart.ru / osnovy / classmethod - staticmethod - python
 class FieldInt(DataInput):
     """ Ввод целых чисел
 

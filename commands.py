@@ -10,6 +10,7 @@
 
 from abc import ABC, abstractmethod
 from tkinter import *
+from tkinter import ttk
 from tktooltip import ToolTip
 from tkinter import filedialog as fd
 import os
@@ -26,7 +27,7 @@ class CommandClasses(ABC):
         self.description = description  # Описание
 
         # Комментарий
-        self.widget_description = DataInput.CreateInput(self.root, self.description, x=5, y=37, width=32, length=32)
+        self.widget_description = DataInput.CreateInput(self.root, self.description, x=10, y=37, width=31, length=50)
         ToolTip(self.widget_description.widget, msg="Комментарий", delay=0.5)
 
     @classmethod
@@ -43,7 +44,7 @@ class CommandClasses(ABC):
         return required_class(*args, root=root, description=description)
 
     @abstractmethod
-    def result(self):
+    def save(self):
         """ Записывает содержимое виджетов в объект.
 
          Метод реализуется в наследниках.
@@ -87,13 +88,15 @@ class MouseClickRight(CommandClasses):
         Label(self.root, text='y=').place(x=100, y=71)
         self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
 
-    def result(self):
+    def save(self):
         """ Записывает содержимое виджетов в объект.
 
          Метод реализуется в наследниках.
 
          """
-        pass
+        self.x = self.widget_x.result
+        self.y = self.widget_y.result
+        self.description = self.widget_description.result
 
     def commant_to_dict(self):
         """ Возвращает словарь с содержимым команды.
@@ -158,3 +161,58 @@ class MouseClickDouble(MouseClickLeft):
                          'в соответствии с настройками скрипта.'
 
 
+class KeyDown(CommandClasses):
+    """ Нажать клавишу на клавиатуре """
+    command_name = 'Нажать клавишу на клавиатуре'
+    command_description = 'Нажатие клавиши на клавиатуре. Для отпускания клавиши есть отдельная команда.'
+
+    def __init__(self, *args, root, description):
+        """ Принимает название клавиши """
+        super().__init__(root=root, description=description)
+        self.widget = None
+        self.values = ['backspace', 'tab', 'enter', 'shift', 'ctrl', 'alt', 'pause', 'caps_lock', 'esc', 'space',
+                       'page_up', 'page_down', 'end', 'home', 'left', 'up', 'right', 'down', 'insert', 'delete',
+                       'key_0', 'key_1', 'key_2', 'key_3', 'key_4', 'key_5', 'key_6', 'key_7', 'key_8', 'key_9',
+                       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+                       's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'numpad_0', 'numpad_1', 'numpad_2', 'numpad_3',
+                       'numpad_4', 'numpad_5', 'numpad_6', 'numpad_7', 'numpad_8', 'numpad_9', 'multiply', 'add',
+                       'subtract', 'decimal', 'divide', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10',
+                       'f11', 'f12', 'num_lock', 'scroll_lock', 'left_shift', 'right_shift', 'left_ctrl', 'right_ctrl',
+                       'left_alt', 'right_alt', 'menu', 'print_screen', 'left_bracket', 'right_bracket', 'semicolon',
+                       'comma', 'period', 'quote', 'forward_slash', 'back_slash', 'equal', 'hyphen', 'space']
+        self.current_value = args[0]
+        self.value = self.value = StringVar(value=self.current_value)
+        print(self.values)
+        self.paint_widgets()
+
+    def __str__(self):
+        return self.command_name
+
+    def paint_widgets(self):
+        """ Отрисовка виджета """
+        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value, state="readonly")
+        self.widget.place(x=10, y=71)
+        long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
+        self.widget.configure(width=long)
+        self.value.set(self.current_value)
+
+    def save(self):
+        """ Записывает содержимое виджетов в объект.
+
+         Метод реализуется в наследниках.
+
+         """
+        pass
+
+    def commant_to_dict(self):
+        """ Возвращает словарь с содержимым команды.
+
+         {'ClassName': [параметры]}
+         """
+        pass
+
+
+class KeyUp(KeyDown):
+    """ Отпустить клавишу клавиатуры """
+    command_name = 'Отпустить клавишу клавиатуры'
+    command_description = 'Отпускание клавиши клавиатуры. Для нажатия клавиши есть отдельная команда.'
