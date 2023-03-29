@@ -282,3 +282,63 @@ class CycleForField(GteDataFromField):
     command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
                           'Окончание блока - команда Конец цикла.'
 
+
+
+
+def spiral(x, y, n):
+    """ Это функция генератор, ее надо инициализировать и далее с помощью оператора next получать координаты
+     a = spiral(3, 3, 3)
+     x, y = next(a)
+
+
+     x, y координаты центра, n - количество слоев """
+    x = [x]
+    y = [y]
+    end = y[0] + n + 1
+    xy = [y, x, y, x]  # у - по вертикали, x - по горизонтали
+    where = [1, 1, -1, -1]  # Движение: вниз, вправо, вверх, налево
+    stop = [xy[i][0]+where[i] for i in range(4)]
+    i = 0
+    while y[0] < end:
+        while True:
+            yield (x[0], y[0])
+            xy[i][0] = xy[i][0] + where[i]
+            if xy[i][0] == stop[i]:
+                stop[i] = stop[i] + where[i]
+                break
+        i = (i + 1) % 4
+
+
+
+
+storona = 7  # Сторона квадрата
+matrix = [[0 for i in range(storona)] for j in range(storona)]  # Создаем марицу
+
+# Печать матрицы
+for i in matrix:
+    print(*i)
+print()
+
+# Инициализируем генератор
+# Первые 2 аргумента - это координаты, вокруг которых вычисляются круги
+# 3 аргумент количество кругов
+# Координаты могут быть любыми, генератор будет возвращать правильные значения
+a = spiral(storona//2, storona//2, storona//2)
+
+# Это просто тестовый цикл
+for i in a:
+    matrix[i[1]][i[0]] = 8
+    for i in matrix:
+        print(*i)
+    print()
+
+# Но можно и так получать значения:
+a = spiral(3, 3, 1)
+print(next(a))
+print(next(a))
+print(next(a))
+print(next(a))
+print(next(a))
+print(next(a))
+print(next(a))
+print(next(a))
