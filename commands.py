@@ -283,62 +283,51 @@ class CycleForField(GteDataFromField):
                           'Окончание блока - команда Конец цикла.'
 
 
+class Pause(CommandClasses):
+    """ Пауза n секунд """
+    command_name = 'Пауза (секунд)'
+    command_description = 'В любом месте скрипта можно сделать паузу, указав количество секунд.'
+
+    def __init__(self, *args, description):
+        """ Принимает 1 аргумент - количество секунд """
+        super().__init__(description=description)
+        self.widget = None
+        self.type = int  # Тип данных для поля ввода
+        self.value = StringVar(value=self.value)  # Переменная хранящая введенное значение
+        self.obj[var] = DataInput.CreateInput(self.top, val[0], x=430, y=start,
+                                              func_event=lambda *args, var=var: self.func_event(args,
+                                                                                                var))  # Виджет настройки
+        self.value = self.value = StringVar(value=self.current_value)
+        self.paint_widgets()
+
+    def __str__(self):
+        return self.command_name
+
+    def paint_widgets(self):
+        """ Отрисовка виджета """
+        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value, state="readonly")
+        self.widget.place(x=10, y=71)
+        long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
+        self.widget.configure(width=long)
+        self.value.set(self.current_value)
+
+    def save(self):
+        """ Записывает содержимое виджетов в объект.
+
+         Метод реализуется в наследниках.
+
+         """
+        pass
+
+    def commant_to_dict(self):
+        """ Возвращает словарь с содержимым команды.
+
+         {'ClassName': [параметры]}
+         """
+        pass
 
 
-def spiral(x, y, n):
-    """ Это функция генератор, ее надо инициализировать и далее с помощью оператора next получать координаты
-     a = spiral(3, 3, 3)
-     x, y = next(a)
-
-
-     x, y координаты центра, n - количество слоев """
-    x = [x]
-    y = [y]
-    end = y[0] + n + 1
-    xy = [y, x, y, x]  # у - по вертикали, x - по горизонтали
-    where = [1, 1, -1, -1]  # Движение: вниз, вправо, вверх, налево
-    stop = [xy[i][0]+where[i] for i in range(4)]
-    i = 0
-    while y[0] < end:
-        while True:
-            yield (x[0], y[0])
-            xy[i][0] = xy[i][0] + where[i]
-            if xy[i][0] == stop[i]:
-                stop[i] = stop[i] + where[i]
-                break
-        i = (i + 1) % 4
 
 
 
 
-storona = 7  # Сторона квадрата
-matrix = [[0 for i in range(storona)] for j in range(storona)]  # Создаем марицу
-
-# Печать матрицы
-for i in matrix:
-    print(*i)
-print()
-
-# Инициализируем генератор
-# Первые 2 аргумента - это координаты, вокруг которых вычисляются круги
-# 3 аргумент количество кругов
-# Координаты могут быть любыми, генератор будет возвращать правильные значения
-a = spiral(storona//2, storona//2, storona//2)
-
-# Это просто тестовый цикл
-for i in a:
-    matrix[i[1]][i[0]] = 8
-    for i in matrix:
-        print(*i)
-    print()
-
-# Но можно и так получать значения:
-a = spiral(3, 3, 1)
-print(next(a))
-print(next(a))
-print(next(a))
-print(next(a))
-print(next(a))
-print(next(a))
-print(next(a))
-print(next(a))
