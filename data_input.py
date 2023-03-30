@@ -123,6 +123,15 @@ class FieldStr(FieldInt):
 
     """
 
+    def __init__(self, root, value, x, y, func_event, black_list, width, length):
+
+        # Если значения не заданы, определяем по умолчанию
+        self.width = width if width else 20
+        self.length = length if length else 20
+
+        super().__init__(root, value, x=x, y=y, func_event=func_event, black_list=black_list,
+                         width=width, length=length)
+
     def is_valid(self, val):
         """ Пропускает строку с заданными параметрами """
 

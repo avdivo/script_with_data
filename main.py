@@ -149,10 +149,11 @@ def button(event=None):
     print(a.command_name)
     print(a.command_description)
     print(a.description)
+    print(a.value)
     print(a.value.get())
-    # print(a.x)
-    # print(a.y)
-    # print(a.image)
+    print(a.x)
+    print(a.y)
+    print(a.image)
 
 
 
@@ -217,12 +218,12 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
 
-args = ['one']
+args = []
 data = DataForWorker()
 CommandClasses.root = frame2
 CommandClasses.data = data
 
-a = CommandClasses.create_command(*args, command='NextElementField', description='Ок')
+a = CommandClasses.create_command(*args, command='Pause', description='Ок')
 
 
 

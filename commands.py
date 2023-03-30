@@ -30,7 +30,7 @@ class CommandClasses(ABC):
     data = None  # Объект с данными о выполнении скрипта
 
     def __init__(self, description):
-        """ Принимает ссылку на виджет редактора """
+        """ Принимает пользовательское описание команды """
         self.description = description  # Описание
 
         # Комментарий
@@ -43,6 +43,7 @@ class CommandClasses(ABC):
 
         Получает имя команды (класса) чей экземпляр нужно создать, описание команды (пользовательское),
         и позиционные аргументы, для каждой команды своя последовательность.
+        Аргументы могут приходить в текстовом виде, каждый класс сам определяет тип своих данных.
 
         """
         args = args + ('', '', '' '', '')  # Заполняем не пришедшие аргументы пустыми строками
@@ -73,14 +74,15 @@ class MouseClickRight(CommandClasses):
     command_description = 'x, y - координаты на экране.'
 
     def __init__(self, *args, description):
-        """ Принимает координаты в списке """
+        """ Принимает координаты в списке и пользовательское описание команды"""
         super().__init__(description=description)
         self.x = args[0]
         self.y = args[1]
         self.widget_x = None
         self.widget_y = None
-        if self.root:
+        if self.root and type(self).__name__ == 'MouseClickRight':
             # Виджет не нужно выводить, если приложение выполняется в консольном режиме
+            # И только для своих объектов
             self.paint_widgets()
 
     def __str__(self):
@@ -120,7 +122,7 @@ class MouseClickLeft(MouseClickRight):
                          'в соответствии с настройками скрипта.'
 
     def __init__(self, *args, description):
-        """ Принимает координаты и изображение в списке """
+        """ Принимает координаты, изображение в списке и пользовательское описание команды"""
         self.description = args[3]
         super().__init__(*args, description=description)
         self.image = args[2]
@@ -128,13 +130,19 @@ class MouseClickLeft(MouseClickRight):
         self.widget_button = None
         if self.root:
             # Виджет не нужно выводить, если приложение выполняется в консольном режиме
-            self.paint_widgets_1()
+            self.paint_widgets()
 
     def __str__(self):
         return self.command_name
 
-    def paint_widgets_1(self):
-        """ Отрисовка виджета """
+    def paint_widgets(self):
+        """ Отрисовка виджетов """
+        # Виджеты для ввода x, y
+        Label(self.root, text='x=').place(x=10, y=71)
+        self.widget_x = DataInput.CreateInput(self.root, self.x, x=34, y=71)  # Ввод целого числа X
+        Label(self.root, text='y=').place(x=100, y=71)
+        self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
+
         # Изображение элемента
         self.element_image = PhotoImage(file=self.image)
         self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96, relief=FLAT)
@@ -173,7 +181,7 @@ class KeyDown(CommandClasses):
     command_description = 'Нажатие клавиши на клавиатуре. Для отпускания клавиши есть отдельная команда.'
 
     def __init__(self, *args, description):
-        """ Принимает название клавиши """
+        """ Принимает название клавиши и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
         self.values = ['backspace', 'tab', 'enter', 'shift', 'ctrl', 'alt', 'pause', 'caps_lock', 'esc', 'space',
@@ -187,9 +195,10 @@ class KeyDown(CommandClasses):
                        'left_alt', 'right_alt', 'menu', 'print_screen', 'left_bracket', 'right_bracket', 'semicolon',
                        'comma', 'period', 'quote', 'forward_slash', 'back_slash', 'equal', 'hyphen', 'space']
         self.current_value = args[0]
-        self.value = self.value = StringVar(value=self.current_value)
-        print(self.values)
-        self.paint_widgets()
+        self.value = StringVar(value=self.current_value)
+        if self.root:
+            # Виджет не нужно выводить, если приложение выполняется в консольном режиме
+            self.paint_widgets()
 
     def __str__(self):
         return self.command_name
@@ -208,7 +217,7 @@ class KeyDown(CommandClasses):
          Метод реализуется в наследниках.
 
          """
-        pass
+        self.description = self.widget_description.result
 
     def commant_to_dict(self):
         """ Возвращает словарь с содержимым команды.
@@ -232,14 +241,14 @@ class GteDataFromField(CommandClasses):
                           'Следующий элемент поля.'
 
     def __init__(self, *args, description):
-        """ Принимает имя поля """
+        """ Принимает имя поля и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
         self.current_value = args[0]
         self.values = self.data.get_fields()  # Получаем имена всех полей
-        if self.current_value not in self.values:
+        if self.current_value and self.current_value not in self.values:
             raise DataError(f'Нет поля "{self.current_value}" в источнике данных')
-        self.value = self.value = StringVar(value=self.current_value)
+        self.value = StringVar(value=self.current_value)
         self.paint_widgets()
 
     def __str__(self):
@@ -259,7 +268,7 @@ class GteDataFromField(CommandClasses):
          Метод реализуется в наследниках.
 
          """
-        pass
+        self.description = self.widget_description.result
 
     def commant_to_dict(self):
         """ Возвращает словарь с содержимым команды.
@@ -277,7 +286,7 @@ class NextElementField(GteDataFromField):
 
 
 class CycleForField(GteDataFromField):
-    """ Цикл по полю"""
+    """ Цикл по полю """
     command_name = 'Цикл по полю'
     command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
                           'Окончание блока - команда Конец цикла.'
@@ -288,16 +297,14 @@ class Pause(CommandClasses):
     command_name = 'Пауза (секунд)'
     command_description = 'В любом месте скрипта можно сделать паузу, указав количество секунд.'
 
-    def __init__(self, *args, description):
-        """ Принимает 1 аргумент - количество секунд """
+    def __init__(self, *args, description, value=None ):
+        """ Принимает количество секунд, пользовательское описание команды и значение от классов-потомков """
+        # Если инициализируется объект класса-потомка, то получаем от него данные нужного типа
+        # Поскольку классы формирующие виджет по типу определяют какой виджет рисовать
+        self.value = int(args[0] if args[0] else 0) if not value else value
+
         super().__init__(description=description)
         self.widget = None
-        self.type = int  # Тип данных для поля ввода
-        self.value = StringVar(value=self.value)  # Переменная хранящая введенное значение
-        self.obj[var] = DataInput.CreateInput(self.top, val[0], x=430, y=start,
-                                              func_event=lambda *args, var=var: self.func_event(args,
-                                                                                                var))  # Виджет настройки
-        self.value = self.value = StringVar(value=self.current_value)
         self.paint_widgets()
 
     def __str__(self):
@@ -305,11 +312,7 @@ class Pause(CommandClasses):
 
     def paint_widgets(self):
         """ Отрисовка виджета """
-        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value, state="readonly")
-        self.widget.place(x=10, y=71)
-        long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
-        self.widget.configure(width=long)
-        self.value.set(self.current_value)
+        self.widget = DataInput.CreateInput(self.root, self.value, x=10, y=71)  # Виджеты для разных типов данных
 
     def save(self):
         """ Записывает содержимое виджетов в объект.
@@ -317,7 +320,8 @@ class Pause(CommandClasses):
          Метод реализуется в наследниках.
 
          """
-        pass
+        self.value = self.widget.result
+        self.description = self.widget_description.result
 
     def commant_to_dict(self):
         """ Возвращает словарь с содержимым команды.

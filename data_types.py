@@ -69,6 +69,7 @@ class eres:
             raise ValueError(f'Тип данных "{type(string).__name__}" не поддерживается.')
 
     def __str__(self):
+        """ Возвращает строку в специальном формате """
         return f'{self._react}:{self._label}'
 
     @property
