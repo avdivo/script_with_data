@@ -15,6 +15,7 @@ from tktooltip import ToolTip
 from tkinter import filedialog as fd
 import os
 
+from data_types import llist, eres
 from data_input import DataInput
 from settings import settings
 from exceptions import DataError
@@ -233,9 +234,9 @@ class KeyUp(KeyDown):
     command_description = 'Отпускание клавиши клавиатуры. Для нажатия клавиши есть отдельная команда.'
 
 
-class GteDataFromField(CommandClasses):
-    """ Получить данные из текущей позиции поля """
-    command_name = 'Получить данные из поля'
+class WriteDataFromField(CommandClasses):
+    """ Вывести из текущей позиции поля """
+    command_name = 'Вывести данные из поля'
     command_description = 'Столбцы выбранной таблицы с данными - это поля. Данные будут считаны из указанного поля ' \
                           'и вставлены на место курсора. Переход к следующей строке в столбце осуществляется командой ' \
                           'Следующий элемент поля.'
@@ -278,21 +279,21 @@ class GteDataFromField(CommandClasses):
         pass
 
 
-class NextElementField(GteDataFromField):
+class NextElementField(WriteDataFromField):
     """ Следующий элемент поля """
     command_name = 'Следующий элемент поля '
     command_description = 'Поле таблицы (столбец) представлено в виде списка данных. Эта команда переводит ' \
                           'указатель чтения к следующему элементу списка'
 
 
-class CycleForField(GteDataFromField):
+class CycleForField(WriteDataFromField):
     """ Цикл по полю """
     command_name = 'Цикл по полю'
     command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
                           'Окончание блока - команда Конец цикла.'
 
 
-class Pause(CommandClasses):
+class PauseCmd(CommandClasses):
     """ Пауза n секунд """
     command_name = 'Пауза (секунд)'
     command_description = 'В любом месте скрипта можно сделать паузу, указав количество секунд.'
@@ -331,7 +332,66 @@ class Pause(CommandClasses):
         pass
 
 
+class WriteCmd(PauseCmd):
+    """ Вывести текст """
+    command_name = 'Вывести текст'
+    command_description = 'Эта команда напечатает указанный текст в месте, где установлен курсор. ' \
+                          'Длина текста не должна превышать 50 символов.'
+
+    def __init__(self, *args, description):
+        """ Принимает текст и пользовательское описание команды """
+        self.value = str(args[0])
+        super().__init__(*args, description=description, value=self.value)
 
 
+class RunCmd(PauseCmd):
+    """ Выполнить часть скрипта """
+    command_name = 'Выполнить'
+    command_description = 'Выполняет блок или совершает переход к метке с указанным именем.'
+
+    def __init__(self, *args, description):
+        """ Принимает значение типа llist и пользовательское описание команды """
+        self.value = llist(args[0])
+        super().__init__(*args, description=description, value=self.value)
+
+
+class ErrorNoElement(PauseCmd):
+    """ Реакция на ошибку 'Нет элемента' """
+    command_name = 'Реакция на ошибку "Нет элемента"'
+    command_description = 'Меняет текущую реакцию скрипта на возникновение ошибки: ' \
+                          'остановить скрипт/игнорировать/выполнить блок или перейти к метке с указанным именем.'
+
+    def __init__(self, *args, description):
+        """ Принимает значение типа eres и пользовательское описание команды """
+        self.value = eres(args[0])
+        super().__init__(*args, description=description, value=self.value)
+
+
+class ErrorNoData(ErrorNoElement):
+    """ Реакция на ошибку 'Нет данных' """
+    command_name = 'Реакция на ошибку "Нет данных"'
+    command_description = 'Меняет текущую реакцию скрипта на возникновение ошибки: ' \
+                          'остановить скрипт/игнорировать/выполнить блок или перейти к метке с указанным именем.'
+
+
+class BlockCmd(WriteCmd):
+    """ Начало блока команд """
+    command_name = 'Блок команд'
+    command_description = 'Поименованный блок команд который не выполняется в обычном порядке. ' \
+                          'Он вызывается командой Выполнить или Ошибка. Завершается командой Конец блока. ' \
+                          'После чего скрипт выполняется от команды вызвавшей блок.'
+
+
+class LabelCmd(WriteCmd):
+    """ Метка для перехода """
+    command_name = 'Метка'
+    command_description = 'Метка в скрипте, куда может быть совершен переход командами Выполнить или Ошибка.'
+
+
+class CycleCmd(PauseCmd):
+    """ Цикл заданное число раз"""
+    command_name = 'Цикл'
+    command_description = 'Начало блока команд, которые повторятся указанное количество раз. ' \
+                          'Окончание блока - команда Конец цикла.'
 
 

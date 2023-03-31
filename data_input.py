@@ -126,8 +126,8 @@ class FieldStr(FieldInt):
     def __init__(self, root, value, x, y, func_event, black_list, width, length):
 
         # Если значения не заданы, определяем по умолчанию
-        self.width = width if width else 20
-        self.length = length if length else 20
+        width = width if width else 31
+        length = length if length else 50
 
         super().__init__(root, value, x=x, y=y, func_event=func_event, black_list=black_list,
                          width=width, length=length)
@@ -269,7 +269,8 @@ class FieldEres(DataInput):
 
     def change_label(self, event=None):
         self.value.label = self.widget.result
-        self.func_event()
+        if self.func_event:
+            self.func_event()
 
     def set_status_label(self):
         """ Активирует/деактивирует виджет выбора метки (второй) """

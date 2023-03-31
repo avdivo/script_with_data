@@ -11,15 +11,16 @@ class llist:
 
     Класс хранит актуальный список данных об именах для перехода, экземпляры класса
     пользуются этим списком и помнят выбранный элемент.
-    При всех операциях экземпляры класса сверяются со списком, для уточнения актуальности своих данных.
+    Данные на входе и выходе просто строка, обязательное условие присутствие строки в хранимом списке меток.
 
      """
 
     labels = []
 
-    def __init__(self, label=''):
+    def __init__(self, label: str = ''):
+        label = str(label)
         if label and label not in self.labels:
-            raise ValueError(f'Неверное значение. Mетка "{label}" отсутствует в списке.')
+            raise ValueError(f'Неверное значение. Метка "{label}" отсутствует в списке.')
         self.label = label
 
     def __str__(self):
@@ -58,6 +59,8 @@ class eres:
     def __init__(self, string):
         if isinstance(string, str):
             # Принимает только данные типа str для создания объекта
+            if not string:
+                string = 'stop:'  # Значение по умолчанию при инициализации пустой строкой
             if ':' not in string:
                 raise ValueError('Неверное значение. Нет разделителя ":".')
             react, label = string.split(':')
@@ -95,3 +98,7 @@ class eres:
 llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
 # a = llist()
 # print(a)
+
+# a = eres('stop:')
+# c = eres(a)
+# print(id(a), id(c))

@@ -218,12 +218,12 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
 
-args = []
+args = ['']
 data = DataForWorker()
 CommandClasses.root = frame2
 CommandClasses.data = data
 
-a = CommandClasses.create_command(*args, command='Pause', description='Ок')
+a = CommandClasses.create_command(*args, command='ErrorNoData', description='Ок')
 
 
 
