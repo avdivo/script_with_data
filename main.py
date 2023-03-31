@@ -150,10 +150,10 @@ def button(event=None):
     print(a.command_description)
     print(a.description)
     print(a.value)
-    print(a.value.get())
-    print(a.x)
-    print(a.y)
-    print(a.image)
+    # print(a.value.get())
+    # print(a.x)
+    # print(a.y)
+    # print(a.image)
 
 
 

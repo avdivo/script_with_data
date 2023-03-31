@@ -77,8 +77,14 @@ class MouseClickRight(CommandClasses):
     def __init__(self, *args, description):
         """ Принимает координаты в списке и пользовательское описание команды"""
         super().__init__(description=description)
-        self.x = args[0]
-        self.y = args[1]
+        # Задаем тип данных
+        try:
+            self.x = int(args[0])
+            self.y = int(args[1])
+        except:
+            self.x = 0
+            self.y = 0
+
         self.widget_x = None
         self.widget_y = None
         if self.root and type(self).__name__ == 'MouseClickRight':
@@ -302,7 +308,7 @@ class PauseCmd(CommandClasses):
         """ Принимает количество секунд, пользовательское описание команды и значение от классов-потомков """
         # Если инициализируется объект класса-потомка, то получаем от него данные нужного типа
         # Поскольку классы формирующие виджет по типу определяют какой виджет рисовать
-        self.value = int(args[0] if args[0] else 0) if not value else value
+        self.value = int(args[0] if args[0] else 0) if value is None else value
 
         super().__init__(description=description)
         self.widget = None
@@ -340,8 +346,8 @@ class WriteCmd(PauseCmd):
 
     def __init__(self, *args, description):
         """ Принимает текст и пользовательское описание команды """
-        self.value = str(args[0])
-        super().__init__(*args, description=description, value=self.value)
+        value = str(args[0])
+        super().__init__(*args, description=description, value=value)
 
 
 class RunCmd(PauseCmd):
