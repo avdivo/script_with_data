@@ -223,7 +223,7 @@ data = DataForWorker()
 CommandClasses.root = frame2
 CommandClasses.data = data
 
-a = CommandClasses.create_command(*args, command='ErrorNoData', description='Ок')
+a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
 
 
 

@@ -61,7 +61,7 @@ class CommandClasses(ABC):
         pass
 
     @abstractmethod
-    def commant_to_dict(self):
+    def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
          {'ClassName': [параметры]}
@@ -107,7 +107,7 @@ class MouseClickRight(CommandClasses):
         self.y = self.widget_y.result
         self.description = self.widget_description.result
 
-    def commant_to_dict(self):
+    def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
          {'ClassName': [параметры]}
@@ -220,7 +220,7 @@ class KeyDown(CommandClasses):
          """
         self.description = self.widget_description.result
 
-    def commant_to_dict(self):
+    def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
          {'ClassName': [параметры]}
@@ -271,7 +271,7 @@ class WriteDataFromField(CommandClasses):
          """
         self.description = self.widget_description.result
 
-    def commant_to_dict(self):
+    def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
          {'ClassName': [параметры]}
@@ -324,7 +324,7 @@ class PauseCmd(CommandClasses):
         self.value = self.widget.result
         self.description = self.widget_description.result
 
-    def commant_to_dict(self):
+    def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
          {'ClassName': [параметры]}
@@ -393,5 +393,44 @@ class CycleCmd(PauseCmd):
     command_name = 'Цикл'
     command_description = 'Начало блока команд, которые повторятся указанное количество раз. ' \
                           'Окончание блока - команда Конец цикла.'
+
+
+class CycleEnd(CommandClasses):
+    """ Конец цикла """
+    command_name = 'Конец цикла'
+    command_description = 'Конец блока команд повторяющихся столько раз, сколько указано в начале блока, ' \
+                          'начатого командой Цикл.'
+
+    def __init__(self, *args, description):
+        """ Принимает пользовательское описание команды"""
+        super().__init__(description=description)
+
+    def save(self):
+        """ Записывает содержимое виджетов в объект.
+
+         Метод реализуется в наследниках.
+
+         """
+        self.description = self.widget_description.result
+    
+    def command_to_dict(self):
+        """ Возвращает словарь с содержимым команды.
+
+         {'ClassName': [параметры]}
+         """
+        pass
+
+
+class BlockEnd(CycleEnd):
+    """ Конец блока """
+    command_name = 'Конец блока'
+    command_description = 'Завершение списка команд относящихся к последнему (перед этой командой) объявленному блоку. ' \
+                          'Начало блока - команда Блок.'
+
+
+class StopCmd(CycleEnd):
+    """ Конец скрипта """
+    command_name = 'Конец скрипта'
+    command_description = 'Остановить выполнение скрипта.'
 
 
