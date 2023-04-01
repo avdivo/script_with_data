@@ -70,6 +70,14 @@ class DataInput:
         return required_class(root, value, x=x, y=y, func_event=func_event,
                               black_list=black_list, width=width, length=length)
 
+    @classmethod
+    def get_all_subclasses(cls):
+        subclasses = cls.__subclasses__()
+        for subclass in subclasses:
+            subclasses += cls.get_all_subclasses(subclass)
+        return subclasses
+
+
 class FieldInt(DataInput):
     """ Ввод целых чисел
 
@@ -285,10 +293,3 @@ class FieldEres(DataInput):
         return self.value
 
 
-# def get_all_subclasses(cls):
-#     subclasses = cls.__subclasses__()
-#     for subclass in subclasses:
-#         subclasses += get_all_subclasses(subclass)
-#     return subclasses
-#
-# print(get_all_subclasses(DataInput))

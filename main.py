@@ -115,13 +115,13 @@ data_source.set('Fielf 4 Fielf 1, Fielf 2, Fielf 3, Fielf 4 Fielf 1')
 
 
 # Редактор команд ----------------------------
-commands = ['Клик левой клавишей мыши', 'Клик правой клавишей мыши', 'Двойной клик мыши']
-commands_var = StringVar(value=commands[0])
+# commands = ['Клик левой клавишей мыши', 'Клик правой клавишей мыши', 'Двойной клик мыши']
+# commands_var = StringVar(value=commands[0])
 frame2 = LabelFrame(root, width=385, height=170, text='Редактор команд', foreground='#083863')
 frame2.place(x=INDENT, y=100)
 
 # Список команд
-ttk.Combobox(frame2, values=commands, width=30, textvariable=commands_var, state="readonly").place(x=5, y=5)
+# ttk.Combobox(frame2, values=commands, width=30, textvariable=commands_var, state="readonly").place(x=5, y=5)
 
 # # Комментарий
 # comment = Entry(frame2, width=32)
