@@ -24,7 +24,7 @@ class Settings(object):
         # Все настройки скрипта начинаются с s_
         self.s_key_pause = (0.1, 'Пауза между нажатием клавиш клавиатуры')
         self.s_click_pause = (0.5, 'Пауза после клика мыши')
-        self.s_command_pause = (0, 'Пауза между командами')
+        self.s_command_pause = (0.5, 'Пауза между командами')
         self.s_confirm_element = (True, 'Проверять наличие элемента (кнопки, иконки...)')
         self.s_search_attempt = (3, 'Сколько раз следует повторить паузу в 1 секунду')
         self.s_full_screen_search = (True, 'Производить поиск элемента на всем экране')

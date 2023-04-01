@@ -21,7 +21,7 @@ class DataForWorker:
         self.queue_command = []  # Очередь команд
         self.obj_command = dict()  # Объекты команд по ключам из очереди
         self.id_command = 0  # Счетчик для идентификаторов команд
-        self.pointer_command = 0  # Указатель на исполняемую команду
+        self.pointer_command = 0  # Указатель на исполняемую команду или положение курсора в списке
 
         self.stack = deque()  # Стек для циклов и подпрограмм
 

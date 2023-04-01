@@ -68,11 +68,24 @@ class CommandClasses(ABC):
          """
         pass
 
+    @abstractmethod
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        pass
+
+    @classmethod
+    def get_all_subclasses(cls):
+        subclasses = cls.__subclasses__()
+        for subclass in subclasses:
+            subclasses += subclass.get_all_subclasses()
+        return subclasses
+
 
 class MouseClickRight(CommandClasses):
     """ Клик левой кнопкой мыши """
     command_name = 'Клик правой кнопкой мыши'
     command_description = 'x, y - координаты на экране.'
+    for_sort = 20
 
     def __init__(self, *args, description):
         """ Принимает координаты в списке и пользовательское описание команды"""
@@ -120,6 +133,11 @@ class MouseClickRight(CommandClasses):
          """
         pass
 
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        self.widget_x.destroy()
+        self.widget_y.destroy()
+        self.widget_description.destroy()
 
 class MouseClickLeft(MouseClickRight):
     """ Клик левой кнопкой мыши """
@@ -127,6 +145,7 @@ class MouseClickLeft(MouseClickRight):
     command_description = 'x, y - координаты на экране. Изображение - элемент, который программа ожидает "увидеть" ' \
                          'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
                          'в соответствии с настройками скрипта.'
+    for_sort = 0
 
     def __init__(self, *args, description):
         """ Принимает координаты, изображение в списке и пользовательское описание команды"""
@@ -173,6 +192,13 @@ class MouseClickLeft(MouseClickRight):
         except:
             pass
 
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        self.widget_x.destroy()
+        self.widget_y.destroy()
+        self.widget_button.destroy()
+        self.widget_description.destroy()
+
 
 class MouseClickDouble(MouseClickLeft):
     """ Двойной щелчок мышью """
@@ -180,12 +206,13 @@ class MouseClickDouble(MouseClickLeft):
     command_description = 'x, y - координаты на экране. Изображение - элемент, который программа ожидает "увидеть" ' \
                          'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
                          'в соответствии с настройками скрипта.'
-
+    for_sort = 10
 
 class KeyDown(CommandClasses):
     """ Нажать клавишу на клавиатуре """
     command_name = 'Нажать клавишу на клавиатуре'
     command_description = 'Нажатие клавиши на клавиатуре. Для отпускания клавиши есть отдельная команда.'
+    for_sort = 30
 
     def __init__(self, *args, description):
         """ Принимает название клавиши и пользовательское описание команды"""
@@ -233,12 +260,17 @@ class KeyDown(CommandClasses):
          """
         pass
 
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        self.widget.destroy()
+        self.widget_description.destroy()
+
 
 class KeyUp(KeyDown):
     """ Отпустить клавишу клавиатуры """
     command_name = 'Отпустить клавишу клавиатуры'
     command_description = 'Отпускание клавиши клавиатуры. Для нажатия клавиши есть отдельная команда.'
-
+    for_sort = 40
 
 class WriteDataFromField(CommandClasses):
     """ Вывести из текущей позиции поля """
@@ -246,6 +278,7 @@ class WriteDataFromField(CommandClasses):
     command_description = 'Столбцы выбранной таблицы с данными - это поля. Данные будут считаны из указанного поля ' \
                           'и вставлены на место курсора. Переход к следующей строке в столбце осуществляется командой ' \
                           'Следующий элемент поля.'
+    for_sort = 60
 
     def __init__(self, *args, description):
         """ Принимает имя поля и пользовательское описание команды"""
@@ -284,25 +317,31 @@ class WriteDataFromField(CommandClasses):
          """
         pass
 
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        self.widget.destroy()
+        self.widget_description.destroy()
+
 
 class NextElementField(WriteDataFromField):
     """ Следующий элемент поля """
     command_name = 'Следующий элемент поля '
     command_description = 'Поле таблицы (столбец) представлено в виде списка данных. Эта команда переводит ' \
                           'указатель чтения к следующему элементу списка'
-
+    for_sort = 70
 
 class CycleForField(WriteDataFromField):
     """ Цикл по полю """
     command_name = 'Цикл по полю'
     command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
                           'Окончание блока - команда Конец цикла.'
-
+    for_sort = 80
 
 class PauseCmd(CommandClasses):
     """ Пауза n секунд """
     command_name = 'Пауза (секунд)'
     command_description = 'В любом месте скрипта можно сделать паузу, указав количество секунд.'
+    for_sort = 170
 
     def __init__(self, *args, description, value=None ):
         """ Принимает количество секунд, пользовательское описание команды и значение от классов-потомков """
@@ -337,12 +376,18 @@ class PauseCmd(CommandClasses):
          """
         pass
 
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        self.widget.widget.destroy()
+        self.widget_description.destroy()
+
 
 class WriteCmd(PauseCmd):
     """ Вывести текст """
     command_name = 'Вывести текст'
     command_description = 'Эта команда напечатает указанный текст в месте, где установлен курсор. ' \
                           'Длина текста не должна превышать 50 символов.'
+    for_sort = 50
 
     def __init__(self, *args, description):
         """ Принимает текст и пользовательское описание команды """
@@ -354,6 +399,7 @@ class RunCmd(PauseCmd):
     """ Выполнить часть скрипта """
     command_name = 'Выполнить'
     command_description = 'Выполняет блок или совершает переход к метке с указанным именем.'
+    for_sort = 140
 
     def __init__(self, *args, description):
         """ Принимает значение типа llist и пользовательское описание команды """
@@ -366,6 +412,7 @@ class ErrorNoElement(PauseCmd):
     command_name = 'Реакция на ошибку "Нет элемента"'
     command_description = 'Меняет текущую реакцию скрипта на возникновение ошибки: ' \
                           'остановить скрипт/игнорировать/выполнить блок или перейти к метке с указанным именем.'
+    for_sort = 150
 
     def __init__(self, *args, description):
         """ Принимает значение типа eres и пользовательское описание команды """
@@ -378,6 +425,7 @@ class ErrorNoData(ErrorNoElement):
     command_name = 'Реакция на ошибку "Нет данных"'
     command_description = 'Меняет текущую реакцию скрипта на возникновение ошибки: ' \
                           'остановить скрипт/игнорировать/выполнить блок или перейти к метке с указанным именем.'
+    for_sort = 160
 
 
 class BlockCmd(WriteCmd):
@@ -386,12 +434,13 @@ class BlockCmd(WriteCmd):
     command_description = 'Поименованный блок команд который не выполняется в обычном порядке. ' \
                           'Он вызывается командой Выполнить или Ошибка. Завершается командой Конец блока. ' \
                           'После чего скрипт выполняется от команды вызвавшей блок.'
-
+    for_sort = 110
 
 class LabelCmd(WriteCmd):
     """ Метка для перехода """
     command_name = 'Метка'
     command_description = 'Метка в скрипте, куда может быть совершен переход командами Выполнить или Ошибка.'
+    for_sort = 130
 
 
 class CycleCmd(PauseCmd):
@@ -399,13 +448,14 @@ class CycleCmd(PauseCmd):
     command_name = 'Цикл'
     command_description = 'Начало блока команд, которые повторятся указанное количество раз. ' \
                           'Окончание блока - команда Конец цикла.'
-
+    for_sort = 90
 
 class CycleEnd(CommandClasses):
     """ Конец цикла """
     command_name = 'Конец цикла'
     command_description = 'Конец блока команд повторяющихся столько раз, сколько указано в начале блока, ' \
                           'начатого командой Цикл.'
+    for_sort = 100
 
     def __init__(self, *args, description):
         """ Принимает пользовательское описание команды"""
@@ -426,17 +476,22 @@ class CycleEnd(CommandClasses):
          """
         pass
 
+    def destroy_widgets(self):
+        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
+        self.widget_description.destroy()
+
+
 
 class BlockEnd(CycleEnd):
     """ Конец блока """
     command_name = 'Конец блока'
     command_description = 'Завершение списка команд относящихся к последнему (перед этой командой) объявленному блоку. ' \
                           'Начало блока - команда Блок.'
-
+    for_sort = 120
 
 class StopCmd(CycleEnd):
     """ Конец скрипта """
     command_name = 'Конец скрипта'
     command_description = 'Остановить выполнение скрипта.'
-
+    for_sort = 180
 

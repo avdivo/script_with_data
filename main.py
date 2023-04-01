@@ -29,6 +29,8 @@ from tktooltip import ToolTip
 from settings import settings
 from commands import CommandClasses
 from data_for_worker import DataForWorker
+from components import Editor
+
 
 # Интерфейс
 root = Tk()
@@ -222,6 +224,8 @@ args = ['']
 data = DataForWorker()
 CommandClasses.root = frame2
 CommandClasses.data = data
+editor = Editor(frame2)
+
 
 a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
 
