@@ -47,9 +47,14 @@ class CommandClasses(ABC):
         Аргументы могут приходить в текстовом виде, каждый класс сам определяет тип своих данных.
 
         """
-        args = args + ('', '', '' '', '')  # Заполняем не пришедшие аргументы пустыми строками
+        args = args + ('', '', '', '', '')  # Заполняем не пришедшие аргументы пустыми строками
         required_class = globals()[command]  # В command название класса, создаем его объект
         return required_class(*args, description=description)
+
+    @abstractmethod
+    def paint_widgets(self):
+        """ Вывод виджетов команды """
+        pass
 
     @abstractmethod
     def save(self):
@@ -100,10 +105,8 @@ class MouseClickRight(CommandClasses):
 
         self.widget_x = None
         self.widget_y = None
-        if self.root and type(self).__name__ == 'MouseClickRight':
-            # Виджет не нужно выводить, если приложение выполняется в консольном режиме
-            # И только для своих объектов
-            self.paint_widgets()
+        self.label_x = None
+        self.label_y = None
 
     def __str__(self):
         return self.command_name
@@ -111,9 +114,11 @@ class MouseClickRight(CommandClasses):
     def paint_widgets(self):
         """ Отрисовка виджета """
         # Виджеты для ввода x, y
-        Label(self.root, text='x=').place(x=10, y=71)
+        self.label_x = Label(self.root, text='x=')
+        self.label_x.place(x=10, y=71)
         self.widget_x = DataInput.CreateInput(self.root, self.x, x=34, y=71)  # Ввод целого числа X
-        Label(self.root, text='y=').place(x=100, y=71)
+        self.label_y = Label(self.root, text='y=')
+        self.label_y.place(x=100, y=71)
         self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
 
     def save(self):
@@ -135,9 +140,11 @@ class MouseClickRight(CommandClasses):
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        self.widget_x.destroy()
-        self.widget_y.destroy()
-        self.widget_description.destroy()
+        self.label_x.destroy()
+        self.label_y.destroy()
+        self.widget_x.destroy_widgets()
+        self.widget_y.destroy_widgets()
+        self.widget_description.destroy_widgets()
 
 class MouseClickLeft(MouseClickRight):
     """ Клик левой кнопкой мыши """
@@ -154,9 +161,6 @@ class MouseClickLeft(MouseClickRight):
         self.image = args[2]
         self.element_image = None
         self.widget_button = None
-        if self.root:
-            # Виджет не нужно выводить, если приложение выполняется в консольном режиме
-            self.paint_widgets()
 
     def __str__(self):
         return self.command_name
@@ -164,9 +168,11 @@ class MouseClickLeft(MouseClickRight):
     def paint_widgets(self):
         """ Отрисовка виджетов """
         # Виджеты для ввода x, y
-        Label(self.root, text='x=').place(x=10, y=71)
+        self.label_x = Label(self.root, text='x=')
+        self.label_x.place(x=10, y=71)
         self.widget_x = DataInput.CreateInput(self.root, self.x, x=34, y=71)  # Ввод целого числа X
-        Label(self.root, text='y=').place(x=100, y=71)
+        self.label_y = Label(self.root, text='y=')
+        self.label_y.place(x=100, y=71)
         self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
 
         # Изображение элемента
@@ -194,10 +200,12 @@ class MouseClickLeft(MouseClickRight):
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        self.widget_x.destroy()
-        self.widget_y.destroy()
+        self.label_x.destroy()
+        self.label_y.destroy()
+        self.widget_x.destroy_widgets()
+        self.widget_y.destroy_widgets()
         self.widget_button.destroy()
-        self.widget_description.destroy()
+        self.widget_description.destroy_widgets()
 
 
 class MouseClickDouble(MouseClickLeft):
@@ -229,10 +237,11 @@ class KeyDown(CommandClasses):
                        'left_alt', 'right_alt', 'menu', 'print_screen', 'left_bracket', 'right_bracket', 'semicolon',
                        'comma', 'period', 'quote', 'forward_slash', 'back_slash', 'equal', 'hyphen', 'space']
         self.current_value = args[0]
-        self.value = StringVar(value=self.current_value)
-        if self.root:
-            # Виджет не нужно выводить, если приложение выполняется в консольном режиме
-            self.paint_widgets()
+        if self.current_value in self.values:
+            self.value = StringVar(value=self.current_value)
+        else:
+            self.current_value = self.values[0]
+            self.value = StringVar(value=self.current_value)
 
     def __str__(self):
         return self.command_name
@@ -263,7 +272,7 @@ class KeyDown(CommandClasses):
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
         self.widget.destroy()
-        self.widget_description.destroy()
+        self.widget_description.destroy_widgets()
 
 
 class KeyUp(KeyDown):
@@ -289,7 +298,6 @@ class WriteDataFromField(CommandClasses):
         if self.current_value and self.current_value not in self.values:
             raise DataError(f'Нет поля "{self.current_value}" в источнике данных')
         self.value = StringVar(value=self.current_value)
-        self.paint_widgets()
 
     def __str__(self):
         return self.command_name
@@ -320,7 +328,7 @@ class WriteDataFromField(CommandClasses):
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
         self.widget.destroy()
-        self.widget_description.destroy()
+        self.widget_description.destroy_widgets()
 
 
 class NextElementField(WriteDataFromField):
@@ -351,7 +359,6 @@ class PauseCmd(CommandClasses):
 
         super().__init__(description=description)
         self.widget = None
-        self.paint_widgets()
 
     def __str__(self):
         return self.command_name
@@ -378,8 +385,8 @@ class PauseCmd(CommandClasses):
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        self.widget.widget.destroy()
-        self.widget_description.destroy()
+        self.widget.destroy_widgets()
+        self.widget_description.destroy_widgets()
 
 
 class WriteCmd(PauseCmd):
@@ -461,6 +468,10 @@ class CycleEnd(CommandClasses):
         """ Принимает пользовательское описание команды"""
         super().__init__(description=description)
 
+    def paint_widgets(self):
+        """ Вывод виджетов команды """
+        pass
+
     def save(self):
         """ Записывает содержимое виджетов в объект.
 
@@ -478,7 +489,7 @@ class CycleEnd(CommandClasses):
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        self.widget_description.destroy()
+        self.widget_description.destroy_widgets()
 
 
 

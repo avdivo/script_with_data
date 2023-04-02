@@ -70,6 +70,10 @@ class DataInput:
         return required_class(root, value, x=x, y=y, func_event=func_event,
                               black_list=black_list, width=width, length=length)
 
+    def destroy_widgets(self):
+        """ Удаление виджетов """
+        self.widget.destroy()
+
 
 class FieldInt(DataInput):
     """ Ввод целых чисел
@@ -244,12 +248,12 @@ class FieldEres(DataInput):
         self.selected_react = StringVar(value=self.value.react)
 
         long = len(max(self.value.react_list, key=len))
-        combobox = ttk.Combobox(self.root, values=self.value.react_list,
+        self.combobox = ttk.Combobox(self.root, values=self.value.react_list,
                                 textvariable=self.selected_react, state="readonly")
-        combobox.place(x=self.x, y=self.y)
+        self.combobox.place(x=self.x, y=self.y)
 
-        combobox.configure(width=long)
-        combobox.bind("<<ComboboxSelected>>", self.change_react)
+        self.combobox.configure(width=long)
+        self.combobox.bind("<<ComboboxSelected>>", self.change_react)
         # Выбор метки
         self.widget = DataInput.CreateInput(self.root, self.value.label, x=self.x+70, y=self.y,
                                             func_event=self.change_label)
@@ -284,5 +288,11 @@ class FieldEres(DataInput):
     def result(self):
         """ Возвращает результат нужного типа, переопределение метода родительского класса """
         return self.value
+
+    def destroy_widgets(self):
+        """ Удаление виджетов """
+        self.widget.destroy_widgets()
+        self.combobox.destroy()
+
 
 

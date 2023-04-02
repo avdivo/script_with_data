@@ -57,10 +57,10 @@ class eres:
             return super().__new__(cls)
 
     def __init__(self, string):
+        if not string:
+            string = 'stop:'  # Значение по умолчанию при инициализации пустой строкой
         if isinstance(string, str):
             # Принимает только данные типа str для создания объекта
-            if not string:
-                string = 'stop:'  # Значение по умолчанию при инициализации пустой строкой
             if ':' not in string:
                 raise ValueError('Неверное значение. Нет разделителя ":".')
             react, label = string.split(':')

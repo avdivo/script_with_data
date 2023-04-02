@@ -7,6 +7,7 @@
 
 from tkinter import *
 from tkinter import ttk
+from tktooltip import ToolTip
 
 from commands import CommandClasses
 
@@ -38,12 +39,34 @@ class Editor:
         self.widget.bind("<<ComboboxSelected>>", self.select_command)
         self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
 
+        # Кнопки
+        self.icon4 = PhotoImage(file="icon/new.png")
+        self.icon5 = PhotoImage(file="icon/edit.png")
+
+        new_button = Button(self.root, command=self.add_cmd_button, image=self.icon4, width=100, height=34)
+        new_button.place(x=10, y=106)
+        ToolTip(new_button, msg="Добавить команду", delay=0.5)
+
+        edit_button = Button(self.root, command=self.change_cmd_button, image=self.icon5, width=100, height=34)
+        edit_button.place(x=130, y=106)
+        ToolTip(edit_button, msg="Изменить команду", delay=0.5)
+
     def select_command(self, event):
         """ Обработка выбора команды в выпадающем списке """
+        if self.current_cmd:
+            self.current_cmd.destroy_widgets()  # Удаляем старые виджеты
         # Получаем имя класса команды, для создания команды
         name = self.commands_dict[self.commands_var.get()].__name__
         # Зная имя класса команды создаем ее объект
-        self.current_cmd = CommandClasses.create_command([], command=name)
+        self.current_cmd = CommandClasses.create_command('', command=name)
+        # Рисуем его виджеты
+        self.current_cmd.paint_widgets()
+
+    def add_cmd_button(self, event=None):
+        print('Добавить')
+
+    def change_cmd_button(self, event=None):
+        print('Изменить')
 
 
 if __name__ == '__main__':

@@ -142,9 +142,6 @@ element_image = PhotoImage(file="elements/elem_230228_163525.png")
 # element_button.place(x=273, y=5)
 # ToolTip(element_button, msg="Изображение элемента", delay=0.5)
 
-# Кнопки
-icon4 = PhotoImage(file="icon/new.png")
-icon5 = PhotoImage(file="icon/edit.png")
 
 def button(event=None):
     a.save()
@@ -158,14 +155,17 @@ def button(event=None):
     # print(a.image)
 
 
-
-new_button = Button(frame2, command=button, image=icon4, width=100, height=34)
-new_button.place(x=10, y=106)
-ToolTip(new_button, msg="Добавить команду", delay=0.5)
-
-edit_button = Button(frame2, command=button, image=icon5, width=100, height=34)
-edit_button.place(x=130, y=106)
-ToolTip(edit_button, msg="Изменить команду", delay=0.5)
+# Кнопки
+# icon4 = PhotoImage(file="icon/new.png")
+# icon5 = PhotoImage(file="icon/edit.png")
+#
+# new_button = Button(frame2, command=button, image=icon4, width=100, height=34)
+# new_button.place(x=10, y=106)
+# ToolTip(new_button, msg="Добавить команду", delay=0.5)
+#
+# edit_button = Button(frame2, command=button, image=icon5, width=100, height=34)
+# edit_button.place(x=130, y=106)
+# ToolTip(edit_button, msg="Изменить команду", delay=0.5)
 
 
 # Редактор скрипта ----------------------------
