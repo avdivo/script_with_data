@@ -195,14 +195,14 @@ delete_button.place(x=200, y=58)
 ToolTip(delete_button, msg="Удалить команды", delay=0.5)
 
 
-# Информация
-information = StringVar()
+# # Информация
+# information = StringVar()
 frame4 = LabelFrame(root, width=385, height=135, text='Информация', foreground='#083863')
 frame4.place(x=INDENT, y=430)
-
-Message(frame4, width=390, anchor='w', textvariable=information).place(x=0, y=0)
-information.set('Поле таблицы (столбец) представлено в виде списка данных.\nЭта команда '
-                'переводит указатель чтения к следующему элементу списка')
+#
+# Message(frame4, width=390, anchor='w', textvariable=information).place(x=0, y=0)
+# information.set('Поле таблицы (столбец) представлено в виде списка данных.\nЭта команда '
+#                 'переводит указатель чтения к следующему элементу списка')
 
 
 # История ---------------------------------------
@@ -224,8 +224,8 @@ args = ['']
 data = DataForWorker()
 CommandClasses.root = frame2
 CommandClasses.data = data
-editor = Editor(frame2)
-
+editor = Editor(frame2, frame4)  # Первый фрейм для редактора, второй для сообщений
+message = Message(frame4)
 
 a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
 

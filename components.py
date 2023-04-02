@@ -17,12 +17,15 @@ class Editor:
 
     Представляет основной интерфейс редактора: выбор команды, кнопки действий.
     Без виджетов ввода данных, они находятся в самих командах.
+    А так-же принимает ссылку на фрейм для сообщений, куда размещает виджет
+    и выводит сообщения через отднльный метод
 
     """
 
-    def __init__(self, root):
+    def __init__(self, root, root_mes):
         """ При инициализации принимает ссылку на виджет, куда выводить элементы интерфейса """
         self.root = root
+        self.root_mes = root_mes
         self.current_cmd = None  # Объект команды, с которой работает редактор
 
         # Формируем словарь: {название команды: класс}, для этого обращаемся к методу класса родителя команд
@@ -37,6 +40,12 @@ class Editor:
                      textvariable=self.commands_var, state="readonly")
         self.widget.place(x=5, y=5)
         self.widget.bind("<<ComboboxSelected>>", self.select_command)
+
+        # Информация
+        self.message = StringVar()
+        self.widget_mes = Message(root_mes, width=390, anchor='w', textvariable=self.message)
+        self.widget_mes.place(x=0, y=0)
+
         self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
 
         # Кнопки
@@ -61,6 +70,8 @@ class Editor:
         self.current_cmd = CommandClasses.create_command('', command=name)
         # Рисуем его виджеты
         self.current_cmd.paint_widgets()
+        # Выводим справку о команде
+        self.to_report(self.current_cmd.command_description)
 
     def add_cmd_button(self, event=None):
         print('Добавить')
@@ -68,6 +79,8 @@ class Editor:
     def change_cmd_button(self, event=None):
         print('Изменить')
 
+    def to_report(self, message):
+        self.message.set(message)
 
 if __name__ == '__main__':
     # блок кода, который будет выполнен только при запуске модуля
