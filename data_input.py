@@ -100,10 +100,11 @@ class FieldInt(DataInput):
 
         self.value = StringVar(value=self.value)  # Переменная хранящая введенный текст
         self.widget = Entry(self.root, width=self.width, validate="key", validatecommand=check, textvariable=self.value)
+        # self.widget.configure(placeholder='Введите текст')
         self.widget.place(x=self.x, y=self.y)
-
         self.widget.bind('<Return>', self.func_event)  # Ловим нажатие Enter
 
+    # entry.configure(placeholder='Введите текст'))
     def is_valid(self, val):
         """ Пускает только целое число или пустую строку """
         if not val:

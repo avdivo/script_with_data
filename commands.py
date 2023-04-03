@@ -37,6 +37,8 @@ class CommandClasses(ABC):
         # Комментарий
         self.widget_description = DataInput.CreateInput(self.root, self.description, x=10, y=37, width=31, length=50)
         ToolTip(self.widget_description.widget, msg="Комментарий", delay=0.5)
+        if not self.description:
+            self.widget_description.widget.config(text='Пользовательское описание')
 
     @classmethod
     def create_command(cls, *args, command: str, description=''):
@@ -80,6 +82,7 @@ class CommandClasses(ABC):
 
     @classmethod
     def get_all_subclasses(cls):
+        """ Возвращает список всех подклассов класса и их подклассов """
         subclasses = cls.__subclasses__()
         for subclass in subclasses:
             subclasses += subclass.get_all_subclasses()
@@ -109,6 +112,10 @@ class MouseClickRight(CommandClasses):
         self.label_y = None
 
     def __str__(self):
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
         return self.command_name
 
     def paint_widgets(self):
@@ -123,8 +130,6 @@ class MouseClickRight(CommandClasses):
 
     def save(self):
         """ Записывает содержимое виджетов в объект.
-
-         Метод реализуется в наследниках.
 
          """
         self.x = self.widget_x.result
@@ -161,9 +166,6 @@ class MouseClickLeft(MouseClickRight):
         self.image = args[2]
         self.element_image = None
         self.widget_button = None
-
-    def __str__(self):
-        return self.command_name
 
     def paint_widgets(self):
         """ Отрисовка виджетов """
@@ -218,7 +220,7 @@ class MouseClickDouble(MouseClickLeft):
 
 class KeyDown(CommandClasses):
     """ Нажать клавишу на клавиатуре """
-    command_name = 'Нажать клавишу на клавиатуре'
+    command_name = 'Нажать клавишу'
     command_description = 'Нажатие клавиши на клавиатуре. Для отпускания клавиши есть отдельная команда.'
     for_sort = 30
 
@@ -242,9 +244,12 @@ class KeyDown(CommandClasses):
         else:
             self.current_value = self.values[0]
             self.value = StringVar(value=self.current_value)
-
     def __str__(self):
-        return self.command_name
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name} {self.value}"
 
     def paint_widgets(self):
         """ Отрисовка виджета """
@@ -259,7 +264,7 @@ class KeyDown(CommandClasses):
 
          Метод реализуется в наследниках.
 
-         """
+        """
         self.description = self.widget_description.result
 
     def command_to_dict(self):
@@ -400,7 +405,6 @@ class WriteCmd(PauseCmd):
         """ Принимает текст и пользовательское описание команды """
         value = str(args[0])
         super().__init__(*args, description=description, value=value)
-
 
 class RunCmd(PauseCmd):
     """ Выполнить часть скрипта """

@@ -29,7 +29,7 @@ from tktooltip import ToolTip
 from settings import settings
 from commands import CommandClasses
 from data_for_worker import DataForWorker
-from components import Editor
+from components import Editor, DisplayCommands, data
 
 
 # Интерфейс
@@ -65,27 +65,27 @@ mainmenu.add_cascade(label="Файл", menu=filemenu)
 mainmenu.add_command(label="Настройки скрипта",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
 
-# Список команд скрипта ------------------------------
-
-# Create an instance of Style widget
-style=ttk.Style()
-style.theme_use('clam')
-
-
-tree = ttk.Treeview(root, show="", columns=('size', 'modified'), selectmode="extended", height=28)
-tree.column("# 1", stretch=NO, width=80)
-tree.column("# 2", stretch=NO, width=300)
-
-
-tree.insert('', 1000, 'gallery1', values=(1, 'Клик левой клавишей мыши'))
-tree.insert('', 1000, 'gallery3', values=(2, 'Клик правой клавишей мыши'))
-tree.insert('', 1000, 'gallery4', values=(3, "Следующий элемент поля 'field_name'"))
-tree.insert('', 1000, 'gallery2', values=(4, 'Двойной клик мыши'))
-tree.insert('', 0, 'gallery0', values=('', ''))
-
-tree.selection_set('gallery1')
-tree.focus_set()
-tree.place(x=0, y=0)
+# # Список команд скрипта ------------------------------
+#
+# # Create an instance of Style widget
+# style = ttk.Style()
+# style.theme_use('clam')
+#
+#
+# tree = ttk.Treeview(root, show="", columns=('size', 'modified'), selectmode="extended", height=28)
+# tree.column("# 1", stretch=NO, width=80)
+# tree.column("# 2", stretch=NO, width=300)
+#
+#
+# tree.insert('', 1000, 'gallery1', values=(1, 'Клик левой клавишей мыши'))
+# tree.insert('', 1000, 'gallery3', values=(2, 'Клик правой клавишей мыши'))
+# tree.insert('', 1000, 'gallery4', values=(3, "Следующий элемент поля 'field_name'"))
+# tree.insert('', 1000, 'gallery2', values=(4, 'Двойной клик мыши'))
+# tree.insert('', 0, 'gallery0', values=('', ''))
+#
+# tree.selection_set('gallery1')
+# tree.focus_set()
+# tree.place(x=0, y=0)
 
 
 # Кнопки записи и воспроизведения ---------------------------
@@ -221,10 +221,15 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
 args = ['']
-data = DataForWorker()
 CommandClasses.root = frame2
 CommandClasses.data = data
 editor = Editor(frame2, frame4)  # Первый фрейм для редактора, второй для сообщений
+display_commands = DisplayCommands(root)  # Передаем ссылку на окно программы
+
+# Реализация паттерна Наблюдатель, сообщаем объектам ссылки друг на друга для оповещения при изменениях
+editor.display_commands = display_commands
+display_commands.editor = editor
+
 message = Message(frame4)
 
 a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
