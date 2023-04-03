@@ -151,6 +151,7 @@ class MouseClickRight(CommandClasses):
         self.widget_y.destroy_widgets()
         self.widget_description.destroy_widgets()
 
+
 class MouseClickLeft(MouseClickRight):
     """ Клик левой кнопкой мыши """
     command_name = 'Клик левой кнопкой мыши'
@@ -218,6 +219,7 @@ class MouseClickDouble(MouseClickLeft):
                          'в соответствии с настройками скрипта.'
     for_sort = 10
 
+
 class KeyDown(CommandClasses):
     """ Нажать клавишу на клавиатуре """
     command_name = 'Нажать клавишу'
@@ -238,12 +240,12 @@ class KeyDown(CommandClasses):
                        'f11', 'f12', 'num_lock', 'scroll_lock', 'left_shift', 'right_shift', 'left_ctrl', 'right_ctrl',
                        'left_alt', 'right_alt', 'menu', 'print_screen', 'left_bracket', 'right_bracket', 'semicolon',
                        'comma', 'period', 'quote', 'forward_slash', 'back_slash', 'equal', 'hyphen', 'space']
-        self.current_value = args[0]
-        if self.current_value in self.values:
-            self.value = StringVar(value=self.current_value)
+        self.value = args[0]
+        if self.value in self.values:
+            self.value_var = StringVar(value=self.value)
         else:
-            self.current_value = self.values[0]
-            self.value = StringVar(value=self.current_value)
+            self.value = self.values[0]
+            self.value_var = StringVar(value=self.value)
     def __str__(self):
         """ Возвращает название команды, иногда с параметрами.
         Но если есть пользовательское описание - то его """
@@ -253,18 +255,15 @@ class KeyDown(CommandClasses):
 
     def paint_widgets(self):
         """ Отрисовка виджета """
-        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value, state="readonly")
+        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value_var, state="readonly")
         self.widget.place(x=10, y=71)
         long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
         self.widget.configure(width=long)
-        self.value.set(self.current_value)
+        self.value.set(self.value)
 
     def save(self):
-        """ Записывает содержимое виджетов в объект.
-
-         Метод реализуется в наследниках.
-
-        """
+        """ Записывает содержимое виджетов в объект """
+        self.value = self.value_var.get()
         self.description = self.widget_description.result
 
     def command_to_dict(self):
@@ -282,13 +281,14 @@ class KeyDown(CommandClasses):
 
 class KeyUp(KeyDown):
     """ Отпустить клавишу клавиатуры """
-    command_name = 'Отпустить клавишу клавиатуры'
+    command_name = 'Отпустить клавишу'
     command_description = 'Отпускание клавиши клавиатуры. Для нажатия клавиши есть отдельная команда.'
     for_sort = 40
 
+
 class WriteDataFromField(CommandClasses):
     """ Вывести из текущей позиции поля """
-    command_name = 'Вывести данные из поля'
+    command_name = 'Вывод из поля'
     command_description = 'Столбцы выбранной таблицы с данными - это поля. Данные будут считаны из указанного поля ' \
                           'и вставлены на место курсора. Переход к следующей строке в столбце осуществляется командой ' \
                           'Следующий элемент поля.'
@@ -298,29 +298,30 @@ class WriteDataFromField(CommandClasses):
         """ Принимает имя поля и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
-        self.current_value = args[0]
+        self.value = args[0]
         self.values = self.data.get_fields()  # Получаем имена всех полей
-        if self.current_value and self.current_value not in self.values:
-            raise DataError(f'Нет поля "{self.current_value}" в источнике данных')
-        self.value = StringVar(value=self.current_value)
+        if self.value and self.value not in self.values:
+            raise DataError(f'Нет поля "{self.value}" в источнике данных')
+        self.value_var = StringVar(value=self.value)
 
     def __str__(self):
-        return self.command_name
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name} {self.value}"
 
     def paint_widgets(self):
         """ Отрисовка виджета """
-        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value, state="readonly")
+        self.widget = ttk.Combobox(self.root, values=self.values, textvariable=self.value_var, state="readonly")
         self.widget.place(x=10, y=71)
         long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
         self.widget.configure(width=long)
-        self.value.set(self.current_value)
+        self.value_var.set(self.value)
 
     def save(self):
-        """ Записывает содержимое виджетов в объект.
-
-         Метод реализуется в наследниках.
-
-         """
+        """ Записывает содержимое виджетов в объект """
+        self.value = self.value_var.get()
         self.description = self.widget_description.result
 
     def command_to_dict(self):
@@ -338,10 +339,11 @@ class WriteDataFromField(CommandClasses):
 
 class NextElementField(WriteDataFromField):
     """ Следующий элемент поля """
-    command_name = 'Следующий элемент поля '
+    command_name = 'Следующий элемент поля'
     command_description = 'Поле таблицы (столбец) представлено в виде списка данных. Эта команда переводит ' \
                           'указатель чтения к следующему элементу списка'
     for_sort = 70
+
 
 class CycleForField(WriteDataFromField):
     """ Цикл по полю """
@@ -349,6 +351,7 @@ class CycleForField(WriteDataFromField):
     command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
                           'Окончание блока - команда Конец цикла.'
     for_sort = 80
+
 
 class PauseCmd(CommandClasses):
     """ Пауза n секунд """
@@ -366,18 +369,18 @@ class PauseCmd(CommandClasses):
         self.widget = None
 
     def __str__(self):
-        return self.command_name
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name} {self.value} сек."
 
     def paint_widgets(self):
         """ Отрисовка виджета """
         self.widget = DataInput.CreateInput(self.root, self.value, x=10, y=71)  # Виджеты для разных типов данных
 
     def save(self):
-        """ Записывает содержимое виджетов в объект.
-
-         Метод реализуется в наследниках.
-
-         """
+        """ Записывает содержимое виджетов в объект """
         self.value = self.widget.result
         self.description = self.widget_description.result
 
@@ -406,6 +409,14 @@ class WriteCmd(PauseCmd):
         value = str(args[0])
         super().__init__(*args, description=description, value=value)
 
+    def __str__(self):
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name} {self.value}"
+
+
 class RunCmd(PauseCmd):
     """ Выполнить часть скрипта """
     command_name = 'Выполнить'
@@ -416,6 +427,13 @@ class RunCmd(PauseCmd):
         """ Принимает значение типа llist и пользовательское описание команды """
         self.value = llist(args[0])
         super().__init__(*args, description=description, value=self.value)
+
+    def __str__(self):
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name} {self.value}"
 
 
 class ErrorNoElement(PauseCmd):
@@ -429,6 +447,13 @@ class ErrorNoElement(PauseCmd):
         """ Принимает значение типа eres и пользовательское описание команды """
         self.value = eres(args[0])
         super().__init__(*args, description=description, value=self.value)
+
+    def __str__(self):
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name}"
 
 
 class ErrorNoData(ErrorNoElement):
@@ -447,6 +472,7 @@ class BlockCmd(WriteCmd):
                           'После чего скрипт выполняется от команды вызвавшей блок.'
     for_sort = 110
 
+
 class LabelCmd(WriteCmd):
     """ Метка для перехода """
     command_name = 'Метка'
@@ -461,6 +487,14 @@ class CycleCmd(PauseCmd):
                           'Окончание блока - команда Конец цикла.'
     for_sort = 90
 
+    def __str__(self):
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name} {self.value} раз"
+
+
 class CycleEnd(CommandClasses):
     """ Конец цикла """
     command_name = 'Конец цикла'
@@ -471,6 +505,13 @@ class CycleEnd(CommandClasses):
     def __init__(self, *args, description):
         """ Принимает пользовательское описание команды"""
         super().__init__(description=description)
+
+    def __str__(self):
+        """ Возвращает название команды, иногда с параметрами.
+        Но если есть пользовательское описание - то его """
+        if self.description:
+            return self.description
+        return f"{self.command_name}"
 
     def paint_widgets(self):
         """ Вывод виджетов команды """
@@ -496,13 +537,13 @@ class CycleEnd(CommandClasses):
         self.widget_description.destroy_widgets()
 
 
-
 class BlockEnd(CycleEnd):
     """ Конец блока """
     command_name = 'Конец блока'
     command_description = 'Завершение списка команд относящихся к последнему (перед этой командой) объявленному блоку. ' \
                           'Начало блока - команда Блок.'
     for_sort = 120
+
 
 class StopCmd(CycleEnd):
     """ Конец скрипта """
