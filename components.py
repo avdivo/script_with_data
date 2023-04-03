@@ -32,7 +32,7 @@ class DataForWorker:
         self.queue_command = []  # Очередь команд (ключи - id команды)
         self.obj_command = dict()  # Объекты команд по ключам из очереди
         self.id_command = 0  # Счетчик для идентификаторов команд
-        self.pointer_command = 0  # Указатель на исполняемую команду или положение курсора в списке
+        self.pointer_command = -1  # Указатель на исполняемую команду или положение курсора в списке
 
         self.stack = deque()  # Стек для циклов и подпрограмм
 
@@ -55,10 +55,10 @@ class DataForWorker:
 
     def add_new_command(self, cmd):
         """ Добавление новой команды """
-        key = self.next_id()
-        self.queue_command.insert(self.pointer_command, key)
-        self.obj_command.update({key: cmd})
-        print(self.queue_command, self.obj_command)
+        key = self.next_id()  # Получаем новый id
+        self.pointer_command += 1  # Строка добавляется в позицию за указателем и на нее ставим указатель
+        self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
+        self.obj_command.update({key: cmd})  # Добавляем объект в dict
 
 
 data = DataForWorker()  # Создаем объект с данными о скрипте
@@ -127,14 +127,30 @@ class Editor:
         # Выводим справку о команде
         self.to_report(self.current_cmd.command_description)
 
+    def command_to_editor(self, id_command):
+        if self.current_cmd:
+            self.current_cmd.destroy_widgets()  # Удаляем старые виджеты
+        if id_command == 'zero':
+            # Выбрана пустая строка
+            self.current_cmd = ''
+            self.select_command(None)
+        else:
+            self.current_cmd = self.data.obj_command[id_command]  # Получаем объект команды
+            # Рисуем его виджеты
+            self.current_cmd.paint_widgets()
+            # Выводим справку о команде
+            self.to_report(self.current_cmd.command_description)
+
     def add_cmd_button(self, event=None):
-        print('Добавить')
-        data.add_new_command(self.current_cmd)  # Добавление команды в очередь
+        self.current_cmd.save()
+        self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
+        self.display_commands.out_commands()  # Обновляем список
 
     def change_cmd_button(self, event=None):
         print('Изменить')
 
     def to_report(self, message):
+        """ Вывод сообщения в поле сообщений """
         self.message.set(message)
 
 
@@ -157,22 +173,38 @@ class DisplayCommands:
         self.tree = ttk.Treeview(root, show="", columns=('number', 'command'), selectmode="extended", height=28)
         self.tree.column("#1", stretch=NO, width=80)
         self.tree.column("#2", stretch=NO, width=300)
-
-        self.tree.insert('', 0, 'gallery0', values=('', ''))
-        self.tree.insert('', 'end', 'gallery1', values=(1, 'Клик левой клавишей мыши'))
-
-        self.tree.selection_set('gallery1')
-        self.tree.focus_set()
         self.tree.place(x=0, y=0)
+        self.out_commands()
 
-    def out_string(self):
+        self.tree.bind("<<TreeviewSelect>>", self.on_select)
+
+    def on_select(self, event):
+        selected_item = event.widget.selection()[0]  # Получаем id команды
+        # Устанавливаем указатель списка
+        self.data.pointer_command = -1 if selected_item == 'zero' else self.data.queue_command.index(selected_item)
+        self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id
+
+    def out_commands(self):
         """ Вывод строк в виджет
 
         Берет строки из объекта с данными и выводит их в виджет.
         Названия команд запрашивает у их объектов, где при наличии описания возвращается оно, а не название.
 
-
         """
+        self.clear()
+        self.tree.insert('', 0, 'zero', values=('', ''))  # Добавляем пустую строку
+        for i, id in enumerate(data.queue_command):
+            # Выводим список
+            self.tree.insert('', 'end', id, values=(i+1, self.data.obj_command[id]))
+        self.tree.selection_set(self.tree.get_children()[data.pointer_command+1])  # Выделяем строку
+        # self.tree.focus_set()
+        pass
+
+    def clear(self):
+        """ Очистка списка команд """
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
 
 if __name__ == '__main__':
     # блок кода, который будет выполнен только при запуске модуля

@@ -259,7 +259,7 @@ class KeyDown(CommandClasses):
         self.widget.place(x=10, y=71)
         long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
         self.widget.configure(width=long)
-        self.value.set(self.value)
+        self.value_var.set(self.value)
 
     def save(self):
         """ Записывает содержимое виджетов в объект """
