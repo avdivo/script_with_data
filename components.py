@@ -78,8 +78,8 @@ class Editor:
 
     def __init__(self, root, root_mes):
         """ При инициализации принимает ссылку на виджет, куда выводить элементы интерфейса """
-        self.root = root
-        self.root_mes = root_mes
+        self.root = root  # Фрейм редактора
+        self.root_mes = root_mes  # Фрейм сообщений
         self.current_cmd = None  # Объект команды, с которой работает редактор
 
         # Формируем словарь: {название команды: класс}, для этого обращаемся к методу класса родителя команд
@@ -89,7 +89,7 @@ class Editor:
         self.commands_name = sorted(self.commands_dict, key=lambda x: self.commands_dict[x].for_sort)
         self.commands_var = StringVar(value=self.commands_name[0])  # Переменная содержит выбранное значение
 
-        # Вывод виджетов
+        # Вывод виджета выпадающего списка команд
         self.widget = ttk.Combobox(self.root, values=self.commands_name, width=30,
                      textvariable=self.commands_var, state="readonly")
         self.widget.place(x=5, y=5)
@@ -182,7 +182,7 @@ class DisplayCommands:
         selected_item = event.widget.selection()[0]  # Получаем id команды
         # Устанавливаем указатель списка
         self.data.pointer_command = -1 if selected_item == 'zero' else self.data.queue_command.index(selected_item)
-        self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id
+        # self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id
 
     def out_commands(self):
         """ Вывод строк в виджет

@@ -143,18 +143,6 @@ element_image = PhotoImage(file="elements/elem_230228_163525.png")
 # ToolTip(element_button, msg="Изображение элемента", delay=0.5)
 
 
-def button(event=None):
-    a.save()
-    print(a.command_name)
-    print(a.command_description)
-    print(a.description)
-    print(a.value)
-    # print(a.value.get())
-    # print(a.x)
-    # print(a.y)
-    # print(a.image)
-
-
 # Кнопки
 # icon4 = PhotoImage(file="icon/new.png")
 # icon5 = PhotoImage(file="icon/edit.png")
@@ -230,9 +218,8 @@ display_commands = DisplayCommands(root)  # Передаем ссылку на �
 editor.display_commands = display_commands
 display_commands.editor = editor
 
-message = Message(frame4)
 
-a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
+# a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
 
 
 

@@ -33,12 +33,13 @@ class CommandClasses(ABC):
     def __init__(self, description):
         """ Принимает пользовательское описание команды """
         self.description = description  # Описание
+        # self.paint_description()
 
+    def paint_description(self):
         # Комментарий
         self.widget_description = DataInput.CreateInput(self.root, self.description, x=10, y=37, width=31, length=50)
         ToolTip(self.widget_description.widget, msg="Комментарий", delay=0.5)
-        if not self.description:
-            self.widget_description.widget.config(text='Пользовательское описание')
+        print('Работает')
 
     @classmethod
     def create_command(cls, *args, command: str, description=''):
@@ -71,7 +72,7 @@ class CommandClasses(ABC):
     def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
-         {'ClassName': [параметры]}
+         {'ClassName': [параметры], des: 'Описание'}
          """
         pass
 
@@ -127,6 +128,7 @@ class MouseClickRight(CommandClasses):
         self.label_y = Label(self.root, text='y=')
         self.label_y.place(x=100, y=71)
         self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
+        self.paint_description()
 
     def save(self):
         """ Записывает содержимое виджетов в объект.
@@ -183,6 +185,7 @@ class MouseClickLeft(MouseClickRight):
         self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96, relief=FLAT)
         self.widget_button.place(x=273, y=5)
         ToolTip(self.widget_button, msg="Изображение элемента", delay=0.5)
+        self.paint_description()  # Комментарий
 
     def load_image(self):
         """ Загрузка изображения элемента """
@@ -260,6 +263,7 @@ class KeyDown(CommandClasses):
         long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
         self.widget.configure(width=long)
         self.value_var.set(self.value)
+        self.paint_description()
 
     def save(self):
         """ Записывает содержимое виджетов в объект """
@@ -318,6 +322,7 @@ class WriteDataFromField(CommandClasses):
         long = len(max(self.values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
         self.widget.configure(width=long)
         self.value_var.set(self.value)
+        self.paint_description()
 
     def save(self):
         """ Записывает содержимое виджетов в объект """
@@ -378,6 +383,7 @@ class PauseCmd(CommandClasses):
     def paint_widgets(self):
         """ Отрисовка виджета """
         self.widget = DataInput.CreateInput(self.root, self.value, x=10, y=71)  # Виджеты для разных типов данных
+        self.paint_description()
 
     def save(self):
         """ Записывает содержимое виджетов в объект """
@@ -515,7 +521,7 @@ class CycleEnd(CommandClasses):
 
     def paint_widgets(self):
         """ Вывод виджетов команды """
-        pass
+        self.paint_description()
 
     def save(self):
         """ Записывает содержимое виджетов в объект.
