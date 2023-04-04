@@ -60,7 +60,6 @@ class DataForWorker:
         self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
         self.obj_command.update({key: cmd})  # Добавляем объект в dict
 
-
 data = DataForWorker()  # Создаем объект с данными о скрипте
 
 
@@ -128,18 +127,25 @@ class Editor:
         self.to_report(self.current_cmd.command_description)
 
     def command_to_editor(self, id_command):
+        """ Загрузка команды в редактор """
         if self.current_cmd:
             self.current_cmd.destroy_widgets()  # Удаляем старые виджеты
         if id_command == 'zero':
-            # Выбрана пустая строка
-            self.current_cmd = ''
-            self.select_command(None)
+            # Выбрана пустая строка, создать объект с параметрами по умолчанию
+            name = self.commands_dict[self.commands_name[0]].__name__
+            # Зная имя класса команды создаем ее объект
+            self.current_cmd = CommandClasses.create_command('', command=name)
         else:
-            self.current_cmd = self.data.obj_command[id_command]  # Получаем объект команды
-            # Рисуем его виджеты
-            self.current_cmd.paint_widgets()
-            # Выводим справку о команде
-            self.to_report(self.current_cmd.command_description)
+            # Делаем копию выбранной команды и все операции выполняем с ней.
+            # Получаем краткую запись объекта выбранной команды (dict)
+            temp = self.data.obj_command[id_command].command_to_dict()
+            # Создаем копию объекта команды по краткой записи (сам объект не меняем)
+            self.current_cmd = CommandClasses.create_command(*temp['val'], command=temp['cmd'], description=temp['des'])
+        # Рисуем его виджеты
+        self.current_cmd.paint_widgets()
+        # Выводим справку о команде
+        self.to_report(self.current_cmd.command_description)
+
 
     def add_cmd_button(self, event=None):
         self.current_cmd.save()
@@ -182,7 +188,7 @@ class DisplayCommands:
         selected_item = event.widget.selection()[0]  # Получаем id команды
         # Устанавливаем указатель списка
         self.data.pointer_command = -1 if selected_item == 'zero' else self.data.queue_command.index(selected_item)
-        # self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id
+        self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id
 
     def out_commands(self):
         """ Вывод строк в виджет

@@ -39,7 +39,6 @@ class CommandClasses(ABC):
         # Комментарий
         self.widget_description = DataInput.CreateInput(self.root, self.description, x=10, y=37, width=31, length=50)
         ToolTip(self.widget_description.widget, msg="Комментарий", delay=0.5)
-        print('Работает')
 
     @classmethod
     def create_command(cls, *args, command: str, description=''):
@@ -106,7 +105,6 @@ class MouseClickRight(CommandClasses):
         except:
             self.x = 0
             self.y = 0
-
         self.widget_x = None
         self.widget_y = None
         self.label_x = None
@@ -143,7 +141,7 @@ class MouseClickRight(CommandClasses):
 
          {'ClassName': [параметры]}
          """
-        pass
+        return {'cmd': self.__class__.__name__, 'val': [self.x, self.y], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
