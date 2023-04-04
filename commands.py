@@ -137,10 +137,7 @@ class MouseClickRight(CommandClasses):
         self.description = self.widget_description.result
 
     def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды.
-
-         {'ClassName': [параметры]}
-         """
+        """ Возвращает словарь с содержимым команды """
         return {'cmd': self.__class__.__name__, 'val': [self.x, self.y], 'des': self.description}
 
     def destroy_widgets(self):
@@ -201,6 +198,10 @@ class MouseClickLeft(MouseClickRight):
                 self.widget_button.configure(image=self.element_image)
         except:
             pass
+
+    def command_to_dict(self):
+        """ Возвращает словарь с содержимым команды """
+        return {'cmd': self.__class__.__name__, 'val': [self.x, self.y, self.image], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
@@ -269,11 +270,8 @@ class KeyDown(CommandClasses):
         self.description = self.widget_description.result
 
     def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды.
-
-         {'ClassName': [параметры]}
-         """
-        pass
+        """ Возвращает словарь с содержимым команды """
+        return {'cmd': self.__class__.__name__, 'val': [self.value], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
@@ -328,11 +326,8 @@ class WriteDataFromField(CommandClasses):
         self.description = self.widget_description.result
 
     def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды.
-
-         {'ClassName': [параметры]}
-         """
-        pass
+        """ Возвращает словарь с содержимым команды """
+        return {'cmd': self.__class__.__name__, 'val': [self.value], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
@@ -389,11 +384,8 @@ class PauseCmd(CommandClasses):
         self.description = self.widget_description.result
 
     def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды.
-
-         {'ClassName': [параметры]}
-         """
-        pass
+        """ Возвращает словарь с содержимым команды """
+        return {'cmd': self.__class__.__name__, 'val': [self.value], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
@@ -522,19 +514,13 @@ class CycleEnd(CommandClasses):
         self.paint_description()
 
     def save(self):
-        """ Записывает содержимое виджетов в объект.
-
-         Метод реализуется в наследниках.
-
-         """
+        """ Записывает содержимое виджетов в объект """
         self.description = self.widget_description.result
     
     def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды.
+        """ Возвращает словарь с содержимым команды """
+        return {'cmd': self.__class__.__name__, 'val': [], 'des': self.description}
 
-         {'ClassName': [параметры]}
-         """
-        pass
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """

@@ -60,6 +60,12 @@ class DataForWorker:
         self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
         self.obj_command.update({key: cmd})  # Добавляем объект в dict
 
+    def change_command(self, cmd):
+        """ Изменение команды """
+        if self.pointer_command >= 0:
+            self.obj_command[self.queue_command[self.pointer_command]] = cmd  # Меняем объект команды под курсором
+
+
 data = DataForWorker()  # Создаем объект с данными о скрипте
 
 
@@ -145,7 +151,9 @@ class Editor:
         self.current_cmd.paint_widgets()
         # Выводим справку о команде
         self.to_report(self.current_cmd.command_description)
-
+        # Установка в выпадающем списке нужной команды
+        self.commands_var.set(self.current_cmd.command_name)
+        self.widget.selection_clear()  # Убираем выделение с выпадающего списка
 
     def add_cmd_button(self, event=None):
         self.current_cmd.save()
@@ -153,7 +161,9 @@ class Editor:
         self.display_commands.out_commands()  # Обновляем список
 
     def change_cmd_button(self, event=None):
-        print('Изменить')
+        self.current_cmd.save()
+        self.data.change_command(self.current_cmd)  # Изменяем команду
+        self.display_commands.out_commands()  # Обновляем список
 
     def to_report(self, message):
         """ Вывод сообщения в поле сообщений """
