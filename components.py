@@ -54,11 +54,24 @@ class DataForWorker:
         return [i for i in self.data_source.keys()]
 
     def add_new_command(self, cmd):
-        """ Добавление новой команды """
+        """ Добавление новой команды
+
+        Принимает объект команды
+
+        """
         key = self.next_id()  # Получаем новый id
         self.pointer_command += 1  # Строка добавляется в позицию за указателем и на нее ставим указатель
         self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
         self.obj_command.update({key: cmd})  # Добавляем объект в dict
+
+    def del_command(self, id_cmd: str):
+        """ Удаление команды
+
+         Принимает id команды
+
+         """
+        self.queue_command.remove(id_cmd)  # Удаляем id из очереди
+        del(self.obj_command[id_cmd])  # Удаляем объект команды из словаря
 
     def change_command(self, cmd):
         """ Изменение команды """
@@ -78,6 +91,7 @@ class Editor:
     и выводит сообщения через отднльный метод
 
     """
+    # TODO Правильная обработка множественного выбора строк в списке
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
     data = data  # Ссылка на класс с данными о скрипте
 
@@ -171,16 +185,17 @@ class Editor:
 
 
 class DisplayCommands:
-    """ Виджет списка команд
+    """ Виджет списка команд и копок операций над ним
 
     Отображение изменений в списке команд на экране, реакция на взаимодействие со списком.
+    4 кнопки редактирования списка. Копировать, Вырезать, Вставить, Удалить.
 
     """
     data = data  # Ссылка на класс с данными о скрипте
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
 
-    def __init__(self, root):
-        """ Принимает ссылку на окно программы """
+    def __init__(self, root, frame):
+        """ Принимает ссылку на окно программы и фрейм для кнопок"""
 
         # Create an instance of Style widget
         style = ttk.Style()
@@ -194,7 +209,33 @@ class DisplayCommands:
 
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
 
+        # Рисуем кнопки для работы со списком
+        self.list_copy = []  # Список хранит id скопированных строк
+        self.operation = ''  # Может быть copy или cut
+
+        self.icon6 = PhotoImage(file="icon/copy.png")
+        self.icon7 = PhotoImage(file="icon/cut.png")
+        self.icon8 = PhotoImage(file="icon/paste.png")
+        self.icon9 = PhotoImage(file="icon/delete.png")
+
+        copy_button = Button(frame, command=self.copy, image=self.icon6, width=160, height=34)
+        copy_button.place(x=10, y=10)
+        ToolTip(copy_button, msg="Копировать команды", delay=0.5)
+
+        cut_button = Button(frame, command=self.cut, image=self.icon7, width=160, height=34)
+        cut_button.place(x=200, y=10)
+        ToolTip(cut_button, msg="Вырезать команды", delay=0.5)
+
+        paste_button = Button(frame, command=self.paste, image=self.icon8, width=160, height=34)
+        paste_button.place(x=10, y=58)
+        ToolTip(paste_button, msg="Вставить команды", delay=0.5)
+
+        delete_button = Button(frame, command=self.delete, image=self.icon9, width=160, height=34)
+        delete_button.place(x=200, y=58)
+        ToolTip(delete_button, msg="Удалить команды", delay=0.5)
+
     def on_select(self, event):
+        """ Обработка события выбора строки в списке """
         selected_item = event.widget.selection()[0]  # Получаем id команды
         # Устанавливаем указатель списка
         self.data.pointer_command = -1 if selected_item == 'zero' else self.data.queue_command.index(selected_item)
@@ -220,6 +261,82 @@ class DisplayCommands:
         """ Очистка списка команд """
         for item in self.tree.get_children():
             self.tree.delete(item)
+
+    def get_selected(self):
+        """ Возвращает список выделенных в списке id строк """
+        list_copy = list(self.tree.selection())  # id выделенных команд
+        if 'zero' in list_copy:
+            # Удаляем пустую строку
+            list_copy.remove('zero')
+        return list_copy
+
+    def numbers_from_id(self, ids: list) -> list[str]:
+        """ Принимает список id строк, возвращает их номера str """
+        return [str(self.data.queue_command.index(i)+1) for i in ids]
+
+    def copy(self):
+        """ Обработчик кнопки Копировать """
+        self.list_copy = self.get_selected()  # id выделенных команд
+        if not self.list_copy:
+            return
+        numbers = ' ,'.join(self.numbers_from_id(self.list_copy))  # Номера копируемых строк
+        self.editor.to_report(f'Скопированы строки {numbers}. \nИх можно вставить кнопкой Вставить. '
+                              f'\nСтроки будут вставлены после выделенной строки.')
+        self.operation = 'copy'
+
+    def cut(self):
+        """ Обработчик кнопки Вырезать """
+        self.list_copy = self.get_selected()  # id выделенных команд
+        if not self.list_copy:
+            return
+        numbers = ' ,'.join(self.numbers_from_id(self.list_copy))  # Номера копируемых строк
+        self.editor.to_report(f'Перенос строк {numbers}. \nИх можно вставить кнопкой Вставить. '
+                              f'\nСтроки будут вставлены после выделенной строки. \nСкопированные строки будут удалены')
+        self.operation = 'cut'
+
+    def paste(self):
+        """ Обработчик кнопки Вставить """
+        if len(self.tree.selection()) != 1:
+            self.editor.to_report('Для вставки должна быть выделена одна строка, '
+                                  'после которой бутут вставлены скопированные.')
+        if self.operation and self.list_copy:
+            # Убеждаемся, что операция актуальна и скопированные строки есть
+            for i in self.list_copy:
+                # Вставляем скопированные строки
+                self.data.add_new_command(self.data.obj_command[i])
+                if self.operation == 'cut':
+                    # При вырезании и вставке скопированные команды нужно удалить
+                    self.data.del_command(i)
+
+            if self.operation == 'cut':
+                self.editor.to_report('Операция переноса выполнена.')
+            elif self.operation == 'copy':
+                self.editor.to_report('Операция копирования выполнена.')
+
+            # Очищаем данные операции
+            self.list_copy = []
+            self.operation = ''
+
+            self.out_commands()  # Обновляем список
+        else:
+            # Операция не назначена или отменена
+            self.editor.to_report('Операция отменена.')
+
+    def delete(self):
+        """ Обработчик кнопки Удалить """
+        list_del = self.get_selected()  # id выделенных команд
+        if not list_del:
+            return
+        for i in list_del:
+            self.data.del_command(i)
+
+        self.editor.to_report('Выделенные команды удалены.')
+
+        # Очищаем данные операции
+        self.list_copy = []
+        self.operation = ''
+
+        self.out_commands()  # Обновляем список
 
 
 if __name__ == '__main__':

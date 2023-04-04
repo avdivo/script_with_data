@@ -160,27 +160,27 @@ element_image = PhotoImage(file="elements/elem_230228_163525.png")
 frame3 = LabelFrame(root, width=385, height=130, text='Редактор скрипта', foreground='#083863')
 frame3.place(x=INDENT, y=285)
 
-# Кнопки
-icon6 = PhotoImage(file="icon/copy.png")
-icon7 = PhotoImage(file="icon/cut.png")
-icon8 = PhotoImage(file="icon/paste.png")
-icon9 = PhotoImage(file="icon/delete.png")
-
-copy_button = Button(frame3, command='', image=icon6, width=160, height=34)
-copy_button.place(x=10, y=10)
-ToolTip(copy_button, msg="Копировать команды", delay=0.5)
-
-cut_button = Button(frame3, command='', image=icon7, width=160, height=34)
-cut_button.place(x=200, y=10)
-ToolTip(cut_button, msg="Вырезать команды", delay=0.5)
-
-paste_button = Button(frame3, command='', image=icon8, width=160, height=34)
-paste_button.place(x=10, y=58)
-ToolTip(paste_button, msg="Вставить команды", delay=0.5)
-
-delete_button = Button(frame3, command='', image=icon9, width=160, height=34)
-delete_button.place(x=200, y=58)
-ToolTip(delete_button, msg="Удалить команды", delay=0.5)
+# # Кнопки
+# icon6 = PhotoImage(file="icon/copy.png")
+# icon7 = PhotoImage(file="icon/cut.png")
+# icon8 = PhotoImage(file="icon/paste.png")
+# icon9 = PhotoImage(file="icon/delete.png")
+#
+# copy_button = Button(frame3, command='', image=icon6, width=160, height=34)
+# copy_button.place(x=10, y=10)
+# ToolTip(copy_button, msg="Копировать команды", delay=0.5)
+#
+# cut_button = Button(frame3, command='', image=icon7, width=160, height=34)
+# cut_button.place(x=200, y=10)
+# ToolTip(cut_button, msg="Вырезать команды", delay=0.5)
+#
+# paste_button = Button(frame3, command='', image=icon8, width=160, height=34)
+# paste_button.place(x=10, y=58)
+# ToolTip(paste_button, msg="Вставить команды", delay=0.5)
+#
+# delete_button = Button(frame3, command='', image=icon9, width=160, height=34)
+# delete_button.place(x=200, y=58)
+# ToolTip(delete_button, msg="Удалить команды", delay=0.5)
 
 
 # # Информация
@@ -212,7 +212,8 @@ args = ['']
 CommandClasses.root = frame2
 CommandClasses.data = data
 editor = Editor(frame2, frame4)  # Первый фрейм для редактора, второй для сообщений
-display_commands = DisplayCommands(root)  # Передаем ссылку на окно программы
+display_commands = DisplayCommands(root, frame3)  # Передаем ссылку на окно программы
+
 
 # Реализация паттерна Наблюдатель, сообщаем объектам ссылки друг на друга для оповещения при изменениях
 editor.display_commands = display_commands
