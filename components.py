@@ -72,6 +72,9 @@ class DataForWorker:
          """
         self.queue_command.remove(id_cmd)  # Удаляем id из очереди
         del(self.obj_command[id_cmd])  # Удаляем объект команды из словаря
+        if len(self.queue_command) == self.pointer_command:
+            # При удалении последней строки указатель установить на последнюю
+            self.pointer_command -= 1
 
     def change_command(self, cmd):
         """ Изменение команды """
@@ -224,7 +227,7 @@ class DisplayCommands:
 
         cut_button = Button(frame, command=self.cut, image=self.icon7, width=160, height=34)
         cut_button.place(x=200, y=10)
-        ToolTip(cut_button, msg="Вырезать команды", delay=0.5)
+        ToolTip(cut_button, msg="Переместить команды", delay=0.5)
 
         paste_button = Button(frame, command=self.paste, image=self.icon8, width=160, height=34)
         paste_button.place(x=10, y=58)
@@ -296,9 +299,6 @@ class DisplayCommands:
 
     def paste(self):
         """ Обработчик кнопки Вставить """
-        if len(self.tree.selection()) != 1:
-            self.editor.to_report('Для вставки должна быть выделена одна строка, '
-                                  'после которой бутут вставлены скопированные.')
         if self.operation and self.list_copy:
             # Убеждаемся, что операция актуальна и скопированные строки есть
             for i in self.list_copy:
@@ -307,11 +307,6 @@ class DisplayCommands:
                 if self.operation == 'cut':
                     # При вырезании и вставке скопированные команды нужно удалить
                     self.data.del_command(i)
-
-            if self.operation == 'cut':
-                self.editor.to_report('Операция переноса выполнена.')
-            elif self.operation == 'copy':
-                self.editor.to_report('Операция копирования выполнена.')
 
             # Очищаем данные операции
             self.list_copy = []
@@ -329,8 +324,6 @@ class DisplayCommands:
             return
         for i in list_del:
             self.data.del_command(i)
-
-        self.editor.to_report('Выделенные команды удалены.')
 
         # Очищаем данные операции
         self.list_copy = []
