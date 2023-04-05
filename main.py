@@ -18,19 +18,19 @@
 - метод для выполнения команды.
 Контроль за выполнением и параметры хранятся в специальном объекте, контролирующем:
 очередь выполнения, объекты команд, стек для циклов и подпрограмм, источник данных.
-Он также хранит ссылку на функция-исполнитель, которая выполняет фактические действия скрипта.
-Он передается методам объектов команд в качестве аргумента.
+Он также хранит ссылку на функцию-исполнитель, которая выполняет фактические действия скрипта.
+Он передается методам объектов команд.
 
 """
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
 
+
 from settings import settings
 from commands import CommandClasses
-from data_for_worker import DataForWorker
 from components import Editor, DisplayCommands, data
-
+from tracker_and_player import Tracker
 
 # Интерфейс
 root = Tk()
@@ -39,12 +39,9 @@ root = Tk()
 w = root.winfo_screenwidth()
 h = root.winfo_screenheight()
 
-# Размер окна
-win_w = 800
-win_h = 610
-
+# Рисуем окно
 root.title("Редактор скриптов")
-root.geometry(f'{win_w}x{win_h}+{(w-win_w)//2}+{(h-win_h)//2}')  # Рисуем окно
+root.geometry(f'{settings.win_w}x{settings.win_h}+{(w-settings.win_w)//2}+{(h-settings.win_h)//2}')
 
 # Меню
 mainmenu = Menu(root)
@@ -89,20 +86,20 @@ mainmenu.add_command(label="Настройки скрипта",
 
 
 # Кнопки записи и воспроизведения ---------------------------
-icon1 = PhotoImage(file="icon/record.png")
-icon2 = PhotoImage(file="icon/stop.png")
+# icon1 = PhotoImage(file="icon/record.png")
+# icon2 = PhotoImage(file="icon/stop.png")
 icon3 = PhotoImage(file="icon/play.png")
 
-record_button = Button(command='', image=icon1, width=100, height=34)
-record_button.place(x=12, y=win_h-43)
-ToolTip(record_button, msg="Запись скрипта", delay=0.5)
-
-stop_button = Button(command='', image=icon2, width=100, height=34)
-stop_button.place(x=137, y=win_h-43)
-ToolTip(stop_button, msg="Останова записи", delay=0.5)
+# record_button = Button(command='', image=icon1, width=100, height=34)
+# record_button.place(x=12, y=win_h-43)
+# ToolTip(record_button, msg="Запись скрипта", delay=0.5)
+#
+# stop_button = Button(command='', image=icon2, width=100, height=34)
+# stop_button.place(x=137, y=win_h-43)
+# ToolTip(stop_button, msg="Останова записи", delay=0.5)
 
 play_button = Button(command='', image=icon3, width=100, height=34)
-play_button.place(x=262, y=win_h-43)
+play_button.place(x=262, y=settings.win_h-43)
 ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
 
@@ -198,11 +195,11 @@ icon10 = PhotoImage(file="icon/undo.png")
 icon11 = PhotoImage(file="icon/return.png")
 
 undo_button = Button(root, command='', image=icon10, width=160, height=34)
-undo_button.place(x=412, y=win_h-43)
+undo_button.place(x=412, y=settings.win_h-43)
 ToolTip(undo_button, msg="Отменить", delay=0.5)
 
 delete_button = Button(root, command='', image=icon11, width=160, height=34)
-delete_button.place(x=602, y=win_h-43)
+delete_button.place(x=602, y=settings.win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
@@ -222,7 +219,11 @@ display_commands.editor = editor
 
 # a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
 
+tracker = Tracker(root)
 
+# # Ожидание завершения программы
+# mouse_listener.join()
+# keyboard_listener.join()
 
 
 

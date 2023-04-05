@@ -177,7 +177,7 @@ class MouseClickLeft(MouseClickRight):
 
         # Изображение элемента
         self.element_image = PhotoImage(file=self.image)
-        self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96, relief=FLAT)
+        self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96)
         self.widget_button.place(x=273, y=5)
         ToolTip(self.widget_button, msg="Изображение элемента", delay=0.5)
         self.paint_description()  # Комментарий
