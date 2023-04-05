@@ -53,6 +53,13 @@ class DataForWorker:
         """ Возвращает список полей таблицы данных """
         return [i for i in self.data_source.keys()]
 
+    def make_command(self, **kwargs):
+        """ Создает объект команды на основе параметров и добавляет ее в список """
+        # Создаем объект команды
+        cmd = CommandClasses.create_command(
+            *kwargs['val'], command=kwargs['cmd'], description=kwargs['des'])
+        self.add_new_command(cmd)  # Добавляем команду
+
     def add_new_command(self, cmd):
         """ Добавление новой команды
 
@@ -173,11 +180,14 @@ class Editor:
         self.widget.selection_clear()  # Убираем выделение с выпадающего списка
 
     def add_cmd_button(self, event=None):
+        """ Добавление команды из редактора в список """
+        print(event)
         self.current_cmd.save()
         self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
         self.display_commands.out_commands()  # Обновляем список
 
     def change_cmd_button(self, event=None):
+        """ Изменение текущей в списке команды на ту, что в редакторе """
         self.current_cmd.save()
         self.data.change_command(self.current_cmd)  # Изменяем команду
         self.display_commands.out_commands()  # Обновляем список
@@ -239,7 +249,11 @@ class DisplayCommands:
 
     def on_select(self, event):
         """ Обработка события выбора строки в списке """
-        selected_item = event.widget.selection()[0]  # Получаем id команды
+        try:
+            selected_item = event.widget.selection()[0]  # Получаем id команды
+        except:
+            # Иногда не показывает выделение
+            return
         # Устанавливаем указатель списка
         self.data.pointer_command = -1 if selected_item == 'zero' else self.data.queue_command.index(selected_item)
         self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id

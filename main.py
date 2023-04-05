@@ -219,7 +219,9 @@ display_commands.editor = editor
 
 # a = CommandClasses.create_command(*args, command='StopCmd', description='Ок')
 
-tracker = Tracker(root)
+tracker = Tracker(root)  # Трекер клавиатуры и мыши
+tracker.data = data  # Даем трекеру ссылку на данные скрипта
+tracker.display_commands = display_commands  # И на список команд
 
 # # Ожидание завершения программы
 # mouse_listener.join()

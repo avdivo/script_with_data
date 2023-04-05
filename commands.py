@@ -71,7 +71,7 @@ class CommandClasses(ABC):
     def command_to_dict(self):
         """ Возвращает словарь с содержимым команды.
 
-         {'ClassName': [параметры], des: 'Описание'}
+         {'cmd': 'ClassName', 'val': [параметры], 'des': 'Описание'}
          """
         pass
 

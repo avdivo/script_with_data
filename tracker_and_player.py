@@ -11,6 +11,10 @@ from settings import settings
 
 
 class Tracker:
+
+    display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
+    data = None  # Ссылка на класс с данными о скрипте
+
     def __init__(self, root):
         self.root = root  # Ссылка на главное окно программы
         self.single = False  # Для определения клика мыши, одинарный или двойной
@@ -46,25 +50,45 @@ class Tracker:
         self.listener_mouse.stop()
         self.listener_kb.stop()
 
-    def single_click(self):
+    def single_click(self, args):
+        """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
         if self.single:
-            print('Один клик')
+            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], ''], des='')
         self.single = False
 
-    def on_click(self, x, y, button, pressed):
+    def to_export(self, **kwargs):
+        """ Добавление команды в список """
+        self.data.make_command(**kwargs)  # Добавляем команду
+        self.display_commands.out_commands()  # Обновляем список
+
+    def on_click(self, *args):
+        """ Клик мыши любой нопкой"""
+        x = args[0]
+        y = args[1]
+        button = args[2]
+        pressed = args[3]
         if button == button.left and pressed:
             if not self.single:
                 self.single = True
-                self.root.after(300, self.single_click)
+                self.root.after(300, lambda: self.single_click(args))
             else:
-                print('Двойной клик')
+                self.to_export(cmd='MouseClickDouble', val=[args[0], args[1], ''], des='')
                 self.single = False
 
         if button == button.right and pressed:
-            print('Right click at ({0}, {1})'.format(x, y))
+            # Отправляем на создание объекта команды и запись
+            self.to_export(cmd='MouseClickRight', val=[args[0], args[1]], des='')
 
     def on_press(self, key=None):
-        print('Key {0} pressed'.format(key))
+        # Получаем название клавиши одним словом или буквой
+        try:
+            out = key.char
+        except:
+            out = str(key)[4:]
+        # Отправляем на создание объекта команды и запись
+        # TODO периодически возникают ошибки при неправильны названиях клавиш
+        # TODO как-то предотвратить запись комбинаций остановки записи
+        self.to_export(cmd='KeyDown', val=[out], des='')
         if key == Key.esc and self.ctrl_pressed:
             # Выход из программы при нажатии ctrl+esc
             self.stop_btn()
@@ -73,22 +97,12 @@ class Tracker:
             self.ctrl_pressed = True
 
     def on_release(self, key):
-        print('Key {0} released'.format(key))
+        # Получаем название клавиши одним словом или буквой
+        try:
+            out = key.char
+        except:
+            out = str(key)[4:]
+        # Отправляем на создание объекта команды и запись
+        self.to_export(cmd='KeyUp', val=[out], des='')
         if key == Key.ctrl:
             self.ctrl_pressed = False
-
-
-# tracker = Tracker()
-# tracker.ctrl_pressed = False  # Инициализация флага нажатия клавиши ctrl
-#
-# # Запуск слушателя мыши
-# mouse_listener = MouseListener(on_click=tracker.on_click)
-# mouse_listener.start()
-#
-# # Запуск слушателя клавиатуры
-# keyboard_listener = KeyboardListener(on_press=tracker.on_press, on_release=tracker.on_release)
-# keyboard_listener.start()
-#
-# # Ожидание завершения программы
-# mouse_listener.join()
-# keyboard_listener.join()
