@@ -60,7 +60,9 @@ class Tracker:
         if self.is_listening:
             # Остановка записи
             self.listener_mouse.stop()
+            # self.listener_mouse.join()
             self.listener_kb.stop()
+            # self.listener_kb.join()
             self.is_listening = False
 
     def single_click(self, args):
@@ -76,6 +78,8 @@ class Tracker:
 
     def on_click(self, *args):
         """ Клик мыши любой нопкой"""
+        if not self.is_listening:
+            return
         x = args[0]
         y = args[1]
         button = args[2]
@@ -93,7 +97,10 @@ class Tracker:
             self.to_export(cmd='MouseClickRight', val=[args[0], args[1]], des='')
 
     def on_press(self, key=None):
+        if not self.is_listening:
+            return
         # Получаем название клавиши одним словом или буквой
+        print(key)
         try:
             out = key.char
         except:
@@ -110,6 +117,8 @@ class Tracker:
             self.ctrl_pressed = True
 
     def on_release(self, key):
+        if not self.is_listening:
+            return
         # Получаем название клавиши одним словом или буквой
         try:
             out = key.char

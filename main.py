@@ -25,8 +25,6 @@
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
-from time import sleep
-import asyncio
 
 from settings import settings
 from commands import CommandClasses
@@ -206,11 +204,10 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 def run_script():
     """ Выполнение скрипта """
-    data.script_started = True
+    data.script_started = True  # Скрипт работает
     while data.script_started:
         data.run_command()  # Выполнить следующую в очереди команду
-        sleep(1)
-
+    return
 
 args = ['']
 CommandClasses.root = frame2

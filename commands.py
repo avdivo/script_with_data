@@ -434,6 +434,9 @@ class WriteCmd(PauseCmd):
             return self.description
         return f"{self.command_name} {self.value}"
 
+    def run_command(self):
+        """ Выполнение команды """
+        self.data.func_execute_event(**self.command_to_dict())
 
 class RunCmd(PauseCmd):
     """ Выполнить часть скрипта """

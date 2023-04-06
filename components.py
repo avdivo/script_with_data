@@ -10,6 +10,7 @@ from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
 from collections import deque
+from time import sleep
 
 from commands import CommandClasses
 from tracker_and_player import Player
@@ -94,7 +95,11 @@ class DataForWorker:
         """ Выполнение очередной команды и переходна следующую"""
         if self.pointer_command == -1:
             self.pointer_command = 0
-
+        # Между выполнением команд есть регулируемая пауза, она происходит перед каждой командой,
+        # а не после, поскольку пауза перед отпусканием клавиш не нужна
+        cmd = self.obj_command[self.queue_command[self.pointer_command]]  # Какая команда на очереди
+        if cmd.__class__.__name__ != 'KeyUp':
+            sleep(0.5)
         res = self.obj_command[self.queue_command[self.pointer_command]].run_command()
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
