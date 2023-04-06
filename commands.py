@@ -80,6 +80,11 @@ class CommandClasses(ABC):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
         pass
 
+    @abstractmethod
+    def run_command(self):
+        """ Выполнение команды """
+        pass
+
     @classmethod
     def get_all_subclasses(cls):
         """ Возвращает список всех подклассов класса и их подклассов """
@@ -147,6 +152,11 @@ class MouseClickRight(CommandClasses):
         self.widget_x.destroy_widgets()
         self.widget_y.destroy_widgets()
         self.widget_description.destroy_widgets()
+
+    def run_command(self):
+        """ Выполнение команды """
+        # В свойстве data ссылка на функцию выполняющую события мыши и клавиатуры
+        self.data.func_execute_event(self.command_to_dict())
 
 
 class MouseClickLeft(MouseClickRight):
@@ -278,6 +288,10 @@ class KeyDown(CommandClasses):
         self.widget.destroy()
         self.widget_description.destroy_widgets()
 
+    def run_command(self):
+        """ Выполнение команды """
+        pass
+
 
 class KeyUp(KeyDown):
     """ Отпустить клавишу клавиатуры """
@@ -333,6 +347,10 @@ class WriteDataFromField(CommandClasses):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
         self.widget.destroy()
         self.widget_description.destroy_widgets()
+
+    def run_command(self):
+        """ Выполнение команды """
+        pass
 
 
 class NextElementField(WriteDataFromField):
@@ -391,6 +409,10 @@ class PauseCmd(CommandClasses):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
         self.widget.destroy_widgets()
         self.widget_description.destroy_widgets()
+
+    def run_command(self):
+        """ Выполнение команды """
+        pass
 
 
 class WriteCmd(PauseCmd):
@@ -521,10 +543,13 @@ class CycleEnd(CommandClasses):
         """ Возвращает словарь с содержимым команды """
         return {'cmd': self.__class__.__name__, 'val': [], 'des': self.description}
 
-
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
         self.widget_description.destroy_widgets()
+
+    def run_command(self):
+        """ Выполнение команды """
+        pass
 
 
 class BlockEnd(CycleEnd):

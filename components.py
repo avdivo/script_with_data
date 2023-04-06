@@ -12,7 +12,7 @@ from tktooltip import ToolTip
 from collections import deque
 
 from commands import CommandClasses
-
+from tracker_and_player import Player
 
 class DataForWorker:
     """ Данные для исполнителя скрипта
@@ -42,7 +42,9 @@ class DataForWorker:
         self.data_source = {'one': 1, 'two': 2} # dict()  # Источник данных
         self.pointers_data_source = dict()  # Указатели на позицию чтения из поля
 
-        self.func_execute_command = None  # Функция выполняющая 1 команду макроса
+        self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатур
+
+        self.script_started = False  # False - остановит скрипт, True - позволит выполняться
 
     def next_id(self):
         """ Генерирует id новой команды """
@@ -87,6 +89,15 @@ class DataForWorker:
         """ Изменение команды """
         if self.pointer_command >= 0:
             self.obj_command[self.queue_command[self.pointer_command]] = cmd  # Меняем объект команды под курсором
+
+    def run_command(self):
+        """ Выполнение очередной команды и переходна следующую"""
+        res = self.obj_command[self.queue_command[self.pointer_command]]
+        if self.pointer_command+1 < len(self.queue_command):
+            # Еще есть команды в очереди
+            self.pointer_command += 1
+        else:
+            raise ('Конец')
 
 
 data = DataForWorker()  # Создаем объект с данными о скрипте

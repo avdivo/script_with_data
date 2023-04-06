@@ -25,12 +25,13 @@
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
-
+from time import sleep
+import asyncio
 
 from settings import settings
 from commands import CommandClasses
 from components import Editor, DisplayCommands, data
-from tracker_and_player import Tracker
+from tracker_and_player import Tracker, Player
 
 # Интерфейс
 root = Tk()
@@ -88,7 +89,7 @@ mainmenu.add_command(label="Настройки скрипта",
 # Кнопки записи и воспроизведения ---------------------------
 # icon1 = PhotoImage(file="icon/record.png")
 # icon2 = PhotoImage(file="icon/stop.png")
-icon3 = PhotoImage(file="icon/play.png")
+# icon3 = PhotoImage(file="icon/play.png")
 
 # record_button = Button(command='', image=icon1, width=100, height=34)
 # record_button.place(x=12, y=win_h-43)
@@ -98,9 +99,9 @@ icon3 = PhotoImage(file="icon/play.png")
 # stop_button.place(x=137, y=win_h-43)
 # ToolTip(stop_button, msg="Останова записи", delay=0.5)
 
-play_button = Button(command='', image=icon3, width=100, height=34)
-play_button.place(x=262, y=settings.win_h-43)
-ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
+# play_button = Button(command='', image=icon3, width=100, height=34)
+# play_button.place(x=262, y=settings.win_h-43)
+# ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
 
 INDENT = 400  # Отступ второй колонки от левого края окна
@@ -203,6 +204,13 @@ delete_button.place(x=602, y=settings.win_h-43)
 ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
+def run_script():
+    """ Выполнение скрипта """
+    data.script_started = True
+    while data.script_started:
+        print('Выполняю')
+        data.run_command()  # Выполнить следующую в очереди команду
+        sleep(1)
 
 
 args = ['']
@@ -223,10 +231,13 @@ tracker = Tracker(root)  # Трекер клавиатуры и мыши
 tracker.data = data  # Даем трекеру ссылку на данные скрипта
 tracker.display_commands = display_commands  # И на список команд
 
+
+player = Player(root, run_script)
+data.func_execute_event = player.run_command  # Назначаем функцию, которая будет выполнять события мыши и клавиатуры
+
 # # Ожидание завершения программы
 # mouse_listener.join()
 # keyboard_listener.join()
-
 
 
 

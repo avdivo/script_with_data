@@ -4,11 +4,15 @@
 
 from tkinter import *
 from tktooltip import ToolTip
-from pynput.mouse import Listener as MouseListener
-from pynput.keyboard import Listener as KeyboardListener, Key
+from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
+from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
+from threading import Thread
 
 from settings import settings
 
+
+kb = kb_Controller()
+mouse = mouse_Controller()
 
 class Tracker:
 
@@ -45,10 +49,19 @@ class Tracker:
         self.listener_kb = KeyboardListener(on_press=self.on_press, on_release=self.on_release)
         self.listener_kb.start()
 
+        self.is_listening = True  # Слушатели включены
+
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
-        self.listener_mouse.stop()
-        self.listener_kb.stop()
+        if self.data.script_started:
+            # Остановка выполнения скрипта
+            self.data.script_started = False
+            return
+        if self.is_listening:
+            # Остановка записи
+            self.listener_mouse.stop()
+            self.listener_kb.stop()
+            self.is_listening = False
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
@@ -106,3 +119,68 @@ class Tracker:
         self.to_export(cmd='KeyUp', val=[out], des='')
         if key == Key.ctrl:
             self.ctrl_pressed = False
+
+
+class Player:
+    """ Воспроизведение события мыши или клавиатуры """
+
+    def __init__(self, root, run_script):
+        """ Принимает ссылку на главное окно и функцию, которую нужно запустить для выполнения скрипта """
+        self.run_script = run_script  # Функи выполнения скрипта
+        self.icon3 = PhotoImage(file="icon/play.png")
+
+        play_button = Button(
+            command=lambda: root.after(3000, self.run_thread), image=self.icon3, width=100, height=34)
+
+        play_button.place(x=262, y=settings.win_h - 43)
+        ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
+
+    def run_thread(self):
+        """ Запусск функции выполнения скрипта в отдельном потоке """
+        new_thread = Thread(target=self.run_script)  # Создаём поток
+        new_thread.start()  # Запускаем поток
+
+    def run_command(self, cmd, val, des=None):
+        """ Выполняет одну команду для мыши или клавиатуры
+
+        Принимает команду и параметры. Для каждого события свои.
+        Обрабатывает команды (cmd):
+        MouseClickLeft, MouseClickDouble, MouseClickRight,
+        KeyDown, KeyUp, Write
+
+        """
+        if cmd[:3] == 'Mou':
+            # Команда мыши
+            mouse.position = (val[0], val[1])  # Ставим указатель в нужную позицию
+            if cmd == 'MouseClickLeft':
+                # Клик левой копкой мыши
+                mouse.press(Btn.left)
+                mouse.release(Btn.left)
+
+            elif cmd == 'MouseClickDouble':
+                # Двойной клик
+                mouse.click(Btn.left, 2)
+
+            else:
+                # Клик правой копкой мыши
+                mouse.press(Btn.right)
+                mouse.release(Btn.right)
+
+        elif cmd[:3] == 'Key':
+            # Подготовка к распознаванию как отдельных символов, так и специальных клавиш
+            insert = val[0]
+            if len(insert) == 1:
+                insert = f"'{insert}'"
+            else:
+                insert = f"Key.{insert}"
+
+            if cmd == 'KeyDown':
+                # Нажать клавишу
+                exec(f"kb.press({insert})")
+            else:
+                # Отпустить клавишу
+                exec(f"kb.release({insert})")
+
+        else:
+            # печатает используя метод быстрого ввода
+            kb.type(val[0])
