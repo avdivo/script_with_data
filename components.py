@@ -92,7 +92,10 @@ class DataForWorker:
 
     def run_command(self):
         """ Выполнение очередной команды и переходна следующую"""
-        res = self.obj_command[self.queue_command[self.pointer_command]]
+        if self.pointer_command == -1:
+            self.pointer_command = 0
+
+        res = self.obj_command[self.queue_command[self.pointer_command]].run_command()
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
             self.pointer_command += 1

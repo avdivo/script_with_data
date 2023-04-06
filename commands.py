@@ -156,7 +156,7 @@ class MouseClickRight(CommandClasses):
     def run_command(self):
         """ Выполнение команды """
         # В свойстве data ссылка на функцию выполняющую события мыши и клавиатуры
-        self.data.func_execute_event(self.command_to_dict())
+        self.data.func_execute_event(**self.command_to_dict())
 
 
 class MouseClickLeft(MouseClickRight):
@@ -290,7 +290,7 @@ class KeyDown(CommandClasses):
 
     def run_command(self):
         """ Выполнение команды """
-        pass
+        self.data.func_execute_event(**self.command_to_dict())
 
 
 class KeyUp(KeyDown):

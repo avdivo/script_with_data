@@ -208,7 +208,6 @@ def run_script():
     """ Выполнение скрипта """
     data.script_started = True
     while data.script_started:
-        print('Выполняю')
         data.run_command()  # Выполнить следующую в очереди команду
         sleep(1)
 
