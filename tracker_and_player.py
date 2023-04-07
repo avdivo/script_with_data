@@ -2,10 +2,13 @@
 # Модуль для записи и воспроизведения событий мыши и клавиатуры
 # ---------------------------------------------------------------------------
 
+from time import sleep
 from tkinter import *
 from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
+import pyautogui, pyperclip, keyboard
+
 from threading import Thread
 
 from settings import settings
@@ -135,6 +138,7 @@ class Player:
 
     def __init__(self, root, run_script):
         """ Принимает ссылку на главное окно и функцию, которую нужно запустить для выполнения скрипта """
+        self.root = root
         self.run_script = run_script  # Функи выполнения скрипта
         self.icon3 = PhotoImage(file="icon/play.png")
 
@@ -191,5 +195,17 @@ class Player:
                 exec(f"kb.release({insert})")
 
         else:
-            # печатает используя метод быстрого ввода
-            kb.type(val[0])
+            # печатает используя костыли
+            # с помощью tkinter копируем в буфер обмена, а потом Ctrl+v
+            try:
+                mem = self.root.clipboard_get()
+            except:
+                mem = ''
+            self.root.clipboard_clear()
+            self.root.clipboard_append(val[0])
+            kb.press(Key.ctrl)
+            kb.press('v')
+            kb.release('v')
+            kb.release(Key.ctrl)
+            sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
+            self.root.clipboard_clear()
