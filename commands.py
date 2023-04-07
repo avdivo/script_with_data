@@ -8,6 +8,7 @@
 #   метод для выполнения
 # ---------------------------------------------------------------------------
 
+from time import sleep
 from abc import ABC, abstractmethod
 from tkinter import *
 from tkinter import ttk
@@ -203,7 +204,6 @@ class MouseClickLeft(MouseClickRight):
                 # Удалить путь и ищем файл только в определенном пути,
                 # если он не там - то не открываем
                 self.image = settings.path_to_elements + os.path.basename(self.image)
-                print(self.image)
                 self.element_image = PhotoImage(file=self.image)
                 self.widget_button.configure(image=self.element_image)
         except:
@@ -412,7 +412,7 @@ class PauseCmd(CommandClasses):
 
     def run_command(self):
         """ Выполнение команды """
-        pass
+        sleep(self.value)
 
 
 class WriteCmd(PauseCmd):
@@ -439,7 +439,7 @@ class WriteCmd(PauseCmd):
         self.data.func_execute_event(**self.command_to_dict())
 
 class RunCmd(PauseCmd):
-    """ Выполнить часть скрипта """
+    """ Переход и выполнение скрипта с указанной метки или блока """
     command_name = 'Выполнить'
     command_description = 'Выполняет блок или совершает переход к метке с указанным именем.'
     for_sort = 140

@@ -103,7 +103,6 @@ class Tracker:
         if not self.is_listening:
             return
         # Получаем название клавиши одним словом или буквой
-        print(key)
         try:
             out = key.char
         except:

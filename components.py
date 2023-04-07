@@ -8,9 +8,11 @@
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import filedialog as fd
 from tktooltip import ToolTip
 from collections import deque
 from time import sleep
+import pandas as pd
 
 from commands import CommandClasses
 from exceptions import NoCommandOrStop
@@ -49,7 +51,7 @@ class DataForWorker:
 
         self.script_started = False  # False - остановит скрипт, True - позволит выполняться
         self.work_settings = None  # Тут создается копия настроек программы во время выполнения скрипта
-        print(self.work_settings)
+
     def next_id(self):
         """ Генерирует id новой команды """
         self.id_command += 1
@@ -204,7 +206,6 @@ class Editor:
 
     def add_cmd_button(self, event=None):
         """ Добавление команды из редактора в список """
-        print(event)
         self.current_cmd.save()
         self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
         self.display_commands.out_commands()  # Обновляем список
@@ -368,6 +369,31 @@ class DisplayCommands:
 
         self.out_commands()  # Обновляем список
 
+
+class DataSource:
+    """ Источник данных """
+    def __init__(self, root):
+        self.data_source_file = None
+        self.value = StringVar()  # Список полей источника данных через запятую (текст)
+        Message(root, text='Источник данных', width=370, anchor='w', textvariable=self.data_source).place(x=0, y=0)
+
+    def load_file(self):
+        """ Загрузка excel файла """
+        # TODO: ограничить выбор одной папкой или копировать изображение в нужную папку
+        try:
+            self.data_source_file = fd.askopenfilename(
+                filetypes=(("image", "*.sxls"),("image", "*.xls"),
+                           ("All files", "*.*")))
+            if self.data_source_file:
+
+                data_frame = pd.read_excel(self.data_source_file)  # Читаем таблицу в pandas DataFrame
+                data.data_source = data_frame.to_dict('list') # Превращаем DataFrame в словарь
+                # Выводим полученный словарь
+                print(data.data_source)
+                # self.data_source.set()
+
+        except:
+            pass
 
 if __name__ == '__main__':
     # блок кода, который будет выполнен только при запуске модуля
