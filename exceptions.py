@@ -17,3 +17,9 @@ class ElementNotFound(Error):
 class DataError(Error):
     """ Ошибка данных, не найдено поле в таблице или нет больше данных в столбце """
     pass
+
+
+class NoCommandOrStop(Error):
+    """ Нет команд для выполнения или команда Стоп """
+    pass
+

@@ -13,7 +13,9 @@ from collections import deque
 from time import sleep
 
 from commands import CommandClasses
+from exceptions import NoCommandOrStop
 from tracker_and_player import Player
+
 
 class DataForWorker:
     """ Данные для исполнителя скрипта
@@ -46,7 +48,8 @@ class DataForWorker:
         self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатур
 
         self.script_started = False  # False - остановит скрипт, True - позволит выполняться
-
+        self.work_settings = None  # Тут создается копия настроек программы во время выполнения скрипта
+        print(self.work_settings)
     def next_id(self):
         """ Генерирует id новой команды """
         self.id_command += 1
@@ -95,17 +98,18 @@ class DataForWorker:
         """ Выполнение очередной команды и переходна следующую"""
         if self.pointer_command == -1:
             self.pointer_command = 0
-        # Между выполнением команд есть регулируемая пауза, она происходит перед каждой командой,
-        # а не после, поскольку пауза перед отпусканием клавиш не нужна
-        cmd = self.obj_command[self.queue_command[self.pointer_command]]  # Какая команда на очереди
-        if cmd.__class__.__name__ != 'KeyUp':
-            sleep(0.5)
-        res = self.obj_command[self.queue_command[self.pointer_command]].run_command()
+        try:
+            self.obj_command[self.queue_command[self.pointer_command]].run_command()
+        except IndexError:
+            raise NoCommandOrStop('Нет команд для выполнения.')
+
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
             self.pointer_command += 1
+            # Между выполнением команд есть регулируемая пауза
+            sleep(self.work_settings['s_command_pause'])  # Пауза между командами (всеми)
         else:
-            raise ('Конец')
+            raise NoCommandOrStop('Нет команд для выполнения.')
 
 
 data = DataForWorker()  # Создаем объект с данными о скрипте

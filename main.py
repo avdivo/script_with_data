@@ -30,6 +30,7 @@ from settings import settings
 from commands import CommandClasses
 from components import Editor, DisplayCommands, data
 from tracker_and_player import Tracker, Player
+from exceptions import NoCommandOrStop
 
 # Интерфейс
 root = Tk()
@@ -206,7 +207,12 @@ def run_script():
     """ Выполнение скрипта """
     data.script_started = True  # Скрипт работает
     while data.script_started:
-        data.run_command()  # Выполнить следующую в очереди команду
+        try:
+            display_commands.tree.selection_set(display_commands.tree.get_children()[data.pointer_command + 1])  # Выделяем строку
+            data.run_command()  # Выполнить следующую в очереди команду
+        except NoCommandOrStop as err:
+            print(err)
+            data.script_started = False
     return
 
 args = ['']
@@ -229,6 +235,7 @@ tracker.display_commands = display_commands  # И на список команд
 
 
 player = Player(root, run_script)
+player.data = data
 data.func_execute_event = player.run_command  # Назначаем функцию, которая будет выполнять события мыши и клавиатуры
 
 # # Ожидание завершения программы

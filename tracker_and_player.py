@@ -7,7 +7,6 @@ from tkinter import *
 from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
-import pyautogui, pyperclip, keyboard
 
 from threading import Thread
 
@@ -44,6 +43,7 @@ class Tracker:
 
     def rec_btn(self):
         """ Обработка нажатия кнопки записи """
+        # TODO Обозначит что идет запись/воспроизведение
         # Запуск слушателя мыши
         self.listener_mouse = MouseListener(on_click=self.on_click)
         self.listener_mouse.start()
@@ -135,6 +135,7 @@ class Tracker:
 
 class Player:
     """ Воспроизведение события мыши или клавиатуры """
+    data = None  # Ссылка на класс с данными о скрипте
 
     def __init__(self, root, run_script):
         """ Принимает ссылку на главное окно и функцию, которую нужно запустить для выполнения скрипта """
@@ -150,6 +151,7 @@ class Player:
 
     def run_thread(self):
         """ Запусск функции выполнения скрипта в отдельном потоке """
+        self.data.work_settings = settings.get_dict_settings()  # Рабочая копия настроек
         new_thread = Thread(target=self.run_script)  # Создаём поток
         new_thread.start()  # Запускаем поток
 
@@ -179,6 +181,8 @@ class Player:
                 mouse.press(Btn.right)
                 mouse.release(Btn.right)
 
+            sleep(self.data.work_settings['s_click_pause']) # Пауза после клика мыши
+
         elif cmd[:3] == 'Key':
             # Подготовка к распознаванию как отдельных символов, так и специальных клавиш
             insert = val[0]
@@ -193,6 +197,7 @@ class Player:
             else:
                 # Отпустить клавишу
                 exec(f"kb.release({insert})")
+                sleep(self.data.work_settings['s_key_pause'])  # Пауза между нажатием клавиш клавиатуры
 
         else:
             # печатает используя костыли
