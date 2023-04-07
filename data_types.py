@@ -10,7 +10,8 @@ class llist:
     """ Тип данных представляет выпадающий список label list для меток в скрипте и имен блоков
 
     Класс хранит актуальный список данных об именах для перехода, экземпляры класса
-    пользуются этим списком и помнят выбранный элемент.
+    пользуются этим списком и помнят выбранный элемент. Обновляется каждый раз при изменении,
+    удалении или добавлении нужных объектов в словарь с переопределенными методами, см. CountingDict в components
     Данные на входе и выходе просто строка, обязательное условие присутствие строки в хранимом списке меток.
 
      """
@@ -25,10 +26,6 @@ class llist:
 
     def __str__(self):
         return self.label
-
-    def isthere(self):
-        """ Уточняет свою актуальность """
-        return self.label in self.labels
 
     @classmethod
     def set_list(cls, l):
@@ -93,12 +90,3 @@ class eres:
     @label.setter
     def label(self, label: llist):
         self._label = label  # Тип данных - метки
-
-
-llist.set_list(['name 1', 'name 2', 'name 3', 'name 4', 'name 5 или'])
-# a = llist()
-# print(a)
-
-# a = eres('stop:')
-# c = eres(a)
-# print(id(a), id(c))

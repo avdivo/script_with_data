@@ -27,9 +27,10 @@ from tkinter import ttk
 from tktooltip import ToolTip
 import pandas as pd
 
+import components
 from settings import settings
 from commands import CommandClasses
-from components import Editor, DisplayCommands, data
+from components import Editor, DisplayCommands, DataSource, data
 from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop
 
@@ -48,25 +49,6 @@ h = root.winfo_screenheight()
 # Рисуем окно
 root.title("Редактор скриптов")
 root.geometry(f'{settings.win_w}x{settings.win_h}+{(w-settings.win_w)//2}+{(h-settings.win_h)//2}')
-
-# Меню
-mainmenu = Menu(root)
-root.config(menu=mainmenu)
-
-filemenu = Menu(mainmenu, tearoff=0)
-filemenu.add_command(label="Новый скрипт")
-filemenu.add_command(label="Открыть скрипт")
-filemenu.add_command(label="Сохранить скрипт")
-filemenu.add_command(label="Сохранить скрипт как...")
-filemenu.add_separator()
-filemenu.add_command(label="Источник данных")
-filemenu.add_separator()
-filemenu.add_command(label="Выход")
-
-mainmenu.add_cascade(label="Файл", menu=filemenu)
-
-mainmenu.add_command(label="Настройки скрипта",
-                     command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
 
 INDENT = 400  # Отступ второй колонки от левого края окна
 
@@ -138,9 +120,27 @@ player = Player(root, run_script)
 player.data = data
 data.func_execute_event = player.run_command  # Назначаем функцию, которая будет выполнять события мыши и клавиатуры
 
-# # Ожидание завершения программы
-# mouse_listener.join()
-# keyboard_listener.join()
+
+data_source = components.DataSource(frame1)
+# Меню
+mainmenu = Menu(root)
+root.config(menu=mainmenu)
+
+filemenu = Menu(mainmenu, tearoff=0)
+filemenu.add_command(label="Новый скрипт")
+filemenu.add_command(label="Открыть скрипт")
+filemenu.add_command(label="Сохранить скрипт")
+filemenu.add_command(label="Сохранить скрипт как...")
+filemenu.add_separator()
+filemenu.add_command(label="Источник данных", command=data_source.load_file)
+filemenu.add_separator()
+filemenu.add_command(label="Выход")
+
+mainmenu.add_cascade(label="Файл", menu=filemenu)
+
+mainmenu.add_command(label="Настройки скрипта",
+                     command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
+
 
 
 

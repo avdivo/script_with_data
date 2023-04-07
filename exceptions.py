@@ -23,3 +23,7 @@ class NoCommandOrStop(Error):
     """ Нет команд для выполнения или команда Стоп """
     pass
 
+
+class LabelAlreadyExists(Error):
+    """ При добавлении имени метки или блока, если такое имя уже существует """
+    pass

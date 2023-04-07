@@ -15,8 +15,51 @@ from time import sleep
 import pandas as pd
 
 from commands import CommandClasses
-from exceptions import NoCommandOrStop
+from exceptions import NoCommandOrStop, LabelAlreadyExists
+from data_types import llist
 from tracker_and_player import Player
+
+class CountingDict(dict):
+    """ Словарь умеющий считать количество нужных объектов при создании, изменении, удалении
+
+    Применяется для контроля списка меток и блоков в скрипте.
+    Переопределенные методы обновляют список названий меток и блоков хранящийся в
+    специальном типе данных llist каждый раз, когда происходит манипуляция с
+    меткой или блоком.
+
+    """
+    def __setitem__(self, key, value):
+        """ Переопределяем метод добавления и изменения элементов словаря
+
+        Проверяет так-же наличие добавляемой метки или блока (имени) и если такая
+        уже существует, возвращает ошибку.
+
+        """
+        if value.__class__.__name__ == 'BlockCmd' or value.__class__.__name__ == 'LabelCmd':
+            if value.value in llist.labels:
+                raise LabelAlreadyExists('Такое имя метки или блока уже существует.')
+
+            super().__setitem__(key, value)  # Вызываем базовую реализацию метода
+            names = [obj.value for obj in data.obj_command.values()
+                 if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd']
+            llist.labels = names
+        else:
+            super().__setitem__(key, value)  # Вызываем базовую реализацию метода
+        print(llist.labels)
+        print(data.queue_command)
+
+    def __delitem__(self, key):
+        """ Переопределяем метод удаления элементов из словаря """
+        if data.obj_command[key].__class__.__name__ == 'BlockCmd' \
+                or data.obj_command[key].__class__.__name__ == 'LabelCmd':
+            super().__delitem__(key)  # Вызываем базовую реализацию метода
+            names = [obj.value for obj in data.obj_command.values()
+                 if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd']
+            llist.labels = names
+            print(names)
+        else:
+            super().__delitem__(key)  # Вызываем базовую реализацию метода
+
 
 
 class DataForWorker:
@@ -35,7 +78,7 @@ class DataForWorker:
 
          """
         self.queue_command = []  # Очередь команд (ключи - id команды)
-        self.obj_command = dict()  # Объекты команд по ключам из очереди
+        self.obj_command = CountingDict()  # Объекты команд по ключам из очереди
         self.id_command = 0  # Счетчик для идентификаторов команд
         self.pointer_command = -1  # Указатель на исполняемую команду или положение курсора в списке
 
@@ -75,9 +118,14 @@ class DataForWorker:
 
         """
         key = self.next_id()  # Получаем новый id
-        self.pointer_command += 1  # Строка добавляется в позицию за указателем и на нее ставим указатель
-        self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
-        self.obj_command.update({key: cmd})  # Добавляем объект в dict
+        try:
+            self.obj_command[key] = cmd  # Добавляем объект в dict
+            self.pointer_command += 1  # Строка добавляется в позицию за указателем и на нее ставим указатель
+            self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
+        except LabelAlreadyExists as err:
+            # При неудачном добавлении в случае совпадения имен блоков и меток
+            # добавление отменяется
+            raise
 
     def del_command(self, id_cmd: str):
         """ Удаление команды
@@ -207,8 +255,13 @@ class Editor:
     def add_cmd_button(self, event=None):
         """ Добавление команды из редактора в список """
         self.current_cmd.save()
-        self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
-        self.display_commands.out_commands()  # Обновляем список
+        try:
+            self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
+            self.display_commands.out_commands()  # Обновляем список
+        except LabelAlreadyExists as err:
+            # При неудачном добавлении в случае совпадения имен блоков и меток
+            # добавление отменяется и выводится сообщение
+            self.message.set(err)
 
     def change_cmd_button(self, event=None):
         """ Изменение текущей в списке команды на ту, что в редакторе """
@@ -340,11 +393,16 @@ class DisplayCommands:
         if self.operation and self.list_copy:
             # Убеждаемся, что операция актуальна и скопированные строки есть
             for i in self.list_copy:
-                # Вставляем скопированные строки
-                self.data.add_new_command(self.data.obj_command[i])
-                if self.operation == 'cut':
-                    # При вырезании и вставке скопированные команды нужно удалить
-                    self.data.del_command(i)
+                try:
+                    # Вставляем скопированные строки
+                    self.data.add_new_command(self.data.obj_command[i])
+
+                    if self.operation == 'cut':
+                        # При вырезании и вставке скопированные команды нужно удалить
+                        self.data.del_command(i)
+                except LabelAlreadyExists as err:
+                    self.editor.message.set(err)
+                    return
 
             # Очищаем данные операции
             self.list_copy = []
@@ -375,14 +433,14 @@ class DataSource:
     def __init__(self, root):
         self.data_source_file = None
         self.value = StringVar()  # Список полей источника данных через запятую (текст)
-        Message(root, text='Источник данных', width=370, anchor='w', textvariable=self.data_source).place(x=0, y=0)
+        Message(root, text='Источник данных', width=370, anchor='w', textvariable=self.value).place(x=0, y=0)
 
     def load_file(self):
         """ Загрузка excel файла """
         # TODO: ограничить выбор одной папкой или копировать изображение в нужную папку
         try:
             self.data_source_file = fd.askopenfilename(
-                filetypes=(("image", "*.sxls"),("image", "*.xls"),
+                filetypes=(("image", "*.xlsx"),("image", "*.xls"),
                            ("All files", "*.*")))
             if self.data_source_file:
 
