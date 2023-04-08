@@ -13,6 +13,8 @@ from tktooltip import ToolTip
 from collections import deque
 from time import sleep
 import pandas as pd
+import string
+from random import choice, randint
 
 from commands import CommandClasses
 from exceptions import NoCommandOrStop, LabelAlreadyExists
@@ -142,6 +144,9 @@ class DataForWorker:
     def change_command(self, cmd):
         """ Изменение команды """
         if self.pointer_command >= 0:
+            # Объект удаляется, но пока он на месте, его имя,  если это метка или блок
+            # может совпасть с заменяющим, тогда будет совпадение имен, поэтому меняем имя
+            self.obj_command[self.queue_command[self.pointer_command]].value = ''
             self.obj_command[self.queue_command[self.pointer_command]] = cmd  # Меняем объект команды под курсором
 
     def run_command(self):
@@ -389,26 +394,60 @@ class DisplayCommands:
         self.operation = 'cut'
 
     def paste(self):
-        """ Обработчик кнопки Вставить """
+        """ Обработчик кнопки Вставить
+
+        Вставка при копировании и переносе происходит по разному. При копировании создается новый
+        объект с параметрами старого, при переносе объекты просто меняют положение в списке.
+
+        """
         if self.operation and self.list_copy:
             # Убеждаемся, что операция актуальна и скопированные строки есть
-            for i in self.list_copy:
-                try:
-                    # Вставляем скопированные строки
-                    self.data.add_new_command(self.data.obj_command[i])
 
-                    if self.operation == 'cut':
-                        # При вырезании и вставке скопированные команды нужно удалить
-                        self.data.del_command(i)
-                except LabelAlreadyExists as err:
-                    self.editor.message.set(err)
-                    return
+            # При вставке команд может возникнуть осложнение, вызванное дублированием
+            # имени метки или блока. В этом случае будет возвращено исключение.
+            # При копировании нужно сгенерировать новое название метки и изменить его,
+            # после чего повторить попытку добавления команды.
+            mess = 'Операция выполнена успешно.'
+            if self.operation == 'copy':
+                # Копирование элементов
+                for i in self.list_copy:
+                    # Делаем копию команды.
+                    temp = self.data.obj_command[i].command_to_dict()
+                    # Создаем копию объекта команды по краткой записи
+                    obj = CommandClasses.create_command(*temp['val'], command=temp['cmd'],
+                                                                     description=temp['des'])
+                    ok = True
+                    while ok:
+                        try:
+                            # Вставляем скопированные команды
+                            self.data.add_new_command(obj)
+                            ok = False  # Операция прошла успешно
+                        except LabelAlreadyExists:
+                            # Добавление команды не выполнено по причине дублирования имени метки или блока
+                            obj.value += f"_{choice(string.ascii_lowercase) + str(randint(0, 100))}"
+                            mess = 'Копирование и перенос меток и блоков произведено с изменением их названий.'
+
+            else:
+                # Перенос элементов
+                # Находим индексы элементов по названию
+                old_indexes = [self.data.queue_command.index(elem) for elem in self.list_copy]
+                # Извлекаем элементы из списка в обратном порядке, чтобы не нарушить порядок индексов
+                elements = [self.data.queue_command.pop(i) for i in sorted(old_indexes, reverse=True)]
+                elements.reverse()  # Разворачиваем список
+                # Вставляем элементы на новые позиции
+                for i, elem in enumerate(elements):
+                    self.data.queue_command.insert(self.data.pointer_command+1+i, elem)
+
+
 
             # Очищаем данные операции
             self.list_copy = []
             self.operation = ''
 
             self.out_commands()  # Обновляем список
+            sleep(1)
+            self.editor.to_report(mess)
+
         else:
             # Операция не назначена или отменена
             self.editor.to_report('Операция отменена.')
@@ -426,7 +465,6 @@ class DisplayCommands:
         self.operation = ''
 
         self.out_commands()  # Обновляем список
-
 
 class DataSource:
     """ Источник данных """
@@ -448,7 +486,6 @@ class DataSource:
                 data.data_source = data_frame.to_dict('list') # Превращаем DataFrame в словарь
                 # Выводим полученный словарь
                 print(data.data_source)
-                # self.data_source.set()
 
         except:
             pass
