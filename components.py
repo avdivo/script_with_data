@@ -47,8 +47,6 @@ class CountingDict(dict):
             llist.labels = names
         else:
             super().__setitem__(key, value)  # Вызываем базовую реализацию метода
-        print(llist.labels)
-        print(data.queue_command)
 
     def __delitem__(self, key):
         """ Переопределяем метод удаления элементов из словаря """
@@ -58,7 +56,6 @@ class CountingDict(dict):
             names = [obj.value for obj in data.obj_command.values()
                  if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd']
             llist.labels = names
-            print(names)
         else:
             super().__delitem__(key)  # Вызываем базовую реализацию метода
 
@@ -146,8 +143,9 @@ class DataForWorker:
         if self.pointer_command >= 0:
             # Объект удаляется, но пока он на месте, его имя,  если это метка или блок
             # может совпасть с заменяющим, тогда будет совпадение имен, поэтому меняем имя
-            self.obj_command[self.queue_command[self.pointer_command]].value = ''
-            self.obj_command[self.queue_command[self.pointer_command]] = cmd  # Меняем объект команды под курсором
+            temp = self.queue_command[self.pointer_command]
+            del self.obj_command[temp]
+            self.obj_command[temp] = cmd  # Меняем объект команды под курсором
 
     def run_command(self):
         """ Выполнение очередной команды и переходна следующую"""
