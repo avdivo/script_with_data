@@ -17,7 +17,7 @@ import string
 from random import choice, randint
 
 from commands import CommandClasses
-from exceptions import NoCommandOrStop, LabelAlreadyExists
+from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError
 from data_types import llist
 from tracker_and_player import Player
 
@@ -86,8 +86,8 @@ class DataForWorker:
         # В качестве источника данных используются 2 словаря. В качестве ключей в них Имена полей
         # В первом словаре значения - это списки данных {'key': [list data]}
         # Во втором указатели на элементы списков первого словаря {'key': int}
-        self.data_source = {'one': 1, 'two': 2} # dict()  # Источник данных
-        self.pointers_data_source = dict()  # Указатели на позицию чтения из поля
+        self.data_source = None # dict()  # Источник данных
+        self.pointers_data_source = dict()  # Указатели на позицию чтения из поля {'field': n}
 
         self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатур
 
@@ -101,7 +101,10 @@ class DataForWorker:
 
     def get_fields(self):
         """ Возвращает список полей таблицы данных """
-        return [i for i in self.data_source.keys()]
+        if self.data_source:
+            return [i for i in self.data_source.keys()]
+        else:
+            raise DataError('Не выбран источник данных.')
 
     def make_command(self, **kwargs):
         """ Создает объект команды на основе параметров и добавляет ее в список """
@@ -223,15 +226,23 @@ class Editor:
         """ Обработка выбора команды в выпадающем списке """
         if self.current_cmd:
             self.current_cmd.destroy_widgets()  # Удаляем старые виджеты
-        # Получаем имя класса команды, для создания команды
-        name = self.commands_dict[self.commands_var.get()].__name__
-        # Зная имя класса команды создаем ее объект
-        self.current_cmd = CommandClasses.create_command('', command=name)
-        # Рисуем его виджеты
-        self.current_cmd.paint_widgets()
-        # Выводим справку о команде
-        self.to_report(self.current_cmd.command_description)
+        try:
+            # Получаем имя класса команды, для создания команды
+            name = self.commands_dict[self.commands_var.get()].__name__
+            # Зная имя класса команды создаем ее объект
+            self.current_cmd = CommandClasses.create_command('', command=name)
+            # Рисуем его виджеты
+            self.current_cmd.paint_widgets()
+            # Выводим справку о команде
+            self.to_report(self.current_cmd.command_description)
+        except DataError as err:
+            # Ошибки при создании команды
+            self.current_cmd = None  # Объект команды, с которой работает редактор
+            self.commands_var.set(self.commands_name[0])  # Задаем вывод первой команды
+            self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
+            self.to_report(err)
 
+    11
     def command_to_editor(self, id_command):
         """ Загрузка команды в редактор """
         if self.current_cmd:
@@ -466,6 +477,8 @@ class DisplayCommands:
 
 class DataSource:
     """ Источник данных """
+    editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
+
     def __init__(self, root):
         self.data_source_file = None
         self.value = StringVar()  # Список полей источника данных через запятую (текст)
@@ -473,20 +486,22 @@ class DataSource:
 
     def load_file(self):
         """ Загрузка excel файла """
-        # TODO: ограничить выбор одной папкой или копировать изображение в нужную папку
         try:
             self.data_source_file = fd.askopenfilename(
-                filetypes=(("image", "*.xlsx"),("image", "*.xls"),
+                filetypes=(("image", "*.xlsx"), ("image", "*.xls"),
                            ("All files", "*.*")))
             if self.data_source_file:
-
                 data_frame = pd.read_excel(self.data_source_file)  # Читаем таблицу в pandas DataFrame
-                data.data_source = data_frame.to_dict('list') # Превращаем DataFrame в словарь
-                # Выводим полученный словарь
-                print(data.data_source)
-
+                data.data_source = data_frame.to_dict('list')  # Превращаем DataFrame в словарь
+                fields = data.get_fields()  # Список полей данных
+                # Выводим ключи словаря в список полей источника данных
+                self.value.set(', '.join(fields))
+                data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
+                self.editor.to_report('Источник данных обновлен.')
         except:
-            pass
+            # При ошибках с источником данных
+            self.editor.to_report('Ошибка источника данных.')
+
 
 if __name__ == '__main__':
     # блок кода, который будет выполнен только при запуске модуля

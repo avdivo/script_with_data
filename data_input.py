@@ -211,7 +211,9 @@ class FieldLlist(DataInput):
 
         values = self.value.labels  # Список для вывода
         self.value = StringVar(value=self.value)
-        long = len(max(values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
+        long = 5
+        if len(values):
+            long = len(max(values, key=len))  # Длина самого длинного элемента, для задания ширины виджета
 
         self.widget = ttk.Combobox(self.root, values=values, textvariable=self.value, state="readonly")
         self.widget.place(x=self.x, y=self.y)

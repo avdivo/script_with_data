@@ -12,6 +12,7 @@ from threading import Thread
 
 from settings import settings
 
+# import pyautogui
 
 kb = kb_Controller()
 mouse = mouse_Controller()
@@ -199,6 +200,7 @@ class Player:
                 sleep(self.data.work_settings['s_key_pause'])  # Пауза между нажатием клавиш клавиатуры
 
         else:
+            print('PRINT', val[0])
             # печатает используя костыли
             # с помощью tkinter копируем в буфер обмена, а потом Ctrl+v
             try:
@@ -207,9 +209,12 @@ class Player:
                 mem = ''
             self.root.clipboard_clear()
             self.root.clipboard_append(val[0])
+            print(self.root.clipboard_get())
             kb.press(Key.ctrl)
             kb.press('v')
             kb.release('v')
             kb.release(Key.ctrl)
+            # pyautogui.hotkey('ctrl', 'v')
             sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
             self.root.clipboard_clear()
+            self.root.update()

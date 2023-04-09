@@ -34,7 +34,6 @@ class CommandClasses(ABC):
     def __init__(self, description):
         """ Принимает пользовательское описание команды """
         self.description = description  # Описание
-        # self.paint_description()
 
     def paint_description(self):
         # Комментарий
@@ -51,9 +50,12 @@ class CommandClasses(ABC):
 
         """
         args = args + ('', '', '', '', '')  # Заполняем не пришедшие аргументы пустыми строками
-        required_class = globals()[command]  # В command название класса, создаем его объект
-        return required_class(*args, description=description)
-
+        try:
+            required_class = globals()[command]  # В command название класса, создаем его объект
+            return required_class(*args, description=description)
+        except:
+            # Ошибка при создании команды
+            raise
     @abstractmethod
     def paint_widgets(self):
         """ Вывод виджетов команды """
@@ -313,7 +315,11 @@ class WriteDataFromField(CommandClasses):
         super().__init__(description=description)
         self.widget = None
         self.value = args[0]
-        self.values = self.data.get_fields()  # Получаем имена всех полей
+        try:
+            self.values = self.data.get_fields()  # Получаем имена всех полей
+        except DataError as err:
+            # Ошибка, если полей нет
+            raise
         if self.value and self.value not in self.values:
             raise DataError(f'Нет поля "{self.value}" в источнике данных')
         self.value_var = StringVar(value=self.value)
@@ -350,7 +356,12 @@ class WriteDataFromField(CommandClasses):
 
     def run_command(self):
         """ Выполнение команды """
-        pass
+        if self.value not in self.data.data_source:
+            raise DataError(f'Нет поля "{self.value}" у источника данных. ')
+        # Читаем текущую ячейку указанного поля
+        text = self.data.data_source[self.value][self.data.pointers_data_source[self.value]]
+        # Запуск функции выводящей текст
+        self.data.func_execute_event(cmd=self.__class__.__name__, val=[text])
 
 
 class NextElementField(WriteDataFromField):
