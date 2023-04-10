@@ -100,6 +100,10 @@ def run_script():
             data.script_started = False
         except DataError as err:
             editor.to_report(err)
+        except:
+            data.script_started = False
+            raise
+
 
     return
 

@@ -395,6 +395,20 @@ class CycleForField(WriteDataFromField):
                           'Окончание блока - команда Конец цикла.'
     for_sort = 80
 
+    def run_command(self):
+        """ Выполнение команды
+
+        Цикл выполнится 1 раз в любом случае, входные параметры 0 или 1 не отличаются.
+        Команда просто записывает в стек список: свой индекс и количество итераций.
+        Итерации вычисляются по количеству ячеек до конца заданного поля
+
+        """
+        if self.value not in self.data.data_source:
+            raise DataError(f'Нет поля "{self.value}" у источника данных. ')
+        pointer = self.data.pointers_data_source[self.value]  # Где указатель
+        temp = len(self.data.data_source[self.value]) - pointer  # Сколько ячеек до конца
+        self.data.stack.append([self.data.pointer_command, temp])
+
 
 class PauseCmd(CommandClasses):
     """ Пауза n секунд """
@@ -486,7 +500,7 @@ class RunCmd(PauseCmd):
     def run_command(self):
         """ Выполнение команды """
         # Указатель ставим перед командой метки, она должна выполниться, если это блок
-        self.data.pointer_command = self.data.work_labels[self.value] - 1
+        self.data.pointer_command = self.data.work_labels[str(self.value.label)] - 1
 
 
 class ErrorNoElement(PauseCmd):
@@ -525,6 +539,11 @@ class BlockCmd(WriteCmd):
                           'После чего скрипт выполняется от команды вызвавшей блок.'
     for_sort = 110
 
+    def run_command(self):
+        """ Выполнение команды """
+        self.data.stack.append([self.data.pointer_command, self.value])
+
+
 
 class LabelCmd(WriteCmd):
     """ Метка для перехода """
@@ -546,6 +565,15 @@ class CycleCmd(PauseCmd):
         if self.description:
             return self.description
         return f"{self.command_name} {self.value} раз"
+
+    def run_command(self):
+        """ Выполнение команды
+
+        Цикл выполнится 1 раз в любом случае, входные параметры 0 или 1 не отличаются.
+        Команда просто записывает в стек список: свой индекс и количество итераций.
+
+        """
+        self.data.stack.append([self.data.pointer_command, self.value])
 
 
 class CycleEnd(CommandClasses):
@@ -583,8 +611,23 @@ class CycleEnd(CommandClasses):
         self.widget_description.destroy_widgets()
 
     def run_command(self):
-        """ Выполнение команды """
-        pass
+        """ Выполнение команды
+
+        Выбирает из стека верхний элемент, уменьшает 2 значение на 1 и если еще > 0 записывает результат назад и
+        переходит к команде по индексу из 1 значения.
+        Любые ошибки при выполнении игнорирует.
+
+        """
+        try:
+            temp = self.data.stack.pop()
+            temp[1] -= 1
+            if temp[1] > 0:
+                self.data.stack.append(temp)
+                # После выполнения этой команды указатель увеличится на 1
+                # и перейдет на команду следующую за началом цикла
+                self.data.pointer_command = temp[0]  # Индекс команды начала цикла
+        except:
+            raise
 
 
 class BlockEnd(CycleEnd):
