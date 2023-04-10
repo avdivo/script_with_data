@@ -498,9 +498,16 @@ class RunCmd(PauseCmd):
         return f"{self.command_name} {self.value}"
 
     def run_command(self):
-        """ Выполнение команды """
-        # Указатель ставим перед командой метки, она должна выполниться, если это блок
-        self.data.pointer_command = self.data.work_labels[str(self.value.label)] - 1
+        """ Выполнение команды
+
+        Указатель ставим на метку, если это блок - добавляем данные в стек
+
+        """
+        pointer = self.data.work_labels[self.value.label]
+        if self.data.obj_command[self.data.queue_command[pointer]].__class__.__name__ == 'BlockCmd':
+            # Если переход к блоку добавляем место возврата в стек
+            self.data.stack.append([self.data.pointer_command])
+        self.data.pointer_command = pointer  # Ставим указатель на блок или метку
 
 
 class ErrorNoElement(PauseCmd):
@@ -541,8 +548,7 @@ class BlockCmd(WriteCmd):
 
     def run_command(self):
         """ Выполнение команды """
-        self.data.stack.append([self.data.pointer_command, self.value])
-
+        pass
 
 
 class LabelCmd(WriteCmd):
@@ -550,6 +556,10 @@ class LabelCmd(WriteCmd):
     command_name = 'Метка'
     command_description = 'Метка в скрипте, куда может быть совершен переход командами Выполнить или Ошибка.'
     for_sort = 130
+
+    def run_command(self):
+        """ Выполнение команды """
+        pass
 
 
 class CycleCmd(PauseCmd):
@@ -636,6 +646,20 @@ class BlockEnd(CycleEnd):
     command_description = 'Завершение списка команд относящихся к последнему (перед этой командой) объявленному блоку. ' \
                           'Начало блока - команда Блок.'
     for_sort = 120
+
+    def run_command(self):
+        """ Выполнение команды
+
+        Выбирает из стека верхний элемент. Переходит к команде по индексу из 0 значения.
+        Любые ошибки при выполнении игнорирует.
+
+        """
+        try:
+            print(self.data.stack)
+            temp = self.data.stack.pop()
+            self.data.pointer_command = temp[0]  # Индекс команды от которой был переход к блоку
+        except:
+            raise
 
 
 class StopCmd(CycleEnd):
