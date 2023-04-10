@@ -32,8 +32,8 @@ from settings import settings
 from commands import CommandClasses
 from components import Editor, DisplayCommands, DataSource, data
 from tracker_and_player import Tracker, Player
-from exceptions import NoCommandOrStop
-
+from exceptions import NoCommandOrStop, DataError
+from data_types import llist
 
 # Функции
 
@@ -98,6 +98,9 @@ def run_script():
         except NoCommandOrStop as err:
             editor.to_report(err)
             data.script_started = False
+        except DataError as err:
+            editor.to_report(err)
+
     return
 
 args = ['']

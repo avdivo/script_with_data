@@ -150,8 +150,14 @@ class Player:
         ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
     def run_thread(self):
-        """ Запусск функции выполнения скрипта в отдельном потоке """
+        """ Запуск функции выполнения скрипта в отдельном потоке """
         self.data.work_settings = settings.get_dict_settings()  # Рабочая копия настроек
+        self.data.work_labels = dict()  # Заполняем словарь меток и названий блоков
+        for key, obj in self.data.obj_command.items():
+            if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd':
+                # Это метка или блок, добавляем в словарь
+                self.data.work_labels[obj.value] = self.data.queue_command.index(key)
+
         new_thread = Thread(target=self.run_script)  # Создаём поток
         new_thread.start()  # Запускаем поток
 

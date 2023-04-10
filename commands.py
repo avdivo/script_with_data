@@ -483,6 +483,11 @@ class RunCmd(PauseCmd):
             return self.description
         return f"{self.command_name} {self.value}"
 
+    def run_command(self):
+        """ Выполнение команды """
+        # Указатель ставим перед командой метки, она должна выполниться, если это блок
+        self.data.pointer_command = self.data.work_labels[self.value] - 1
+
 
 class ErrorNoElement(PauseCmd):
     """ Реакция на ошибку 'Нет элемента' """

@@ -19,6 +19,7 @@ from random import choice, randint
 from commands import CommandClasses
 from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError
 from data_types import llist
+from settings import settings
 from tracker_and_player import Player
 
 class CountingDict(dict):
@@ -69,6 +70,7 @@ class DataForWorker:
     очередь выполнения, объекты команд, стек для циклов и подпрограмм, источник данных.
 
     """
+
     def __init__(self):
         """ Инициализация
 
@@ -81,18 +83,25 @@ class DataForWorker:
         self.id_command = 0  # Счетчик для идентификаторов команд
         self.pointer_command = -1  # Указатель на исполняемую команду или положение курсора в списке
 
-        self.stack = deque()  # Стек для циклов и подпрограмм
+        # Стек для циклов и подпрограмм хранит списки:
+        # Для циклов - [индекс команды for, сколько повторов осталось]
+        # Для блока - индекс команды после run
+        self.stack = deque()
 
         # В качестве источника данных используются 2 словаря. В качестве ключей в них Имена полей
         # В первом словаре значения - это списки данных {'key': [list data]}
         # Во втором указатели на элементы списков первого словаря {'key': int}
-        self.data_source = None # dict()  Источник данных {'field': list}
+        self.data_source = None  # dict()  Источник данных {'field': list}
         self.pointers_data_source = None  # dict() Указатели на позицию чтения из поля {'field': n}
 
         self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатур
 
         self.script_started = False  # False - остановит скрипт, True - позволит выполняться
         self.work_settings = None  # Тут создается копия настроек программы во время выполнения скрипта
+
+        # Словарь: {метка или блок (ключи): индекс ее в очереди команд queue_command.
+        # Заполняется перед выполнением скрипта
+        self.work_labels = None
 
     def next_id(self):
         """ Генерирует id новой команды """
@@ -151,6 +160,7 @@ class DataForWorker:
             self.obj_command[temp] = cmd  # Меняем объект команды под курсором
 
     def run_command(self):
+        data_error = None
         """ Выполнение очередной команды и переходна следующую"""
         if self.pointer_command == -1:
             self.pointer_command = 0
@@ -158,12 +168,27 @@ class DataForWorker:
             self.obj_command[self.queue_command[self.pointer_command]].run_command()
         except IndexError:
             raise NoCommandOrStop('Нет команд для выполнения.')
+        except DataError as err:
+            # Обработка ошибок данных в зависимости от текущих настроек реакции
+            if data.work_settings['s_error_no_data'].react == 'stop':
+                raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку данных:\n{err}')
+            elif data.work_settings['s_error_no_data'].react == 'ignore':
+                data_error = err
+            else:
+                # Продолжение выполнения скрипта, но с другого места
+                label = data.work_settings['s_error_no_data'].label
+                self.pointer_command = self.work_labels[label]
+                raise DataError(f'Ошибка данных:\n{err}\nРеакция - переход к метке "{label}".')
 
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
             self.pointer_command += 1
             # Между выполнением команд есть регулируемая пауза
             sleep(self.work_settings['s_command_pause'])  # Пауза между командами (всеми)
+
+            if data_error:
+                # Ошибка данных может не останавливать скрипт, продолжаем его выполнение, но ниже сообщим об ошибке
+                raise DataError(f'Ошибка данных:\n{data_error}\nРеакция - продолжение выполнения скрипта.')
         else:
             raise NoCommandOrStop('Нет команд для выполнения.')
 
