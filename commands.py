@@ -314,15 +314,16 @@ class WriteDataFromField(CommandClasses):
         """ Принимает имя поля и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
-        self.value = args[0]
         try:
             self.values = self.data.get_fields()  # Получаем имена всех полей
         except DataError as err:
             # Ошибка, если полей нет
             raise
+
+        self.value = args[0] if args[0] else self.values[0]  # Устанавливаем поле которое будет выбрано
         if self.value and self.value not in self.values:
             raise DataError(f'Нет поля "{self.value}" в источнике данных')
-        self.value_var = StringVar(value=self.value)
+        self.value_var = StringVar()
 
     def __str__(self):
         """ Возвращает название команды, иногда с параметрами.
@@ -370,6 +371,21 @@ class NextElementField(WriteDataFromField):
     command_description = 'Поле таблицы (столбец) представлено в виде списка данных. Эта команда переводит ' \
                           'указатель чтения к следующему элементу списка'
     for_sort = 70
+
+    def run_command(self):
+        """ Выполнение команды
+
+        Находим нужное поле, выясняем его длину, если указатель можно увеличить - делаем, если нельзя
+        бросаем исключение связанное с ошибкой данных.
+
+        """
+        if self.value not in self.data.data_source:
+            raise DataError(f'Нет поля "{self.value}" у источника данных. ')
+        pointer = self.data.pointers_data_source[self.value]
+        pointer += 1
+        if pointer >= len(self.data.data_source[self.value]):
+            raise DataError(f'Нет больше данных в поле "{self.value}".')
+        self.data.pointers_data_source[self.value] = pointer
 
 
 class CycleForField(WriteDataFromField):

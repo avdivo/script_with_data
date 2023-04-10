@@ -86,8 +86,8 @@ class DataForWorker:
         # В качестве источника данных используются 2 словаря. В качестве ключей в них Имена полей
         # В первом словаре значения - это списки данных {'key': [list data]}
         # Во втором указатели на элементы списков первого словаря {'key': int}
-        self.data_source = None # dict()  # Источник данных
-        self.pointers_data_source = dict()  # Указатели на позицию чтения из поля {'field': n}
+        self.data_source = None # dict()  Источник данных {'field': list}
+        self.pointers_data_source = None  # dict() Указатели на позицию чтения из поля {'field': n}
 
         self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатур
 
@@ -340,6 +340,10 @@ class DisplayCommands:
 
     def on_select(self, event):
         """ Обработка события выбора строки в списке """
+        if self.data.script_started:
+            # Не выполняем действия выбора если выполняется скрипт
+            return
+
         try:
             selected_item = event.widget.selection()[0]  # Получаем id команды
         except:
@@ -477,6 +481,7 @@ class DisplayCommands:
 
 class DataSource:
     """ Источник данных """
+    # TODO добавить кнопку сброса указателей источника данных
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
 
     def __init__(self, root):

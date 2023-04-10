@@ -90,10 +90,13 @@ def run_script():
     data.script_started = True  # Скрипт работает
     while data.script_started:
         try:
-            display_commands.tree.selection_set(display_commands.tree.get_children()[data.pointer_command + 1])  # Выделяем строку
+            children = display_commands.tree.get_children()
+            if len(children) <= data.pointer_command+1:
+                raise NoCommandOrStop('Нет команд для выполнения.')
+            display_commands.tree.selection_set(children[data.pointer_command + 1])  # Выделяем строку
             data.run_command()  # Выполнить следующую в очереди команду
         except NoCommandOrStop as err:
-            print(err)
+            editor.to_report(err)
             data.script_started = False
     return
 
