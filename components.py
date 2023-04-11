@@ -162,8 +162,6 @@ class DataForWorker:
     def run_command(self):
         data_error = None
         """ Выполнение очередной команды и переходна следующую"""
-        if self.pointer_command == -1:
-            self.pointer_command = 0
         try:
             self.obj_command[self.queue_command[self.pointer_command]].run_command()
         except IndexError:
@@ -177,7 +175,7 @@ class DataForWorker:
             else:
                 # Продолжение выполнения скрипта, но с другого места
                 label = data.work_settings['s_error_no_data'].label
-                self.pointer_command = self.work_labels[label]
+                self.pointer_command = self.work_labels[label.label]
                 raise DataError(f'Ошибка данных:\n{err}\nРеакция - переход к метке "{label}".')
 
         if self.pointer_command+1 < len(self.queue_command):
@@ -476,11 +474,9 @@ class DisplayCommands:
                 for i, elem in enumerate(elements):
                     self.data.queue_command.insert(self.data.pointer_command+1+i, elem)
 
-
-
-            # Очищаем данные операции
-            self.list_copy = []
-            self.operation = ''
+                # Очищаем данные операции
+                self.list_copy = []
+                self.operation = ''
 
             self.out_commands()  # Обновляем список
             sleep(1)

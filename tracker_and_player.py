@@ -103,6 +103,7 @@ class Tracker:
     def on_press(self, key=None):
         if not self.is_listening:
             return
+        print(key)
         # Получаем название клавиши одним словом или буквой
         try:
             out = key.char
@@ -218,7 +219,6 @@ class Player:
             kb.press('v')
             kb.release('v')
             kb.release(Key.ctrl)
-            # pyautogui.hotkey('ctrl', 'v')
             sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
             self.root.clipboard_clear()
             self.root.update()

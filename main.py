@@ -88,6 +88,8 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 def run_script():
     """ Выполнение скрипта """
     data.script_started = True  # Скрипт работает
+    if data.pointer_command == -1:
+        data.pointer_command = 0
     while data.script_started:
         try:
             children = display_commands.tree.get_children()

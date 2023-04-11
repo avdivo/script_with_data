@@ -19,7 +19,7 @@ import os
 from data_types import llist, eres
 from data_input import DataInput
 from settings import settings
-from exceptions import DataError
+from exceptions import DataError, NoCommandOrStop
 
 
 class CommandClasses(ABC):
@@ -246,7 +246,7 @@ class KeyDown(CommandClasses):
         self.widget = None
         self.values = ['backspace', 'tab', 'enter', 'shift', 'ctrl', 'alt', 'pause', 'caps_lock', 'esc', 'space',
                        'page_up', 'page_down', 'end', 'home', 'left', 'up', 'right', 'down', 'insert', 'delete',
-                       'key_0', 'key_1', 'key_2', 'key_3', 'key_4', 'key_5', 'key_6', 'key_7', 'key_8', 'key_9',
+                       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
                        's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'numpad_0', 'numpad_1', 'numpad_2', 'numpad_3',
                        'numpad_4', 'numpad_5', 'numpad_6', 'numpad_7', 'numpad_8', 'numpad_9', 'multiply', 'add',
@@ -529,6 +529,10 @@ class ErrorNoElement(PauseCmd):
             return self.description
         return f"{self.command_name}"
 
+    def run_command(self):
+        """ Выполнение команды """
+        self.data.work_settings['s_error_no_element'] = self.value
+
 
 class ErrorNoData(ErrorNoElement):
     """ Реакция на ошибку 'Нет данных' """
@@ -536,6 +540,10 @@ class ErrorNoData(ErrorNoElement):
     command_description = 'Меняет текущую реакцию скрипта на возникновение ошибки: ' \
                           'остановить скрипт/игнорировать/выполнить блок или перейти к метке с указанным именем.'
     for_sort = 160
+
+    def run_command(self):
+        """ Выполнение команды """
+        self.data.work_settings['s_error_no_data'] = self.value
 
 
 class BlockCmd(WriteCmd):
@@ -655,11 +663,10 @@ class BlockEnd(CycleEnd):
 
         """
         try:
-            print(self.data.stack)
             temp = self.data.stack.pop()
             self.data.pointer_command = temp[0]  # Индекс команды от которой был переход к блоку
         except:
-            raise
+            pass
 
 
 class StopCmd(CycleEnd):
@@ -668,3 +675,6 @@ class StopCmd(CycleEnd):
     command_description = 'Остановить выполнение скрипта.'
     for_sort = 180
 
+    def run_command(self):
+        """ Выполнение команды """
+        raise NoCommandOrStop(f'Выполнена команда Стоп.')
