@@ -189,7 +189,8 @@ class MouseClickLeft(MouseClickRight):
         self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
 
         # Изображение элемента
-        self.element_image = PhotoImage(file=self.image)
+        img = settings.path_to_elements + self.image if self.image else ''
+        self.element_image = PhotoImage(file=img)
         self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96)
         self.widget_button.place(x=273, y=5)
         ToolTip(self.widget_button, msg="Изображение элемента", delay=0.5)

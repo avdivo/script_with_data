@@ -11,8 +11,8 @@ from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Contr
 from threading import Thread
 
 from settings import settings
-
-# import pyautogui
+from element_images import save_image, pattern_search
+from exceptions import TemplateNotFoundError, ElementNotFound
 
 kb = kb_Controller()
 mouse = mouse_Controller()
@@ -54,6 +54,7 @@ class Tracker:
         self.listener_kb.start()
 
         self.is_listening = True  # Слушатели включены
+        self.data.is_listening = True  # Дублируем в data
 
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
@@ -68,11 +69,13 @@ class Tracker:
             self.listener_kb.stop()
             # self.listener_kb.join()
             self.is_listening = False
+            self.data.is_listening = False
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
         if self.single:
-            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], ''], des='')
+            img = save_image(args[0], args[1])  # Сохранить изображение элемента на котором был клик
+            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], img], des='')
         self.single = False
 
     def to_export(self, **kwargs):
@@ -84,8 +87,6 @@ class Tracker:
         """ Клик мыши любой нопкой"""
         if not self.is_listening:
             return
-        x = args[0]
-        y = args[1]
         button = args[2]
         pressed = args[3]
         if button == button.left and pressed:
@@ -93,7 +94,8 @@ class Tracker:
                 self.single = True
                 self.root.after(300, lambda: self.single_click(args))
             else:
-                self.to_export(cmd='MouseClickDouble', val=[args[0], args[1], ''], des='')
+                img = save_image(args[0], args[1])  # Сохранить изображение элемента на котором был клик
+                self.to_export(cmd='MouseClickDouble', val=[args[0], args[1], img], des='')
                 self.single = False
 
         if button == button.right and pressed:
@@ -162,7 +164,7 @@ class Player:
         new_thread = Thread(target=self.run_script)  # Создаём поток
         new_thread.start()  # Запускаем поток
 
-    def run_command(self, cmd, val, des=None):
+    def run_command(self, cmd, val, img=None):
         """ Выполняет одну команду для мыши или клавиатуры
 
         Принимает команду и параметры. Для каждого события свои.
@@ -174,19 +176,37 @@ class Player:
         if cmd[:3] == 'Mou':
             # Команда мыши
             mouse.position = (val[0], val[1])  # Ставим указатель в нужную позицию
-            if cmd == 'MouseClickLeft':
-                # Клик левой копкой мыши
-                mouse.press(Btn.left)
-                mouse.release(Btn.left)
 
-            elif cmd == 'MouseClickDouble':
-                # Двойной клик
-                mouse.click(Btn.left, 2)
-
-            else:
+            if cmd == 'MouseClickRight':
                 # Клик правой копкой мыши
                 mouse.press(Btn.right)
                 mouse.release(Btn.right)
+            else:
+                if settings.s_confirm_element:
+                    # Включена проверка места клика по изображению
+                    # Координаты будут старыми, новыми (при поиске по всему экрану), или будет исключение
+                    error = None
+                    try:
+                        mouse.position = pattern_search(img, val[0], val[1])
+                    except (TemplateNotFoundError, ElementNotFound) as err:
+                        if self.data.work_settings['s_error_no_element'].react == 'ignore':
+                            # Если не стоп и не переход, значит действие нужно выполнить
+                            error = err
+                        else:
+                            raise
+
+                    if cmd == 'MouseClickLeft':
+                        # Клик левой копкой мыши
+                        mouse.press(Btn.left)
+                        mouse.release(Btn.left)
+
+                    elif cmd == 'MouseClickDouble':
+                        # Двойной клик
+                        mouse.click(Btn.left, 2)
+
+                    if error:
+                        # После выполнения действия, если была ошибка - транслируем ее
+                        raise ElementNotFound(error)
 
             sleep(self.data.work_settings['s_click_pause']) # Пауза после клика мыши
 

@@ -22,6 +22,7 @@
 Он передается методам объектов команд.
 
 """
+import os
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
@@ -37,10 +38,18 @@ from data_types import llist
 
 # Функции
 
-def open_data_source():
-    pass
+def on_closing():
+    """ Действия при закрытии программы """
+    for filename in os.listdir(settings.path_to_elements):
+        print(filename, '- удален')
+        os.unlink(settings.path_to_elements + filename)
+    root.destroy()
+
+
 # Интерфейс
 root = Tk()
+
+root.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
 
 # Размер экране
 w = root.winfo_screenwidth()
