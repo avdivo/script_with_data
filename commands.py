@@ -421,7 +421,7 @@ class PauseCmd(CommandClasses):
         """ Принимает количество секунд, пользовательское описание команды и значение от классов-потомков """
         # Если инициализируется объект класса-потомка, то получаем от него данные нужного типа
         # Поскольку классы формирующие виджет по типу определяют какой виджет рисовать
-        self.value = int(args[0] if args[0] else 0) if value is None else value
+        self.value = float(args[0] if args[0] else 0) if value is None else value
 
         super().__init__(description=description)
         self.widget = None
