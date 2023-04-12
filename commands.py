@@ -556,8 +556,25 @@ class BlockCmd(WriteCmd):
     for_sort = 110
 
     def run_command(self):
-        """ Выполнение команды """
-        pass
+        """ Выполнение команды
+
+        Блок нужно обойти. Находим конец блока и делаем его текущей командой.
+        Если команды конца блока нет выполняем его как обычную последовательность.
+        При этом, если встретится вложенный блок, его конец будет воспринят как конец этого,
+        поэтому вложенность блоков не допускается.
+
+        """
+        i = self.data.pointer_command
+        for name in [self.data.obj_command[label].__class__.__name__
+                     for label in self.data.queue_command[self.data.pointer_command+1:]]:
+            # Перебираем список команд от текущей позиции до конца и ищем конец блока
+            if name == 'BlockEnd':
+                self.data.pointer_command = i
+                return
+            elif name == 'BlockCmd':
+                raise NoCommandOrStop('Скрипт остановлен. Вложенность блоков не допускается.')
+            i += 1
+            # Если команда конца блока не найдена выполняем его как обычную последовательность (пропускаем)
 
 
 class LabelCmd(WriteCmd):
