@@ -17,6 +17,7 @@ import datetime
 import numpy as np
 import pyautogui
 import cv2
+from time import sleep
 
 from exceptions import TemplateNotFoundError, ElementNotFound
 from settings import settings
@@ -30,9 +31,6 @@ BASENAME = "elem"  # Префикс для имени файла при сохр
 PATH = input_file = os.path.join(sys.path[0], settings.path_to_elements)  # Путь для сохранения изображений
 
 REGION_FOR_SEARCH = 96  # Сторона квадрата в котором производится первоначальный поиск элемента
-# Где искать элемент: full - по всему экрану, region - в квадрате с заданными координатами, all - везде
-WHERE_TO_LOOK = 'all'
-
 
 def screenshot(x_reg: int = 0, y_reg: int = 0, region: int = 0):
     """ Скриншот заданного квадрата или всего экрана
@@ -129,37 +127,35 @@ def save_image(x_point :int, y_point :int) -> str:
     return f'{filename}.png'
 
 
-
 def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tuple:
     """ Подтверждение присутствия нужной кнопки в указанных координатах или поиск ее на экране
 
-    Константа WHERE_TO_LOOK = 'full' задает режим поиска:
-    full - только по всему экрану, region - только в квадрате с заданными координатами и размером
-    стороны в константе REGION_FOR_SEARCH,
-    all - если не найдено в заданном квадрате - то искать по всему экрану.
     Принимает в качестве первого аргумента имя шаблона (изображения кнопки или ее части),
     которое ищет по пути в константе PATH. Второй и третий аргументы - координаты на экране
     где должна присутствовать кнопка.
+    В зависимости от настроек может повторять поиск с задержкой в секунду нужное количество раз,
+    не выполнять поиск вообще или искать только в координатах или только на всем экране.
     В случае, если кнопка не найдена, поднимается исключение "Элемент не найден". Иначе
     возвращаются координаты (x, y в tuple) куда нужно совершить клик.
 
     """
-
-    threshold = 0.8 # Порог
-    method = cv2.TM_CCOEFF_NORMED  # Метод расчёта корреляции между изображениями
+    if not name_template:
+        # Если нет изображения элемента то проверка отменяется
+        return (x_point, y_point)
 
     # Получение шаблона
     try:
         template = cv2.imread(f'{PATH}/{name_template}', 0)
     except:
         raise TemplateNotFoundError('Шаблон с таким именем не найден')
-
     # Сохранить ширину в переменной w и высоту в переменной h шаблона
     w, h = template.shape
 
-    # Где искать элемент
-    if WHERE_TO_LOOK != 'full':
-
+    threshold = 0.8  # Порог
+    method = cv2.TM_CCOEFF_NORMED  # Метод расчёта корреляции между изображениями
+    repeat = settings.s_search_attempt  # Сколько раз проверить наличие элемента с паузой 1 сек.
+    while repeat and settings.s_confirm_element:
+        # Проверка включена и попытки заданы.
         # Вычисляем координаты квадрата для скриншота
         x_reg = x_point - REGION_FOR_SEARCH // 2
         y_reg = y_point - REGION_FOR_SEARCH // 2
@@ -180,37 +176,36 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
             # Элемент присутствует в этом месте, подтверждаем координаты
             return (x_point, y_point)
 
-        elif WHERE_TO_LOOK != 'all':
-            # Элемент не найден в заданном месте, а поиск по всему экрану не включен
-            raise ElementNotFound('Элемент не найден в указанной области.')
+        repeat -= 1
+        if repeat:
+            # После последнего поиска или если он единственный - пауза не нужна
+            print(repeat)
+            sleep(1)
 
-        # Если поиск шаблона в заданных координатах не принес результата any(loc[-1] будет пустым.
-        # Ищем на всем экране если это разрешено
+    if not settings.s_full_screen_search:
+        raise ElementNotFound('Элемент не найден в указанной области. Поиск по всему экрану отключен.')
 
-    if WHERE_TO_LOOK == 'full' or WHERE_TO_LOOK == 'all':
-        # Поиск элемента на всем экране
+    # Если поиск шаблона в заданных координатах не принес результата any(loc[-1] будет пустым.
+    # Поиск элемента на всем экране
 
-        # Делаем скриншот экрана
-        image = screenshot()
+    # Делаем скриншот экрана
+    image = screenshot()
 
-        # Перевод изображения в оттенки серого
-        gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Перевод изображения в оттенки серого
+    gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Операция сопоставления
-        res = cv2.matchTemplate(gray_img, template, method)
+    # Операция сопоставления
+    res = cv2.matchTemplate(gray_img, template, method)
 
-        # Ищем координаты совпадающего местоположения в массиве numpy
-        loc = np.where(res >= threshold)
-        xy = list(zip(*loc[::-1]))[-1] if list(zip(*loc[::-1])) else []
+    # Ищем координаты совпадающего местоположения в массиве numpy
+    loc = np.where(res >= threshold)
+    xy = list(zip(*loc[::-1]))[-1] if list(zip(*loc[::-1])) else []
 
-        # Проверка, найден ли шаблон на всем экране
-        if xy:
-            # Вернуть координаты центра нового положения элемента
-            return (xy[0] + w / 2, xy[1] + h / 2)
+    # Проверка, найден ли шаблон на всем экране
+    if xy:
+        # Вернуть координаты центра нового положения элемента
+        return (xy[0] + w / 2, xy[1] + h / 2)
 
-        else:
-            # Заданный шаблон на экране не найден
-            raise ElementNotFound('Указанный элемент на экране не найден.')
-
-
-print(save_image(100, 100))
+    else:
+        # Заданный шаблон на экране не найден
+        raise ElementNotFound('Указанный элемент на экране не найден.')
