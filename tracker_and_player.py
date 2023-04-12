@@ -105,7 +105,6 @@ class Tracker:
     def on_press(self, key=None):
         if not self.is_listening:
             return
-        print(key)
         # Получаем название клавиши одним словом или буквой
         try:
             out = key.char

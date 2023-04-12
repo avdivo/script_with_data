@@ -179,7 +179,6 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         repeat -= 1
         if repeat:
             # После последнего поиска или если он единственный - пауза не нужна
-            print(repeat)
             sleep(1)
 
     if not settings.s_full_screen_search:

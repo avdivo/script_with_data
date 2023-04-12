@@ -6,6 +6,7 @@
 # Редактор команд
 # ---------------------------------------------------------------------------
 
+import os
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog as fd
@@ -26,6 +27,7 @@ class CountingDict(dict):
     """ Словарь умеющий считать количество нужных объектов при создании, изменении, удалении
 
     Применяется для контроля списка меток и блоков в скрипте.
+    Для ужаления изображений элементов (кнопок, ярлыков) при удалении команд клика мыши.
     Переопределенные методы обновляют список названий меток и блоков хранящийся в
     специальном типе данных llist каждый раз, когда происходит манипуляция с
     меткой или блоком.
@@ -53,13 +55,25 @@ class CountingDict(dict):
         """ Переопределяем метод удаления элементов из словаря """
         if data.obj_command[key].__class__.__name__ == 'BlockCmd' \
                 or data.obj_command[key].__class__.__name__ == 'LabelCmd':
+            # Удаление меток
             super().__delitem__(key)  # Вызываем базовую реализацию метода
             names = [obj.value for obj in data.obj_command.values()
                  if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd']
             llist.labels = names
+
+        elif data.obj_command[key].__class__.__name__ == 'MouseClickLeft' \
+                or data.obj_command[key].__class__.__name__ == 'MouseClickDouble':
+            # Удаление изображений элементов
+            img = data.obj_command[key].image  # Узнаем картинку удаляемой команды
+            super().__delitem__(key)  # Вызываем базовую реализацию метода (удаляем уоманду)
+
+            if not sum(1 for obj in data.obj_command.values() if hasattr(obj, 'image') and obj.image == img):
+                # Перебираем все команды, если в других этот элемент не используется - удаляем его
+                print(img, '- удален')
+                os.unlink(settings.path_to_elements + img)
+
         else:
             super().__delitem__(key)  # Вызываем базовую реализацию метода
-
 
 
 class DataForWorker:
