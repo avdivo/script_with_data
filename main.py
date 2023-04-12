@@ -31,7 +31,7 @@ import pandas as pd
 import components
 from settings import settings
 from commands import CommandClasses
-from components import Editor, DisplayCommands, DataSource, data
+from components import Editor, DisplayCommands, DataSource, SaveLoad, data
 from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop, DataError
 from data_types import llist
@@ -153,7 +153,7 @@ filemenu = Menu(mainmenu, tearoff=0)
 filemenu.add_command(label="Новый скрипт")
 filemenu.add_command(label="Открыть скрипт")
 filemenu.add_command(label="Сохранить скрипт")
-filemenu.add_command(label="Сохранить скрипт как...")
+filemenu.add_command(label="Сохранить скрипт как...", command=SaveLoad.save_script)
 filemenu.add_separator()
 filemenu.add_command(label="Источник данных", command=data_source.load_file)
 filemenu.add_separator()

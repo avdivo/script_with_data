@@ -1,29 +1,49 @@
-import os, sys
-import datetime
-import numpy as np
-import pyautogui
-import cv2
+import json
+import tkinter as tk
+from tkinter import filedialog
 
+# функция для сохранения словаря в файл
+def save_dict():
+    # исходный словарь
+    my_dict = {
+        "key1": "value1",
+        "key2": {
+            "subkey1": "subvalue1",
+            "subkey2": "subvalue2"
+        }
+    }
 
-def screenshot(x_reg: int = 0, y_reg: int = 0, region: int = 0):
-    """ Скриншот заданного квадрата или всего экрана
+    # открываем диалоговое окно для выбора файла
+    file_path = filedialog.asksaveasfilename(initialdir="/", title="Save File",
+                                             filetypes=(("JSON files", "*.json"),))
 
-    В качестве аргументов принимает координаты верхней левой точки квадрата и его стороны.
-    Если сторона на задана (равна 0) то делает скриншот всего экрана
+    # сохраняем в файл
+    with open(file_path, "w") as f:
+        json.dump(my_dict, f)
 
-    """
-    if region:
-        image = pyautogui.screenshot(region=(x_reg, y_reg, region, region))  # x, y, x+n, y+n (с верхнего левого угла)
-    else:
-        image = pyautogui.screenshot()
-    return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+# функция для чтения словаря из файла
+def load_dict():
+    # открываем диалоговое окно для выбора файла
+    file_path = filedialog.askopenfilename(initialdir="/", title="Open File",
+                                           filetypes=(("JSON files", "*.json"),))
 
+    # читаем из файла
+    with open(file_path, "r") as f:
+        loaded_dict = json.load(f)
 
-# отображение изображения
-cv2.imshow('Image', screenshot())
+    # выводим загруженный словарь в консоль
+    print(loaded_dict)
 
-# ожидание нажатия клавиши для закрытия окна
-cv2.waitKey(0)
+# создаем окно tkinter
+root = tk.Tk()
 
-# закрытие окна
-cv2.destroyAllWindows()
+# добавляем кнопку для сохранения словаря
+save_button = tk.Button(root, text="Save Dictionary", command=save_dict)
+save_button.pack()
+
+# добавляем кнопку для чтения словаря
+load_button = tk.Button(root, text="Load Dictionary", command=load_dict)
+load_button.pack()
+
+# запускаем главный цикл окна tkinter
+root.mainloop()

@@ -16,6 +16,7 @@ from time import sleep
 import pandas as pd
 import string
 from random import choice, randint
+import json
 
 from commands import CommandClasses
 from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError, ElementNotFound
@@ -528,6 +529,7 @@ class DisplayCommands:
 
         self.out_commands()  # Обновляем список
 
+
 class DataSource:
     """ Источник данных """
     # TODO добавить кнопку сброса указателей источника данных
@@ -556,6 +558,26 @@ class DataSource:
             # При ошибках с источником данных
             self.editor.to_report('Ошибка источника данных.')
 
+
+class SaveLoad:
+    """ Сохранение и чтение скрипта """
+    def load_script(self):
+        # открываем диалоговое окно для выбора файла
+        file_path = fd.askopenfilename(initialdir=settings.path_to_script, title="Открыть скрипт",
+                                               filetypes=(("Скрипт", "script"),))
+
+    @classmethod
+    def save_script(cls):
+        # открываем диалоговое окно для выбора файла
+        file_path = fd.asksaveasfilename(initialdir=settings.path_to_script, title="Сохранить скрипт",
+                                               filetypes=(("Скрипт", "script"),))
+
+        # Создаем список с командами скрипта в словарях
+        script = [data.obj_command[label].command_to_dict for label in data.queue_command]
+        print({'settings': settings.get_dict_settings(), 'script': script})
+        # сохраняем в файл
+        with open(file_path, "w") as f:
+            json.dump({'settings': settings.get_dict_settings(), 'script': script}, f)
 
 if __name__ == '__main__':
     # блок кода, который будет выполнен только при запуске модуля

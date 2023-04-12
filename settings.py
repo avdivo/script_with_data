@@ -19,7 +19,10 @@ class Settings(object):
 
     def __init__(self):
         # Настройки для программы
-        self.path_to_elements = 'elements_img/'  # Путь к папке с изображениями элементов интерфейса
+        self.path_to_script = 'script/'  # Путь к файлу скрипта
+        self.path_to_data = self.path_to_script + 'data/'  # Путь к файлам - источникам данных
+        self.path_to_elements = self.path_to_script + 'elements_img/'  # Путь к папке с изображениями элементов
+
         # Размер окна
         self.win_w = 800
         self.win_h = 610
