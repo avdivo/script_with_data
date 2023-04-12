@@ -29,6 +29,7 @@ class Tracker:
         self.listener_mouse = None  # Слушатель мыши
         self.listener_kb = None  # Слушатель клавиатуры
         self.is_listening = False  # Слушатели выключены
+        self.img = None  # Хранит изображение под курсором при последнем клике
 
         # Кнопки управления записью
         self.icon1 = PhotoImage(file="icon/record.png")
@@ -74,9 +75,8 @@ class Tracker:
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
         if self.single:
-            img = save_image(args[0], args[1])  # Сохранить изображение элемента на котором был клик
-            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], img], des='')
-        self.single = False
+            self.single = False
+            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], self.img], des='')
 
     def to_export(self, **kwargs):
         """ Добавление команды в список """
@@ -84,9 +84,10 @@ class Tracker:
         self.display_commands.out_commands()  # Обновляем список
 
     def on_click(self, *args):
-        """ Клик мыши любой нопкой"""
+        """ Клик мыши любой кнопкой"""
         if not self.is_listening:
             return
+        self.img = save_image(args[0], args[1])  # Сохранить изображение элемента на котором был клик
         button = args[2]
         pressed = args[3]
         if button == button.left and pressed:
@@ -94,9 +95,9 @@ class Tracker:
                 self.single = True
                 self.root.after(300, lambda: self.single_click(args))
             else:
-                img = save_image(args[0], args[1])  # Сохранить изображение элемента на котором был клик
-                self.to_export(cmd='MouseClickDouble', val=[args[0], args[1], img], des='')
+                # Фиксация 
                 self.single = False
+                self.to_export(cmd='MouseClickDouble', val=[args[0], args[1], self.img], des='')
 
         if button == button.right and pressed:
             # Отправляем на создание объекта команды и запись

@@ -66,7 +66,8 @@ class CountingDict(dict):
             # Удаление изображений элементов
             img = data.obj_command[key].image  # Узнаем картинку удаляемой команды
             super().__delitem__(key)  # Вызываем базовую реализацию метода (удаляем уоманду)
-
+            if not img:
+                return
             if not sum(1 for obj in data.obj_command.values() if hasattr(obj, 'image') and obj.image == img):
                 # Перебираем все команды, если в других этот элемент не используется - удаляем его
                 print(img, '- удален')
