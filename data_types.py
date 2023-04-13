@@ -27,6 +27,9 @@ class llist:
     def __str__(self):
         return self.label
 
+    def __json__(self):
+        return self.__str__()
+
     @classmethod
     def set_list(cls, l):
         """ Записываем метки в список класса """
@@ -71,6 +74,9 @@ class eres:
     def __str__(self):
         """ Возвращает строку в специальном формате """
         return f'{self._react}:{self._label}'
+
+    def __json__(self):
+        return self.__str__()
 
     @property
     def react(self):

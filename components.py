@@ -561,23 +561,34 @@ class DataSource:
 
 class SaveLoad:
     """ Сохранение и чтение скрипта """
-    def load_script(self):
+
+    @classmethod
+    def load_script(cls):
         # открываем диалоговое окно для выбора файла
         file_path = fd.askopenfilename(initialdir=settings.path_to_script, title="Открыть скрипт",
                                                filetypes=(("Скрипт", "script"),))
+
+        with open(file_path, "r") as f:
+            loaded_dict = json.load(f)
+            print(loaded_dict)
 
     @classmethod
     def save_script(cls):
         # открываем диалоговое окно для выбора файла
         file_path = fd.asksaveasfilename(initialdir=settings.path_to_script, title="Сохранить скрипт",
                                                filetypes=(("Скрипт", "script"),))
-
+        script = []
         # Создаем список с командами скрипта в словарях
-        script = [data.obj_command[label].command_to_dict for label in data.queue_command]
-        print({'settings': settings.get_dict_settings(), 'script': script})
+        # for label in data.queue_command:
+        #     print(json.dumps(data.obj_command[label].command_to_dict()))
+        #     for key, val in data.obj_command[label].command_to_dict:
+        #         print(key, str(val))
+        script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command], default=lambda o: o.__json__())
+        print(json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__()))
         # сохраняем в файл
         with open(file_path, "w") as f:
-            json.dump({'settings': settings.get_dict_settings(), 'script': script}, f)
+            json.dump({'script': script}, f) #'settings': settings.get_dict_settings(),
+
 
 if __name__ == '__main__':
     # блок кода, который будет выполнен только при запуске модуля

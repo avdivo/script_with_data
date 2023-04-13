@@ -151,7 +151,7 @@ root.config(menu=mainmenu)
 
 filemenu = Menu(mainmenu, tearoff=0)
 filemenu.add_command(label="Новый скрипт")
-filemenu.add_command(label="Открыть скрипт")
+filemenu.add_command(label="Открыть скрипт", command=SaveLoad.load_script)
 filemenu.add_command(label="Сохранить скрипт")
 filemenu.add_command(label="Сохранить скрипт как...", command=SaveLoad.save_script)
 filemenu.add_separator()
