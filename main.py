@@ -145,6 +145,9 @@ data.func_execute_event = player.run_command  # Назначаем функци�
 data_source = components.DataSource(frame1)
 data_source.editor = editor  # Передаем ссылку на редактор
 
+SaveLoad.editor = editor  # Передаем ссылку на редактор
+SaveLoad.display_commands = display_commands  # Передаем ссылку на список команд
+
 # Меню
 mainmenu = Menu(root)
 root.config(menu=mainmenu)

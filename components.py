@@ -294,7 +294,7 @@ class Editor:
             self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
             self.to_report(err)
 
-    11
+
     def command_to_editor(self, id_command):
         """ Загрузка команды в редактор """
         if self.current_cmd:
@@ -561,33 +561,65 @@ class DataSource:
 
 class SaveLoad:
     """ Сохранение и чтение скрипта """
+    editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
+    display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
 
     @classmethod
     def load_script(cls):
         # открываем диалоговое окно для выбора файла
         file_path = fd.askopenfilename(initialdir=settings.path_to_script, title="Открыть скрипт",
-                                               filetypes=(("Скрипт", "script"),))
+                                               filetypes=(("Скрипт", "script"),("All files", "*.*")))
 
-        with open(file_path, "r") as f:
-            loaded_dict = json.load(f)
-            print(loaded_dict)
+        try:
+            with open(file_path, "r") as f:
+                commands_dict = json.load(f)
+            script = json.loads(commands_dict['script'])
+            sett = json.loads(commands_dict['settings'])
+
+            # Удаляем старый скрипт и записываем новый
+            data.queue_command.clear()  # Очередь команд
+            data.obj_command.clear()  # Список команд
+            llist.labels.clear()  # Список меток
+            data.pointer_command = 0
+
+            # При построении скрипта команды меток и названий блоков должны быть созданы и добавлены в первую очередь
+            # Поэтому создаем их, добавляем
+            for i, cmd_dict in enumerate(script):
+                # Создаем объект команды с метками по краткой записи
+                if cmd_dict['cmd'] == 'BlockCmd' or cmd_dict['cmd'] == 'LabelCmd':
+                    insert = CommandClasses.create_command(
+                        *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des'])
+                    data.add_new_command(insert)
+
+            # Создаем остальные и вставляем на свои места
+            for i, cmd_dict in enumerate(script):
+                # Добавляем остальные команды по краткой записи
+                if cmd_dict['cmd'] != 'BlockCmd' and cmd_dict['cmd'] != 'LabelCmd':
+                    data.pointer_command = i  # Указатель, куда вставить команду
+                    data.add_new_command(CommandClasses.create_command(
+                        *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des']))
+
+            # Обновляем список, предварительно установив указатель на начало
+            data.pointer_command = -1
+            cls.display_commands.out_commands()
+
+            settings.set_settings_from_dict(sett)  # Устанавливаем настройки
+
+        except:
+            cls.editor.to_report('Ошибка чтения скрипта.')
+            raise
+
 
     @classmethod
     def save_script(cls):
         # открываем диалоговое окно для выбора файла
         file_path = fd.asksaveasfilename(initialdir=settings.path_to_script, title="Сохранить скрипт",
                                                filetypes=(("Скрипт", "script"),))
-        script = []
-        # Создаем список с командами скрипта в словарях
-        # for label in data.queue_command:
-        #     print(json.dumps(data.obj_command[label].command_to_dict()))
-        #     for key, val in data.obj_command[label].command_to_dict:
-        #         print(key, str(val))
         script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command], default=lambda o: o.__json__())
-        print(json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__()))
+        sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())
         # сохраняем в файл
         with open(file_path, "w") as f:
-            json.dump({'script': script}, f) #'settings': settings.get_dict_settings(),
+            json.dump({'script': script, 'settings': sett}, f)
 
 
 if __name__ == '__main__':
