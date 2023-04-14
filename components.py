@@ -568,7 +568,7 @@ class SaveLoad:
     def load_script(cls):
         # открываем диалоговое окно для выбора файла
         file_path = fd.askopenfilename(initialdir=settings.path_to_script, title="Открыть скрипт",
-                                               filetypes=(("Скрипт", "script"),("All files", "*.*")))
+                                               filetypes=(("image", "*"), ))
 
         try:
             with open(file_path, "r") as f:
@@ -595,7 +595,7 @@ class SaveLoad:
             for i, cmd_dict in enumerate(script):
                 # Добавляем остальные команды по краткой записи
                 if cmd_dict['cmd'] != 'BlockCmd' and cmd_dict['cmd'] != 'LabelCmd':
-                    data.pointer_command = i  # Указатель, куда вставить команду
+                    data.pointer_command = i - 1  # Указатель, куда вставить команду
                     data.add_new_command(CommandClasses.create_command(
                         *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des']))
 

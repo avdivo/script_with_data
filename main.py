@@ -40,9 +40,9 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
-    for filename in os.listdir(settings.path_to_elements):
-        print(filename, '- удален')
-        os.unlink(settings.path_to_elements + filename)
+    # for filename in os.listdir(settings.path_to_elements):
+    #     print(filename, '- удален')
+    #     os.unlink(settings.path_to_elements + filename)
     root.destroy()
 
 

@@ -233,12 +233,13 @@ class Player:
                 mem = self.root.clipboard_get()
             except:
                 mem = ''
-            self.root.clipboard_clear()
-            self.root.clipboard_append(val[0])
-            kb.press(Key.ctrl)
-            kb.press('v')
-            kb.release('v')
-            kb.release(Key.ctrl)
-            sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
-            self.root.clipboard_clear()
-            self.root.update()
+            # self.root.clipboard_clear()
+            # self.root.clipboard_append(val[0])
+            # kb.press(Key.ctrl)
+            # kb.press('v')
+            # kb.release('v')
+            # kb.release(Key.ctrl)
+            # sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
+            # self.root.clipboard_clear()
+            # self.root.update()
+            kb.type(val[0])
