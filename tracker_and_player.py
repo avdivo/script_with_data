@@ -7,6 +7,7 @@ from tkinter import *
 from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
+import platform
 
 from threading import Thread
 
@@ -233,13 +234,23 @@ class Player:
                 mem = self.root.clipboard_get()
             except:
                 mem = ''
-            # self.root.clipboard_clear()
-            # self.root.clipboard_append(val[0])
-            # kb.press(Key.ctrl)
-            # kb.press('v')
-            # kb.release('v')
-            # kb.release(Key.ctrl)
-            # sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
-            # self.root.clipboard_clear()
-            # self.root.update()
-            kb.type(val[0])
+
+            # Функция работает для Windows, но для Linux русские буквы не работают
+            # определить операционную систему и реализовать вывод русского текста в Linux
+
+            if platform.system() == 'Windows':
+                # Для Windows
+                kb.type(val[0])
+            else:
+                # Вывод русского текста в Linux
+                mem = self.root.clipboard_get()
+                self.root.clipboard_clear()
+                self.root.clipboard_append(val[0])
+                kb.press(Key.ctrl)
+                kb.press('v')
+                kb.release('v')
+                kb.release(Key.ctrl)
+                sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
+                self.root.clipboard_clear()
+                self.root.clipboard_append(mem)
+                self.root.update()
