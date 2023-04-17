@@ -45,6 +45,9 @@ def on_closing():
     #     os.unlink(settings.path_to_elements + filename)
     root.destroy()
 
+# Работа с проектами
+s = SaveLoad()
+
 
 # Интерфейс
 root = Tk()

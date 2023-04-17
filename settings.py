@@ -19,7 +19,9 @@ class Settings(object):
 
     def __init__(self):
         # Настройки для программы
-        self.path_to_script = 'script/'  # Путь к файлу скрипта
+        self.path_to_project = ''  # Путь к файлу проекта
+        self.project_name = ''  # Имя проекта
+        self.path_to_script = self.path_to_project + 'script/'  # Путь к файлу скрипта
         self.path_to_data = self.path_to_script + 'data/'  # Путь к файлам - источникам данных
         self.path_to_elements = self.path_to_script + 'elements_img/'  # Путь к папке с изображениями элементов
 
