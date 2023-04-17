@@ -69,17 +69,19 @@ def save_image(x_point :int, y_point :int) -> str:
     image = screenshot(x_reg, y_reg, FIRST_REGION-1)
 
     # Перевод изображения в оттенки серого
-    gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # Перебор сохраненных элементов, был ли ранее такой сохранен
     for name in os.listdir(PATH):
         template = cv2.imread(f'{PATH}/{name}', 0)
-        # Операция сопоставления
-        res = cv2.matchTemplate(gray_img, template, method)
-        # Ищем координаты совпадающего местоположения в массиве numpy
-        loc = np.where(res >= threshold)
-        if any(loc[-1]):
-            return name
+        # Проверяем, что шаблон не полностью белый
+        if np.mean(template) < 250:
+            # Операция сопоставления
+            res = cv2.matchTemplate(grayimg, template, method)
+            # Ищем координаты совпадающего местоположения в массиве numpy
+            loc = np.where(res >= threshold)
+            if any(loc[-1]):
+                return name
 
     # Если выбранный элемент ранее не был сохранен, сохраним его
     # Обрезаем квадрат
