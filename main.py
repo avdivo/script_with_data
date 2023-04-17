@@ -71,7 +71,7 @@ frame2 = LabelFrame(root, width=385, height=170, text='Редактор кома
 frame2.place(x=INDENT, y=100)
 
 # Изображение элемента
-element_image = PhotoImage(file="elements/elem_230228_163525.png")
+# element_image = PhotoImage(file="elements/elem_230228_163525.png")
 
 # Редактор скрипта ----------------------------
 frame3 = LabelFrame(root, width=385, height=130, text='Редактор скрипта', foreground='#083863')
