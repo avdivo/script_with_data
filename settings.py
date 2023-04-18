@@ -23,6 +23,7 @@ class Settings(object):
         self.project_name = ''  # Имя проекта
         self.path_to_script = self.path_to_project + 'script/'  # Путь к файлу скрипта
         self.path_to_data = self.path_to_script + 'data/'  # Путь к файлам - источникам данных
+        self.dala_file = self.path_to_data + ''  # Файл с данными
         self.path_to_elements = self.path_to_script + 'elements_img/'  # Путь к папке с изображениями элементов
 
         # Размер окна
