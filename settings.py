@@ -19,12 +19,16 @@ class Settings(object):
 
     def __init__(self):
         # Настройки для программы
+        self.data_folder = 'data'  # Папка с данными
+        self.element_folder = 'elements_img'  # Папка с изображениями элементов
         self.path_to_project = ''  # Путь к файлу проекта
         self.project_name = ''  # Имя проекта
-        self.path_to_script = self.path_to_project + 'script/'  # Путь к файлу скрипта
-        self.path_to_data = self.path_to_script + 'data/'  # Путь к файлам - источникам данных
-        self.dala_file = self.path_to_data + ''  # Файл с данными
-        self.path_to_elements = self.path_to_script + 'elements_img/'  # Путь к папке с изображениями элементов
+        self.path_to_script = ''  # Путь к файлу скрипта
+        self.path_to_data = ''  # Путь к файлам - источникам данных
+        self.data_file = ''  # Файл с данными
+        self.path_to_elements = ''  # Путь к папке с изображениями элементов
+
+        self.update_settings()
 
         # Размер окна
         self.win_w = 800
@@ -40,6 +44,13 @@ class Settings(object):
         self.s_error_no_element = (eres('stop:'), "Реакция скрипта на исключение 'Нет элемента'")
         self.s_error_no_data = (eres('ignore:'), "Реакция скрипта на исключение 'Нет данных'")
         self.s_description = ('', 'Описание скрипта')
+
+    def update_settings(self):
+        """ Обновляет настройки """
+        self.path_to_script = self.path_to_project + self.project_name  # Путь к файлу скрипта
+        self.path_to_data = self.path_to_script + self.data_folder  # Путь к файлам - источникам данных
+        self.data_file = self.path_to_data + ''  # Файл с данными
+        self.path_to_elements = self.path_to_script + self.element_folder  # Путь к папке с изображениями элементов
 
     def get_dict_settings(self) -> dict:
         """ Возвращает все настройки в словаре """

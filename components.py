@@ -9,7 +9,7 @@
 import os
 from configparser import ConfigParser
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkinter import filedialog as fd
 from tktooltip import ToolTip
 from collections import deque
@@ -561,7 +561,7 @@ class DataSource:
 
 
 class SaveLoad:
-    """ Сохранение и чтение скрипта """
+    """ Сохранение и чтение проекета """
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
 
@@ -570,17 +570,34 @@ class SaveLoad:
 
          Чтение файла конфигурации, если его нет, то создание нового.
          В фале хранится путь к последнему открытому проекту и путь к источнику данных.
-         Если папки с проектом не существует или файл конфигурации новый, то и проект создается новый.
-         Название проекта и расположение запрашивается у пользователя.
+         Если найдены данные о проекте, то проект открывается.
+         Если папки с проектом не существует или файл конфигурации новый,
+         то и проект создается новый с именем по умолчанию.
          """
         self.new_project_name = ''
         self.new_path_to_project = ''
+        self.new_project_cancel = True  # Отмена создания нового проекта
+        self.history = [1]  # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
 
         # Проверка файла конфигурации
-        if not os.path.exists('config.ini'):
-            # Если файла конфигурации нет, то создаем новый
-            # Для этого открываем диалоговое окно для создания нового проекта
-            self.make_new_project()
+        if os.path.exists('config.ini'):
+            # Если файл конфигурации есть, то читаем его
+            config = ConfigParser()
+            config.read('config.ini')
+            self.new_project_name = config['DEFAULT']['project_name']
+            self.new_path_to_project = config['DEFAULT']['path_to_project']
+            self.path_to_data_source = config['DEFAULT']['data_file']
+
+        if self.new_project_name == '':
+            # Если данные о проекте не найдены, то создаем новый проект и переписываем файл конфигурации.
+            # Создаем имя проекта по умолчанию
+            name = 'script_'
+            i = 1
+            while os.path.exists(os.path.join(name + str(i))):
+                i += 1
+            self.new_project_name = name + str(i)
+            self.new_path_to_project = os.getcwd()
+            self.create_project()
 
             config = ConfigParser()
             config['DEFAULT'] = {'project_name': self.new_project_name,
@@ -589,132 +606,78 @@ class SaveLoad:
 
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
-        else:
-            # Если файл конфигурации есть, то читаем его
-            config = ConfigParser()
-            config.read('config.ini')
-            self.path_to_script = config['DEFAULT']['path_to_script']
-            self.path_to_data_source = config['DEFAULT']['path_to_data_source']
 
+        # Новые настройки проекта
+        settings.path_to_project = self.new_path_to_project
+        settings.project_name = self.new_project_name
+        settings.update_settings()
 
-    def make_new_project(self):
-        """ Создание нового проекта
+    def create_project(self):
+        """ Создание проекта """
+        name = self.new_project_name
+        path = self.new_path_to_project
+        os.makedirs(os.path.join(path, name))
+        os.makedirs(os.path.join(path, name, 'data'))
+        os.makedirs(os.path.join(path, name, 'elements_img'))
 
-        Проект - это папка с 2 вложенными папками: data  и elements_img.
-        Для этого выводим диалоговое окно  с полем для ввода названия проекта и кнопкой
-        для выбора папки, где сохранится проект. Под этими элементами выводится строка с полным путем к
-        проекту и его именем. При изменении названия проекта или пути к нему, меняется и строка.
-        По умолчанию путь к проекту - текущая директория. Если такой проект уже существует в этой папке
-        в строке выводится ошибка и предложение выбрать новое имя.
-        Ниже кнопка для создания проекта. Если окно закрыть, то проект создается с именем по умолчанию.
-        Имя по умолчанию - текущая папка, имя проекта script_n, где n - порядковый номер проекта,
-        если он не существует в папке, если существует номер увеличивается на 1.
-        """
-        def create_project():
-            """ Создание проекта """
-            if not self.new_project_name:
-                return
-            name = self.new_project_name
-            path = self.new_path_to_project
-            os.makedirs(os.path.join(path, name))
-            os.makedirs(os.path.join(path, name, 'data'))
-            os.makedirs(os.path.join(path, name, 'elements_img'))
-            window.destroy()
+    def menu_new_project(self):
+        """ Пункт меню Создание нового проекта """
+        if self.history:
+            # Если история не пустая, то предложить сохранить проект
+            if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
+                self.save_project()
+        self.dialog_new_project()
 
-        def choose_path(name, label):
-            """ Выбор пути к проекту """
-            path = fd.askdirectory()
-            if path:
-                path_mem = self.new_path_to_project
-                self.new_path_to_project = path
-                if not check_name(name, label):
-                    self.new_path_to_project = path_mem
+    def menu_open_project(self):
+        """ Пункт меню Открыть проект """
+        if self.history:
+            # Если история не пустая, то предложить сохранить проект
+            if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
+                self.save_project()
 
-        def check_name(name, label):
-            """ Проверка уникальности названия проекта """
-            name = name.get()
-            if name:
-                if os.path.exists(os.path.join(self.new_path_to_project, name)):
-                    label['text'] = 'Такой проект уже существует.'
-                    self.new_path_to_project = ''
-                    return False
-                else:
-                    label['text'] = os.path.join(self.new_path_to_project, name)
-                    self.new_project_name = name
-                    return True
-            else:
-                label['text'] = self.new_path_to_project
-                return True
+        # Открываем диалоговое окно для выбора проекта
+        path = fd.askdirectory(initialdir=self.new_path_to_project, title="Открыть проект")
+        if not path:
+            return
 
-        def on_closing():
-            """ Закрытие окна
+        # Последней в пути папка проекта, отделяем ее от пути
+        self.new_project_name = os.path.basename(path)  # получаем имя проекта
+        self.new_path_to_project = os.path.dirname(path)  # получаем путь к проекту
+        self.open_project()
 
-            При закрытии окна, если переменная имени проекта в настройках не пустая,
-            то просто закрываем окно. Если пустая (что значит что программа открывается)
-            то создаем проект с именем по умолчанию.
-            """
-            if not settings.project_name:
-                # Создаем имя проекта по умолчанию
-                name = 'script_'
-                i = 1
-                while os.path.exists(os.path.join(name + str(i))):
-                    i += 1
-                self.new_project_name = name + str(i)
-                self.new_path_to_project = os.getcwd()
-                print (self.new_path_to_project)
-                create_project()
-            else:
-                window.destroy()
+    def menu_save_project(self):
+        """ Пункт меню Сохранить проект """
+        self.save_project()
 
-        # Создаем окно
-        window = Tk()
-        window.title('Создание нового проекта')
-        # Пазместить окнов центре экрана
-        window.geometry('400x215')
-        window.update_idletasks()
-        x = (window.winfo_screenwidth() - 400) / 2
-        y = (window.winfo_screenheight() - 215) / 2
-        window.geometry("+%d+%d" % (x, y))
-        window.resizable(False, False)
+    def menu_save_as_project(self):
+        """ Пункт меню Сохранить проект как """
+        pass
 
-        # Создаем элементы окна
-        label_name = Label(window, text='Название проекта')
-        label_name.place(x=10, y=10)
-        entry_name = Entry(window)
-        entry_name.place(x=10, y=30, width=380)
-        button_path = Button(window, text='Выбрать папку', command=lambda: choose_path(entry_name, label_full_path))
-        button_path.place(x=10, y=110)
-        label_full_path = Label(window, text='')
-        label_full_path.place(x=10, y=140)
-        button_create = Button(window, text='Создать проект', command=create_project)
-        button_create.place(x=250, y=170)
+    def save_project(self):
+        """ Сохранение проекта """
+        pass
 
-        # Подписываемся на события
-        entry_name.bind('<KeyRelease>', lambda event: check_name(entry_name, label_full_path))
-        window.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
-        # Запускаем окно
-        window.mainloop()
+    def open_project(self):
+        """ Загрузка проекта """
 
+        # Папка проекта должна содержать 2 вложенные папки: data и elements_img и файл скрипта
+        # с таким же именем, как и папка проекта, но с расширением .json, проверим это
+        this_project = True
+        if not os.path.exists(os.path.join(self.new_path_to_project, self.new_project_name, settings.data_folder)):
+            this_project = False
+        if not os.path.exists(os.path.join(
+                self.new_path_to_project, self.new_project_name, settings.elements_img_folder)):
+            this_project = False
+        if not os.path.exists(os.path.join(
+                self.new_path_to_project, self.new_project_name + f'{self.new_project_name}.json')):
+            this_project = False
+        if not this_project:
+            messagebox.showerror('Ошибка', 'Выбранная папка не является проектом')
+            return False
 
-
-
-    def create_config(self):
-        """ Создание файла конфигурации """
-        # Создаем папку со скриптом
-        self.path_to_script = fd.askdirectory(title='Выберите папку для сохранения скрипта')
-        if not self.path_to_script:
-            # Если пользователь не выбрал папку, то создаем папку со скриптом в текущей директории
-            self.path_to_script = os.getcwd()
-
-
-
-    @classmethod
-    def load_script(cls):
-        # открываем диалоговое окно для выбора файла
-        file_path = fd.askopenfilename(initialdir=settings.path_to_script, title="Открыть скрипт",
-                                               filetypes=(("image", "*"), ))
 
         try:
+            file_path = os.path.join(self.new_path_to_project, self.new_project_name + f'{self.new_project_name}.json')
             with open(file_path, "r") as f:
                 commands_dict = json.load(f)
             script = json.loads(commands_dict['script'])
@@ -745,13 +708,103 @@ class SaveLoad:
 
             # Обновляем список, предварительно установив указатель на начало
             data.pointer_command = -1
-            cls.display_commands.out_commands()
+            self.display_commands.out_commands()
 
             settings.set_settings_from_dict(sett)  # Устанавливаем настройки
 
+            # Запоминаем путь к проекту и его имя в настройках
+            settings.path_to_project = self.new_path_to_project
+            settings.project_name = self.new_project_name
+            settings.update_settings()
+
+            self.editor.to_report('Проект открыт.')
         except:
-            cls.editor.to_report('Ошибка чтения скрипта.')
+            self.editor.to_report('Ошибка чтения скрипта.')
             raise
+
+    def dialog_new_project(self):
+        """ Диалоговое окно для создания нового проекта
+
+        Проект - это папка с 2 вложенными папками: data  и elements_img.
+        Для этого выводим диалоговое окно  с полем для ввода названия проекта и кнопкой
+        для выбора папки, где сохранится проект. Под этими элементами выводится строка с полным путем к
+        проекту и его именем. При изменении названия проекта или пути к нему, меняется и строка.
+        По умолчанию путь к проекту - текущая директория. Если такой проект уже существует в этой папке
+        в строке выводится ошибка и предложение выбрать новое имя.
+        Ниже кнопка для создания проекта. Если окно закрыть, то путь и имя очистятся.
+        """
+        self.new_project_cancel = True  # Отмена создания нового проекта
+
+        def choose_path(name, label):
+            """ Выбор пути к проекту """
+            path = fd.askdirectory()
+            if path:
+                path_mem = self.new_path_to_project
+                self.new_path_to_project = path
+                if not check_name(name, label):
+                    self.new_path_to_project = path_mem
+
+        def check_name(name, label):
+            """ Проверка уникальности названия проекта """
+            name = name.get()
+            if name:
+                if os.path.exists(os.path.join(self.new_path_to_project, name)):
+                    label['text'] = 'Такой проект уже существует.'
+                    self.new_path_to_project = ''
+                    return False
+                else:
+                    label['text'] = os.path.join(self.new_path_to_project, name)
+                    self.new_project_name = name
+                    return True
+            else:
+                label['text'] = self.new_path_to_project
+                return True
+
+        def create_project():
+            """ Создание проекта """
+            self.new_project_cancel = False  # Проект можно создавать
+            window.destroy()
+
+        def on_closing():
+            """ Закрытие окна
+
+            При закрытии окна, если переменная отмены создания проекта
+            говорит об отмене - очищаем путь и имя.
+            """
+            if self.new_project_cancel:
+                self.new_path_to_project = ''
+                self.new_project_name = ''
+            window.destroy()
+
+        # Создаем окно
+        window = Tk()
+        window.title('Создание нового проекта')
+        # Пазместить окнов центре экрана
+        window.geometry('400x215')
+        window.update_idletasks()
+        x = (window.winfo_screenwidth() - 400) / 2
+        y = (window.winfo_screenheight() - 215) / 2
+        window.geometry("+%d+%d" % (x, y))
+        window.resizable(False, False)
+
+        # Создаем элементы окна
+        label_name = Label(window, text='Название проекта')
+        label_name.place(x=10, y=10)
+        entry_name = Entry(window)
+        entry_name.place(x=10, y=30, width=380)
+        button_path = Button(window, text='Выбрать папку', command=lambda: choose_path(entry_name, label_full_path))
+        button_path.place(x=10, y=110)
+        label_full_path = Label(window, text='')
+        label_full_path.place(x=10, y=140)
+        button_create = Button(window, text='Создать проект', command=create_project)
+        button_create.place(x=250, y=170)
+
+        # Подписываемся на события
+        entry_name.bind('<KeyRelease>', lambda event: check_name(entry_name, label_full_path))
+        window.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
+        # Запускаем окно
+        window.mainloop()
+
 
 
     @classmethod

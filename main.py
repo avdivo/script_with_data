@@ -45,8 +45,7 @@ def on_closing():
     #     os.unlink(settings.path_to_elements + filename)
     root.destroy()
 
-# Работа с проектами
-s = SaveLoad()
+load_save = SaveLoad()
 
 
 # Интерфейс
@@ -148,18 +147,20 @@ data.func_execute_event = player.run_command  # Назначаем функци�
 data_source = components.DataSource(frame1)
 data_source.editor = editor  # Передаем ссылку на редактор
 
-SaveLoad.editor = editor  # Передаем ссылку на редактор
-SaveLoad.display_commands = display_commands  # Передаем ссылку на список команд
+
+load_save.editor = editor  # Передаем ссылку на редактор
+load_save.display_commands = display_commands  # Передаем ссылку на список команд
+
 
 # Меню
 mainmenu = Menu(root)
 root.config(menu=mainmenu)
 
 filemenu = Menu(mainmenu, tearoff=0)
-filemenu.add_command(label="Новый скрипт")
-filemenu.add_command(label="Открыть скрипт", command=SaveLoad.load_script)
+filemenu.add_command(label="Новый проект", command=load_save.menu_new_project)
+filemenu.add_command(label="Открыть проект", command=load_save.menu_open_project)
 filemenu.add_command(label="Сохранить скрипт")
-filemenu.add_command(label="Сохранить скрипт как...", command=SaveLoad.save_script)
+filemenu.add_command(label="Сохранить скрипт как...", command=load_save.save_script)
 filemenu.add_separator()
 filemenu.add_command(label="Источник данных", command=data_source.load_file)
 filemenu.add_separator()
