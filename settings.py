@@ -87,13 +87,15 @@ class Settings(object):
 
         # Размер окна
         win_w = 700
-        win_h = 300
+        win_h = 325
         self.top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
         self.top.resizable(width=False, height=False)
 
         # Вывод настроек в окно, запоминаем возвращаемые объекты, чтоб собрать настройки после подтверждения
         self.obj = dict()
         start = 20
+        Label(self.top, text=f'Проект: {os.path.join(self.path_to_project, self.project_name)}').place(x=20, y=start)  # Название настройки
+        start += 25
         for var, val in self.__dict__.items():
             if var[:2] != 's_':
                 continue  # Обработка только настроек

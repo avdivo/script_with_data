@@ -23,6 +23,7 @@
 
 """
 import os
+from configparser import ConfigParser
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
@@ -43,9 +44,15 @@ def on_closing():
     # for filename in os.listdir(settings.path_to_elements):
     #     print(filename, '- удален')
     #     os.unlink(settings.path_to_elements + filename)
+    config = ConfigParser()
+    config['DEFAULT'] = {'project_name': settings.project_name,
+                         'path_to_project': settings.path_to_project,
+                         'data_file': settings.data_file}
+
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
     root.destroy()
 
-load_save = SaveLoad()
 
 
 # Интерфейс
@@ -147,10 +154,12 @@ data.func_execute_event = player.run_command  # Назначаем функци�
 data_source = components.DataSource(frame1)
 data_source.editor = editor  # Передаем ссылку на редактор
 
+root.update()
 
-load_save.editor = editor  # Передаем ссылку на редактор
-load_save.display_commands = display_commands  # Передаем ссылку на список команд
+SaveLoad.editor = editor  # Передаем ссылку на редактор
+SaveLoad.display_commands = display_commands  # Передаем ссылку на список команд
 
+load_save = SaveLoad()
 
 # Меню
 mainmenu = Menu(root)

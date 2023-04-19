@@ -20,7 +20,7 @@ from random import choice, randint
 import json
 
 from commands import CommandClasses
-from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError, ElementNotFound
+from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError, ElementNotFound, LoadError
 from data_types import llist
 from settings import settings
 from tracker_and_player import Player
@@ -179,7 +179,7 @@ class DataForWorker:
 
     def run_command(self):
         error = None
-        """ Выполнение очередной команды и переходна следующую"""
+        """ Выполнение очередной команды и переход на следующую"""
         try:
             self.obj_command[self.queue_command[self.pointer_command]].run_command()
         except IndexError:
@@ -588,8 +588,17 @@ class SaveLoad:
             self.new_path_to_project = config['DEFAULT']['path_to_project']
             self.path_to_data_source = config['DEFAULT']['data_file']
 
+        if self.new_project_name:
+            # Если данные о проекте есть, то открываем проект
+            try:
+                self.open_project()
+            except LoadError as err:
+                self.new_project_name = ''
+
         if self.new_project_name == '':
-            # Если данные о проекте не найдены, то создаем новый проект и переписываем файл конфигурации.
+            # Если данные о проекте не найдены, проекта нет или он не открылся,
+            # то создаем новый проект и переписываем файл конфигурации.
+
             # Создаем имя проекта по умолчанию
             name = 'script_'
             i = 1
@@ -607,6 +616,7 @@ class SaveLoad:
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
 
+        print(os.path.join(self.new_path_to_project, self.new_project_name))
         # Новые настройки проекта
         settings.path_to_project = self.new_path_to_project
         settings.project_name = self.new_project_name
@@ -619,6 +629,8 @@ class SaveLoad:
         os.makedirs(os.path.join(path, name))
         os.makedirs(os.path.join(path, name, 'data'))
         os.makedirs(os.path.join(path, name, 'elements_img'))
+        with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
+            json.dump({"script": "[]", "settings": "{}"}, f)
 
     def menu_new_project(self):
         """ Пункт меню Создание нового проекта """
@@ -672,11 +684,11 @@ class SaveLoad:
                 self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')):
             this_project = False
         if not this_project:
-            messagebox.showerror('Ошибка', 'Выбранная папка не является проектом')
-            return False
+            raise LoadError('Выбранная папка не является проектом')
 
         try:
             file_path = os.path.join(self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')
+            # Загружаем данные из файла в переменную
             with open(file_path, "r") as f:
                 commands_dict = json.load(f)
             script = json.loads(commands_dict['script'])
@@ -716,10 +728,9 @@ class SaveLoad:
             settings.project_name = self.new_project_name
             settings.update_settings()
 
-            self.editor.to_report('Проект открыт.')
+            # self.editor.to_report('Проект открыт.')
         except:
-            self.editor.to_report('Ошибка чтения скрипта.')
-            raise
+            raise LoadError('Ошибка чтения скрипта.')
 
     def dialog_new_project(self):
         """ Диалоговое окно для создания нового проекта
@@ -778,7 +789,7 @@ class SaveLoad:
         # Создаем окно
         window = Tk()
         window.title('Создание нового проекта')
-        # Пазместить окнов центре экрана
+        # Разместить окно в центре экрана
         window.geometry('400x215')
         window.update_idletasks()
         x = (window.winfo_screenwidth() - 400) / 2

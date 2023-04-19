@@ -27,3 +27,9 @@ class NoCommandOrStop(Error):
 class LabelAlreadyExists(Error):
     """ При добавлении имени метки или блока, если такое имя уже существует """
     pass
+
+
+class LoadError(Error):
+    """ Ошибки при чтении и преобразовании данных """
+    pass
+
