@@ -666,18 +666,17 @@ class SaveLoad:
         if not os.path.exists(os.path.join(self.new_path_to_project, self.new_project_name, settings.data_folder)):
             this_project = False
         if not os.path.exists(os.path.join(
-                self.new_path_to_project, self.new_project_name, settings.elements_img_folder)):
+                self.new_path_to_project, self.new_project_name, settings.elements_folder)):
             this_project = False
         if not os.path.exists(os.path.join(
-                self.new_path_to_project, self.new_project_name + f'{self.new_project_name}.json')):
+                self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')):
             this_project = False
         if not this_project:
             messagebox.showerror('Ошибка', 'Выбранная папка не является проектом')
             return False
 
-
         try:
-            file_path = os.path.join(self.new_path_to_project, self.new_project_name + f'{self.new_project_name}.json')
+            file_path = os.path.join(self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')
             with open(file_path, "r") as f:
                 commands_dict = json.load(f)
             script = json.loads(commands_dict['script'])

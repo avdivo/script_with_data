@@ -4,6 +4,7 @@
 # Позволяет получать и менять отдельные настройки при прямом обращении к атрибуту объекта,
 # возвращать все настройки в словаре и устанавливать их из словаря.
 
+import os
 import tkinter as tk
 
 from data_input import *
@@ -20,7 +21,7 @@ class Settings(object):
     def __init__(self):
         # Настройки для программы
         self.data_folder = 'data'  # Папка с данными
-        self.element_folder = 'elements_img'  # Папка с изображениями элементов
+        self.elements_folder = 'elements_img'  # Папка с изображениями элементов
         self.path_to_project = ''  # Путь к файлу проекта
         self.project_name = ''  # Имя проекта
         self.path_to_script = ''  # Путь к файлу скрипта
@@ -47,10 +48,9 @@ class Settings(object):
 
     def update_settings(self):
         """ Обновляет настройки """
-        self.path_to_script = self.path_to_project + self.project_name  # Путь к файлу скрипта
-        self.path_to_data = self.path_to_script + self.data_folder  # Путь к файлам - источникам данных
-        self.data_file = self.path_to_data + ''  # Файл с данными
-        self.path_to_elements = self.path_to_script + self.element_folder  # Путь к папке с изображениями элементов
+        self.path_to_script = os.path.join(self.path_to_project, self.project_name)  # Путь к файлу скрипта
+        self.path_to_data = os.path.join(self.path_to_script, self.data_folder)  # Путь к файлам - источникам данных
+        self.path_to_elements = os.path.join(self.path_to_script, self.elements_folder)  # Путь к папке с изображениями элементов
 
     def get_dict_settings(self) -> dict:
         """ Возвращает все настройки в словаре """

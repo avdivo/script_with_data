@@ -189,7 +189,10 @@ class MouseClickLeft(MouseClickRight):
         self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
 
         # Изображение элемента
-        img = settings.path_to_elements + self.image if self.image else ''
+        img = os.path.join(settings.path_to_elements, self.image) if self.image else ''
+        # Если изображение есть, то загружаем его, если нет, то подставляем заглушку
+        if not os.path.exists(img):
+            img = 'icon/no_element.png'
         self.element_image = PhotoImage(file=img)
         self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96)
         self.widget_button.place(x=273, y=5)
@@ -319,11 +322,9 @@ class WriteDataFromField(CommandClasses):
             self.values = self.data.get_fields()  # Получаем имена всех полей
         except DataError as err:
             # Ошибка, если полей нет
-            raise
+            self.values = ['Полей нет']
 
         self.value = args[0] if args[0] else self.values[0]  # Устанавливаем поле которое будет выбрано
-        if self.value and self.value not in self.values:
-            raise DataError(f'Нет поля "{self.value}" в источнике данных')
         self.value_var = StringVar()
 
     def __str__(self):

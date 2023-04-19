@@ -28,7 +28,7 @@ FIRST_REGION = 96  # Сторона квадрата, в котором ищут
 REGION = 48  # Сторона квадрата с сохраняемым элементом
 
 BASENAME = "elem"  # Префикс для имени файла при сохранении изображения элемента
-PATH = input_file = os.path.join(sys.path[0], settings.path_to_elements)  # Путь для сохранения изображений
+PATH = input_file = settings.path_to_elements  # Путь для сохранения изображений
 
 REGION_FOR_SEARCH = 96  # Сторона квадрата в котором производится первоначальный поиск элемента
 
@@ -146,9 +146,8 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         return (x_point, y_point)
 
     # Получение шаблона
-    try:
-        template = cv2.imread(f'{PATH}/{name_template}', 0)
-    except:
+    template = cv2.imread(f'{PATH}/{name_template}', 0)
+    if not template:
         raise TemplateNotFoundError('Шаблон с таким именем не найден')
     # Сохранить ширину в переменной w и высоту в переменной h шаблона
     w, h = template.shape
