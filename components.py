@@ -561,7 +561,7 @@ class SaveLoad:
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
 
-    def __init__(self):
+    def __init__(self, root):
         """ Подготовка программы к запуску
 
          Чтение файла конфигурации, если его нет, то создание нового.
@@ -574,6 +574,7 @@ class SaveLoad:
         self.new_path_to_project = ''
         self.new_project_cancel = True  # Отмена создания нового проекта
         self.history = [1]  # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
+        self.root = root  # Ссылка на главное окно
 
         # Проверка файла конфигурации
         if os.path.exists('config.ini'):
@@ -604,20 +605,6 @@ class SaveLoad:
             self.new_path_to_project = os.getcwd()
             self.create_project()
 
-            config = ConfigParser()
-            config['DEFAULT'] = {'project_name': self.new_project_name,
-                                 'path_to_project': self.new_path_to_project,
-                                 'data_file': ''}
-
-            with open('config.ini', 'w') as configfile:
-                config.write(configfile)
-
-        print(os.path.join(self.new_path_to_project, self.new_project_name))
-        # Новые настройки проекта
-        settings.path_to_project = self.new_path_to_project
-        settings.project_name = self.new_project_name
-        settings.update_settings()
-
     def create_project(self):
         """ Создание проекта """
         name = self.new_project_name
@@ -628,13 +615,31 @@ class SaveLoad:
         with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
             json.dump({"script": "[]", "settings": "{}"}, f)
 
+        logger.warning(f'Создан новый проект {self.new_project_name}.')
+
+        # Запись новых настроек в файл конфигурации
+        config = ConfigParser()
+        config['DEFAULT'] = {'project_name': self.new_project_name,
+                             'path_to_project': self.new_path_to_project,
+                             'data_file': ''}
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+
+        # Сохраняем новые настройки проекта
+        settings.path_to_project = self.new_path_to_project
+        settings.project_name = self.new_project_name
+        settings.update_settings()
+
     def menu_new_project(self):
         """ Пункт меню Создание нового проекта """
         if self.history:
             # Если история не пустая, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
                 self.save_project()
-        self.dialog_new_project()
+
+        self.dialog_new_project()  # Открываем диалоговое окно для выбора пути и имени проекта
+        if self.new_project_name:
+            self.create_project()  # Создаем проект
 
     def menu_open_project(self):
         """ Пункт меню Открыть проект """
@@ -663,8 +668,11 @@ class SaveLoad:
 
     def menu_save_as_project(self):
         """ Пункт меню Сохранить проект как """
-        file_path = fd.asksaveasfilename(initialdir=settings.path_to_script, title="Сохранить скрипт",
-                                         filetypes=(("Скрипт", "script"),))
+        # Открываем диалоговое окно для выбора проекта
+        path = fd.askdirectory(initialdir=self.new_path_to_project, title="Открыть проект")
+        if not path:
+            return
+
 
     def save_project(self):
         """ Сохранение проекта """
@@ -779,8 +787,9 @@ class SaveLoad:
 
         def create_project():
             """ Создание проекта """
-            self.new_project_cancel = False  # Проект можно создавать
-            window.destroy()
+            if self.new_project_name:
+                self.new_project_cancel = False  # Проект можно создавать
+                on_closing()
 
         def on_closing():
             """ Закрытие окна
@@ -794,10 +803,11 @@ class SaveLoad:
             window.destroy()
 
         # Создаем окно
-        window = Tk()
+        window = Toplevel()
         window.title('Создание нового проекта')
         # Разместить окно в центре экрана
         window.geometry('400x215')
+        window.transient(self.root)  # Поверх окна
         window.update_idletasks()
         x = (window.winfo_screenwidth() - 400) / 2
         y = (window.winfo_screenheight() - 215) / 2
@@ -820,7 +830,9 @@ class SaveLoad:
         entry_name.bind('<KeyRelease>', lambda event: check_name(entry_name, label_full_path))
         window.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
         # Запускаем окно
-        window.mainloop()
+        window.grab_set()
+        window.focus_set()
+        window.wait_window()
 
 
 if __name__ == '__main__':

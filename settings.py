@@ -110,7 +110,6 @@ class Settings(object):
 
         Button(self.top, command=self.save, text='Сохранить').place(x=585, y=start+15)
 
-        self.top.transient(root)
         self.top.grab_set()
         self.top.focus_set()
         self.top.wait_window()
