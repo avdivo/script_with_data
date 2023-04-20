@@ -27,7 +27,7 @@ from configparser import ConfigParser
 from tkinter import *
 from tkinter import ttk
 from tktooltip import ToolTip
-import pandas as pd
+import logging
 
 import components
 from settings import settings
@@ -35,6 +35,7 @@ from commands import CommandClasses
 from components import Editor, DisplayCommands, DataSource, SaveLoad, data
 from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop, DataError
+from messages import Messages
 from data_types import llist
 
 # Функции
@@ -90,6 +91,7 @@ frame3.place(x=INDENT, y=285)
 frame4 = LabelFrame(root, width=385, height=135, text='Информация', foreground='#083863')
 frame4.place(x=INDENT, y=430)
 
+
 # История ---------------------------------------
 icon10 = PhotoImage(file="icon/undo.png")
 icon11 = PhotoImage(file="icon/return.png")
@@ -116,10 +118,11 @@ def run_script():
             display_commands.tree.selection_set(children[data.pointer_command + 1])  # Выделяем строку
             data.run_command()  # Выполнить следующую в очереди команду
         except NoCommandOrStop as err:
-            editor.to_report(err)
+            logger.error(err)
             data.script_started = False
         except DataError as err:
-            editor.to_report(err)
+            logger.error(err)
+            pass
         except:
             data.script_started = False
             raise
@@ -127,10 +130,22 @@ def run_script():
 
     return
 
-args = ['']
+
+# создание логгера и обработчика
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(stream=Messages(frame4))
+
+# добавление обработчика в логгер
+handler.setFormatter(logging.Formatter('%(levelname)s:%(message)s'))
+# '%(asctime)s %(name)s %(levelname)s: %(message)s'
+logger.addHandler(handler)
+
+# Уровни логирования: debug, info, warning, error, critical
+logger.error('message')
+
 CommandClasses.root = frame2
 CommandClasses.data = data
-editor = Editor(frame2, frame4)  # Первый фрейм для редактора, второй для сообщений
+editor = Editor(frame2)  # Первый фрейм для редактора
 display_commands = DisplayCommands(root, frame3)  # Передаем ссылку на окно программы
 
 
@@ -179,8 +194,6 @@ mainmenu.add_cascade(label="Файл", menu=filemenu)
 
 mainmenu.add_command(label="Настройки скрипта",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
-
-
 
 
 

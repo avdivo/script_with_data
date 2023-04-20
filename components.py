@@ -18,12 +18,18 @@ import pandas as pd
 import string
 from random import choice, randint
 import json
+import logging
 
 from commands import CommandClasses
 from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError, ElementNotFound, LoadError
 from data_types import llist
 from settings import settings
 from tracker_and_player import Player
+
+
+# создание логгера и обработчика
+logger = logging.getLogger(__name__)
+
 
 class CountingDict(dict):
     """ Словарь умеющий считать количество нужных объектов при создании, изменении, удалении
@@ -237,11 +243,11 @@ class Editor:
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
     data = data  # Ссылка на класс с данными о скрипте
 
-    def __init__(self, root, root_mes):
+    def __init__(self, root):
         """ При инициализации принимает ссылку на виджет, куда выводить элементы интерфейса """
         self.root = root  # Фрейм редактора
-        self.root_mes = root_mes  # Фрейм сообщений
         self.current_cmd = None  # Объект команды, с которой работает редактор
+        self.logger = logging.getLogger(__name__)
 
         # Формируем словарь: {название команды: класс}, для этого обращаемся к методу класса родителя команд
         # который возвращает классы потомков. В них читаем имена команд и данные о сортировке команд
@@ -255,11 +261,6 @@ class Editor:
                      textvariable=self.commands_var, state="readonly")
         self.widget.place(x=5, y=5)
         self.widget.bind("<<ComboboxSelected>>", self.select_command)
-
-        # Информация
-        self.message = StringVar()
-        self.widget_mes = Message(root_mes, width=370, anchor='w', textvariable=self.message)
-        self.widget_mes.place(x=0, y=0)
 
         self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
 
@@ -287,13 +288,13 @@ class Editor:
             # Рисуем его виджеты
             self.current_cmd.paint_widgets()
             # Выводим справку о команде
-            self.to_report(self.current_cmd.command_description)
+            self.logger.warning(self.current_cmd.command_description)
         except DataError as err:
             # Ошибки при создании команды
             self.current_cmd = None  # Объект команды, с которой работает редактор
             self.commands_var.set(self.commands_name[0])  # Задаем вывод первой команды
             self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
-            self.to_report(err)
+            self.logger.critical(err)
 
 
     def command_to_editor(self, id_command):
@@ -314,7 +315,7 @@ class Editor:
         # Рисуем его виджеты
         self.current_cmd.paint_widgets()
         # Выводим справку о команде
-        self.to_report(self.current_cmd.command_description)
+        logger.warning(self.current_cmd.command_description)
         # Установка в выпадающем списке нужной команды
         self.commands_var.set(self.current_cmd.command_name)
         self.widget.selection_clear()  # Убираем выделение с выпадающего списка
@@ -335,10 +336,6 @@ class Editor:
         self.current_cmd.save()
         self.data.change_command(self.current_cmd)  # Изменяем команду
         self.display_commands.out_commands()  # Обновляем список
-
-    def to_report(self, message):
-        """ Вывод сообщения в поле сообщений """
-        self.message.set(message)
 
 
 class DisplayCommands:
@@ -445,8 +442,8 @@ class DisplayCommands:
         if not self.list_copy:
             return
         numbers = ' ,'.join(self.numbers_from_id(self.list_copy))  # Номера копируемых строк
-        self.editor.to_report(f'Скопированы строки {numbers}. \nИх можно вставить кнопкой Вставить. '
-                              f'\nСтроки будут вставлены после выделенной строки.')
+        # message.to_report(f'Скопированы строки {numbers}. \nИх можно вставить кнопкой Вставить. '
+        #                       f'\nСтроки будут вставлены после выделенной строки.', 'info')
         self.operation = 'copy'
 
     def cut(self):
@@ -455,8 +452,9 @@ class DisplayCommands:
         if not self.list_copy:
             return
         numbers = ' ,'.join(self.numbers_from_id(self.list_copy))  # Номера копируемых строк
-        self.editor.to_report(f'Перенос строк {numbers}. \nИх можно вставить кнопкой Вставить. '
-                              f'\nСтроки будут вставлены после выделенной строки. \nСкопированные строки будут удалены')
+        # message.to_report(f'Перенос строк {numbers}. \nИх можно вставить кнопкой Вставить. '
+        #                       f'\nСтроки будут вставлены после выделенной строки. '
+        #                   f'\nСкопированные строки будут удалены', 'info')
         self.operation = 'cut'
 
     def paste(self):
@@ -510,12 +508,12 @@ class DisplayCommands:
 
             self.out_commands()  # Обновляем список
             sleep(1)
-            self.editor.to_report(mess)
+            # message.to_report(mess, 'info')
 
         else:
             # Операция не назначена или отменена
-            self.editor.to_report('Операция отменена.')
-
+            # message.to_report('Операция отменена.', 'info')
+            pass
     def delete(self):
         """ Обработчик кнопки Удалить """
         list_del = self.get_selected()  # id выделенных команд
@@ -554,11 +552,11 @@ class DataSource:
                 # Выводим ключи словаря в список полей источника данных
                 self.value.set(', '.join(fields))
                 data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
-                self.editor.to_report('Источник данных обновлен.')
+                # message.to_report('Источник данных обновлен.', 'info')
         except:
             # При ошибках с источником данных
-            self.editor.to_report('Ошибка источника данных.')
-
+            # message.to_report('Ошибка источника данных.', 'warn')
+            pass
 
 class SaveLoad:
     """ Сохранение и чтение проекета """
@@ -728,7 +726,7 @@ class SaveLoad:
             settings.project_name = self.new_project_name
             settings.update_settings()
 
-            # self.editor.to_report('Проект открыт.')
+            # message.to_report('Проект открыт.', 'info')
         except:
             raise LoadError('Ошибка чтения скрипта.')
 
