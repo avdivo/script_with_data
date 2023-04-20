@@ -28,7 +28,6 @@ FIRST_REGION = 96  # Сторона квадрата, в котором ищут
 REGION = 48  # Сторона квадрата с сохраняемым элементом
 
 BASENAME = "elem"  # Префикс для имени файла при сохранении изображения элемента
-PATH = input_file = settings.path_to_elements  # Путь для сохранения изображений
 
 REGION_FOR_SEARCH = 96  # Сторона квадрата в котором производится первоначальный поиск элемента
 
@@ -72,8 +71,8 @@ def save_image(x_point :int, y_point :int) -> str:
     grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # Перебор сохраненных элементов, был ли ранее такой сохранен
-    for name in os.listdir(PATH):
-        template = cv2.imread(f'{PATH}/{name}', 0)
+    for name in os.listdir(settings.path_to_elements):
+        template = cv2.imread(f'{settings.path_to_elements}/{name}', 0)
         # Проверяем, что шаблон не полностью белый
         if np.mean(template) < 250:
             # Операция сопоставления
@@ -122,7 +121,7 @@ def save_image(x_point :int, y_point :int) -> str:
     ROI = image[y:y+h, x:x+w]
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     filename = "_".join([BASENAME, suffix])  # e.g. 'mylogfile_120508_171442'
-    cv2.imwrite(f'{PATH}/{filename}.png', ROI)
+    cv2.imwrite(f'{settings.path_to_elements}/{filename}.png', ROI)
 
     # print(ROI.set_printoptions(threshold=ROI.nan))
 
@@ -146,7 +145,7 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         return (x_point, y_point)
 
     # Получение шаблона
-    template = cv2.imread(f'{PATH}/{name_template}', 0)
+    template = cv2.imread(f'{settings.path_to_elements}/{name_template}', 0)
     if not template:
         raise TemplateNotFoundError('Шаблон с таким именем не найден')
     # Сохранить ширину в переменной w и высоту в переменной h шаблона

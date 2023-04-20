@@ -506,7 +506,6 @@ class DisplayCommands:
                 self.operation = ''
 
             self.out_commands()  # Обновляем список
-            sleep(1)
             logger.warning(mess)
 
         else:
@@ -660,14 +659,22 @@ class SaveLoad:
     def menu_save_project(self):
         """ Пункт меню Сохранить проект """
         self.save_project()
+        logger.warning(f'Проект {settings.project_name} сохранен.')
 
     def menu_save_as_project(self):
         """ Пункт меню Сохранить проект как """
-        pass
+        file_path = fd.asksaveasfilename(initialdir=settings.path_to_script, title="Сохранить скрипт",
+                                         filetypes=(("Скрипт", "script"),))
 
     def save_project(self):
         """ Сохранение проекта """
-        pass
+        script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command],
+                            default=lambda o: o.__json__())
+        sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())
+        file_path = os.path.join(settings.path_to_script, f'{settings.project_name}.json')
+        # сохраняем в файл
+        with open(file_path, "w") as f:
+            json.dump({'script': script, 'settings': sett}, f)
 
     def open_project(self):
         """ Загрузка проекта """
@@ -814,19 +821,6 @@ class SaveLoad:
         window.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
         # Запускаем окно
         window.mainloop()
-
-
-
-    @classmethod
-    def save_script(cls):
-        # открываем диалоговое окно для выбора файла
-        file_path = fd.asksaveasfilename(initialdir=settings.path_to_script, title="Сохранить скрипт",
-                                               filetypes=(("Скрипт", "script"),))
-        script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command], default=lambda o: o.__json__())
-        sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())
-        # сохраняем в файл
-        with open(file_path, "w") as f:
-            json.dump({'script': script, 'settings': sett}, f)
 
 
 if __name__ == '__main__':
