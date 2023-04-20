@@ -38,7 +38,6 @@ from exceptions import NoCommandOrStop, DataError
 from messages import Messages
 from data_types import llist
 
-# Функции
 
 def on_closing():
     """ Действия при закрытии программы """
@@ -108,6 +107,7 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 def run_script():
     """ Выполнение скрипта """
     data.script_started = True  # Скрипт работает
+    logger.error('message')
     if data.pointer_command == -1:
         data.pointer_command = 0
     while data.script_started:
@@ -132,7 +132,8 @@ def run_script():
 
 
 # создание логгера и обработчика
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('logger')
+logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=Messages(frame4))
 
 # добавление обработчика в логгер
@@ -140,11 +141,11 @@ handler.setFormatter(logging.Formatter('%(levelname)s:%(message)s'))
 # '%(asctime)s %(name)s %(levelname)s: %(message)s'
 logger.addHandler(handler)
 
-# Уровни логирования: debug, info, warning, error, critical
-logger.error('message')
+# Уровни логирования в верхнем регистре: DEBUG, INFO, WARNING, ERROR, CRITICAL
+# logger.error('message')
 
 CommandClasses.root = frame2
-CommandClasses.data = data
+components.CommandClasses.data = components.data
 editor = Editor(frame2)  # Первый фрейм для редактора
 display_commands = DisplayCommands(root, frame3)  # Передаем ссылку на окно программы
 

@@ -28,7 +28,7 @@ from tracker_and_player import Player
 
 
 # создание логгера и обработчика
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('logger')
 
 
 class CountingDict(dict):
@@ -247,7 +247,6 @@ class Editor:
         """ При инициализации принимает ссылку на виджет, куда выводить элементы интерфейса """
         self.root = root  # Фрейм редактора
         self.current_cmd = None  # Объект команды, с которой работает редактор
-        self.logger = logging.getLogger(__name__)
 
         # Формируем словарь: {название команды: класс}, для этого обращаемся к методу класса родителя команд
         # который возвращает классы потомков. В них читаем имена команд и данные о сортировке команд
@@ -288,13 +287,13 @@ class Editor:
             # Рисуем его виджеты
             self.current_cmd.paint_widgets()
             # Выводим справку о команде
-            self.logger.warning(self.current_cmd.command_description)
+            logger.info(self.current_cmd.command_description)
         except DataError as err:
             # Ошибки при создании команды
             self.current_cmd = None  # Объект команды, с которой работает редактор
             self.commands_var.set(self.commands_name[0])  # Задаем вывод первой команды
             self.select_command(None)  # Создаем чистый объект команды, будто совершен выбор в списке
-            self.logger.critical(err)
+            logger.error(err)
 
 
     def command_to_editor(self, id_command):
@@ -315,7 +314,7 @@ class Editor:
         # Рисуем его виджеты
         self.current_cmd.paint_widgets()
         # Выводим справку о команде
-        logger.warning(self.current_cmd.command_description)
+        logger.info(self.current_cmd.command_description)
         # Установка в выпадающем списке нужной команды
         self.commands_var.set(self.current_cmd.command_name)
         self.widget.selection_clear()  # Убираем выделение с выпадающего списка
@@ -329,7 +328,7 @@ class Editor:
         except LabelAlreadyExists as err:
             # При неудачном добавлении в случае совпадения имен блоков и меток
             # добавление отменяется и выводится сообщение
-            self.message.set(err)
+            logger.error(err)
 
     def change_cmd_button(self, event=None):
         """ Изменение текущей в списке команды на ту, что в редакторе """
@@ -442,8 +441,8 @@ class DisplayCommands:
         if not self.list_copy:
             return
         numbers = ' ,'.join(self.numbers_from_id(self.list_copy))  # Номера копируемых строк
-        # message.to_report(f'Скопированы строки {numbers}. \nИх можно вставить кнопкой Вставить. '
-        #                       f'\nСтроки будут вставлены после выделенной строки.', 'info')
+        logger.warning(f'Скопированы строки {numbers}. \nИх можно вставить кнопкой Вставить. '
+                              f'\nСтроки будут вставлены после выделенной строки.')
         self.operation = 'copy'
 
     def cut(self):
@@ -452,9 +451,9 @@ class DisplayCommands:
         if not self.list_copy:
             return
         numbers = ' ,'.join(self.numbers_from_id(self.list_copy))  # Номера копируемых строк
-        # message.to_report(f'Перенос строк {numbers}. \nИх можно вставить кнопкой Вставить. '
-        #                       f'\nСтроки будут вставлены после выделенной строки. '
-        #                   f'\nСкопированные строки будут удалены', 'info')
+        logger.warning (f'Перенос строк {numbers}. \nИх можно вставить кнопкой Вставить. '
+                              f'\nСтроки будут вставлены после выделенной строки. '
+                          f'\nСкопированные строки будут удалены')
         self.operation = 'cut'
 
     def paste(self):
@@ -508,11 +507,11 @@ class DisplayCommands:
 
             self.out_commands()  # Обновляем список
             sleep(1)
-            # message.to_report(mess, 'info')
+            logger.warning(mess)
 
         else:
             # Операция не назначена или отменена
-            # message.to_report('Операция отменена.', 'info')
+            logger.warning('Операция отменена.')
             pass
     def delete(self):
         """ Обработчик кнопки Удалить """
@@ -552,10 +551,10 @@ class DataSource:
                 # Выводим ключи словаря в список полей источника данных
                 self.value.set(', '.join(fields))
                 data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
-                # message.to_report('Источник данных обновлен.', 'info')
+                logger.warning('Источник данных загружен.')
         except:
             # При ошибках с источником данных
-            # message.to_report('Ошибка источника данных.', 'warn')
+            logger.error('Ошибка при загрузке источника данных.')
             pass
 
 class SaveLoad:
@@ -653,7 +652,10 @@ class SaveLoad:
         # Последней в пути папка проекта, отделяем ее от пути
         self.new_project_name = os.path.basename(path)  # получаем имя проекта
         self.new_path_to_project = os.path.dirname(path)  # получаем путь к проекту
-        self.open_project()
+        try:
+            self.open_project()
+        except LoadError as err:
+            logger.error(err)
 
     def menu_save_project(self):
         """ Пункт меню Сохранить проект """
@@ -726,7 +728,7 @@ class SaveLoad:
             settings.project_name = self.new_project_name
             settings.update_settings()
 
-            # message.to_report('Проект открыт.', 'info')
+            logger.warning(f'Проект {self.new_project_name} открыт.')
         except:
             raise LoadError('Ошибка чтения скрипта.')
 
