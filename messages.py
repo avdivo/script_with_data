@@ -25,7 +25,8 @@ class Messages(logging.Handler):
         self.colors = ['#0000FF', '#000000', '#0000FF', '#FF0000', '#FF00FF']
     def write(self, message):
         # здесь можно реализовать вывод сообщения в нужное место с учетом важности
-        level, message = message.split(':')
+        arr = message.split(':')
+        level, message= arr[0], arr[1]
 
         """ Вывод сообщения в поле сообщений """
         if level not in self.rating:

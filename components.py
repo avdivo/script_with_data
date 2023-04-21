@@ -607,28 +607,31 @@ class SaveLoad:
 
     def create_project(self):
         """ Создание проекта """
-        name = self.new_project_name
-        path = self.new_path_to_project
-        os.makedirs(os.path.join(path, name))
-        os.makedirs(os.path.join(path, name, 'data'))
-        os.makedirs(os.path.join(path, name, 'elements_img'))
-        with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
-            json.dump({"script": "[]", "settings": "{}"}, f)
+        try:
+            name = self.new_project_name
+            path = self.new_path_to_project
+            os.makedirs(os.path.join(path, name))
+            os.makedirs(os.path.join(path, name, 'data'))
+            os.makedirs(os.path.join(path, name, 'elements_img'))
+            with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
+                json.dump({"script": "[]", "settings": "{}"}, f)
 
-        logger.warning(f'Создан новый проект {self.new_project_name}.')
+            logger.warning(f'Создан новый проект {self.new_project_name}.')
 
-        # Запись новых настроек в файл конфигурации
-        config = ConfigParser()
-        config['DEFAULT'] = {'project_name': self.new_project_name,
-                             'path_to_project': self.new_path_to_project,
-                             'data_file': ''}
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
+            # Запись новых настроек в файл конфигурации
+            config = ConfigParser()
+            config['DEFAULT'] = {'project_name': self.new_project_name,
+                                 'path_to_project': self.new_path_to_project,
+                                 'data_file': ''}
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile)
 
-        # Сохраняем новые настройки проекта
-        settings.path_to_project = self.new_path_to_project
-        settings.project_name = self.new_project_name
-        settings.update_settings()
+            # Сохраняем новые настройки проекта
+            settings.path_to_project = self.new_path_to_project
+            settings.project_name = self.new_project_name
+            settings.update_settings()
+        except Exception as err:
+            logger.error(f'Ошибка при создании проекта {err}')
 
     def menu_new_project(self):
         """ Пункт меню Создание нового проекта """
@@ -664,7 +667,6 @@ class SaveLoad:
     def menu_save_project(self):
         """ Пункт меню Сохранить проект """
         self.save_project()
-        logger.warning(f'Проект {settings.project_name} сохранен.')
 
     def menu_save_as_project(self):
         """ Пункт меню Сохранить проект как """
@@ -683,6 +685,7 @@ class SaveLoad:
         # сохраняем в файл
         with open(file_path, "w") as f:
             json.dump({'script': script, 'settings': sett}, f)
+        logger.warning(f'Проект {settings.project_name} сохранен.')
 
     def open_project(self):
         """ Загрузка проекта """
@@ -759,6 +762,8 @@ class SaveLoad:
         Ниже кнопка для создания проекта. Если окно закрыть, то путь и имя очистятся.
         """
         self.new_project_cancel = True  # Отмена создания нового проекта
+        self.new_project_name = ''
+        self.new_path_to_project = ''
 
         def choose_path(name, label):
             """ Выбор пути к проекту """
@@ -772,18 +777,14 @@ class SaveLoad:
         def check_name(name, label):
             """ Проверка уникальности названия проекта """
             name = name.get()
+            self.new_project_name = name
             if name:
                 if os.path.exists(os.path.join(self.new_path_to_project, name)):
                     label['text'] = 'Такой проект уже существует.'
-                    self.new_path_to_project = ''
+                    self.new_project_name = ''
                     return False
-                else:
-                    label['text'] = os.path.join(self.new_path_to_project, name)
-                    self.new_project_name = name
-                    return True
-            else:
-                label['text'] = self.new_path_to_project
-                return True
+            label['text'] = os.path.join(self.new_path_to_project, name)
+            return True
 
         def create_project():
             """ Создание проекта """
@@ -820,7 +821,7 @@ class SaveLoad:
         entry_name = Entry(window)
         entry_name.place(x=10, y=30, width=380)
         button_path = Button(window, text='Выбрать папку', command=lambda: choose_path(entry_name, label_full_path))
-        button_path.place(x=10, y=110)
+        button_path.place(x=10, y=80)
         label_full_path = Label(window, text='')
         label_full_path.place(x=10, y=140)
         button_create = Button(window, text='Создать проект', command=create_project)
