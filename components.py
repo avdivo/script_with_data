@@ -11,6 +11,7 @@ from configparser import ConfigParser
 from tkinter import *
 from tkinter import ttk, messagebox
 from tkinter import filedialog as fd
+
 from tktooltip import ToolTip
 from collections import deque
 from time import sleep
@@ -19,6 +20,7 @@ import string
 from random import choice, randint
 import json
 import logging
+import shutil
 
 from commands import CommandClasses
 from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError, ElementNotFound, LoadError
@@ -512,6 +514,7 @@ class DisplayCommands:
             # Операция не назначена или отменена
             logger.warning('Операция отменена.')
             pass
+
     def delete(self):
         """ Обработчик кнопки Удалить """
         list_del = self.get_selected()  # id выделенных команд
@@ -531,35 +534,77 @@ class DataSource:
     """ Источник данных """
     # TODO добавить кнопку сброса указателей источника данных
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
+    save_load = None  # Ссылка на объект класса Сохранение/загрузка (реализация паттерна Наблюдатель)
 
     def __init__(self, root):
         self.data_source_file = None
         self.value = StringVar()  # Список полей источника данных через запятую (текст)
         Message(root, text='Источник данных', width=370, anchor='w', textvariable=self.value).place(x=0, y=0)
 
-    def load_file(self):
-        """ Загрузка excel файла """
+    def menu_data_source(self):
+        """ Выбор и подключение источника данных """
         try:
-            self.data_source_file = fd.askopenfilename(
+            new_file = fd.askopenfilename(
                 filetypes=(("image", "*.xlsx"), ("image", "*.xls"),
                            ("All files", "*.*")))
-            if self.data_source_file:
-                data_frame = pd.read_excel(self.data_source_file)  # Читаем таблицу в pandas DataFrame
-                data.data_source = data_frame.to_dict('list')  # Превращаем DataFrame в словарь
-                fields = data.get_fields()  # Список полей данных
-                # Выводим ключи словаря в список полей источника данных
-                self.value.set(', '.join(fields))
-                data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
-                logger.warning('Источник данных загружен.')
-        except:
+            if new_file:
+                name = os.path.basename(new_file)  # Имя файла
+                # Есть ли такой файл в папке для данных спрашиваем, заменить ли его
+                if os.path.exists(os.path.join(settings.path_to_data, name)):
+                    if messagebox.askyesno('Замена файла', f'Файл {name} уже существует. Заменить?'):
+                        os.remove(os.path.join(settings.path_to_data, name))
+                    else:
+                        # Копирование источника данных в папку для данных data
+                        shutil.copy(new_file, settings.path_to_data)
+                self.load_file(name)  # Загрузка файла
+                logger.warning(f'Источник данных {self.data_source_file} загружен.')
+
+        except Exception as err:
             # При ошибках с источником данных
-            logger.error('Ошибка при загрузке источника данных.')
-            pass
+            logger.error(err)
+
+    def load_file(self, name):
+        """ Загрузка excel файла """
+        try:
+            path_and_name = os.path.join(settings.path_to_data, name)
+            if not os.path.exists(path_and_name):
+                raise DataError(f'Файл {name} не найден.')
+            data_frame = pd.read_excel(path_and_name)  # Читаем таблицу в pandas DataFrame
+            data.data_source = data_frame.to_dict('list')  # Превращаем DataFrame в словарь
+            fields = data.get_fields()  # Список полей данных
+            # Выводим ключи словаря в список полей источника данных
+            self.value.set(', '.join(fields))
+            data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
+
+            # Добавление информации об источнике в конфигурационный файл
+            self.save_load.config_file(action='set', data=name)
+            self.data_source_file = name  # Назначаем новый источник данных
+
+        except Exception as err:
+            # При ошибках с источником данных
+            raise DataError(f'Ошибка загрузки источника данных {err}')
+
+    def menu_reset_pointers(self):
+        """ Сброс указателей источника данных """
+        data.pointers_data_source = dict.fromkeys(data.pointers_data_source, 0)
+        logger.warning('Указатели источника данных сброшены.')
+
+    def menu_delete_data_source(self):
+        """ Отключение источника данных """
+        self.data_source_file = None
+        self.value.set('')
+        data.data_source.clear()
+        data.pointers_data_source.clear()
+        # Удаление информации об источнике в конфигурационном файле
+        self.save_load.config_file(action='del')
+        logger.warning('Источник данных отключен.')
+
 
 class SaveLoad:
-    """ Сохранение и чтение проекета """
+    """ Сохранение и чтение проекта """
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
+    data_source = None  # Ссылка на объект источника данных (реализация паттерна Наблюдатель)
 
     def __init__(self, root):
         """ Подготовка программы к запуску
@@ -573,17 +618,17 @@ class SaveLoad:
         self.new_project_name = ''
         self.new_path_to_project = ''
         self.new_project_cancel = True  # Отмена создания нового проекта
-        self.history = [1]  # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
+        self.is_saved = False  # Сохранен ли проект
+        self.history = []  # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
         self.root = root  # Ссылка на главное окно
 
         # Проверка файла конфигурации
         if os.path.exists('config.ini'):
             # Если файл конфигурации есть, то читаем его
-            config = ConfigParser()
-            config.read('config.ini')
-            self.new_project_name = config['DEFAULT']['project_name']
-            self.new_path_to_project = config['DEFAULT']['path_to_project']
-            self.path_to_data_source = config['DEFAULT']['data_file']
+            config = self.config_file()
+            self.new_project_name = config['name']
+            self.new_path_to_project = config['path']
+            self.data_source_file = config['data']
 
         if self.new_project_name:
             # Если данные о проекте есть, то открываем проект
@@ -616,15 +661,11 @@ class SaveLoad:
             with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
                 json.dump({"script": "[]", "settings": "{}"}, f)
 
-            logger.warning(f'Создан новый проект {self.new_project_name}.')
+            logger.warning(f'Создан новый проект {name}.')
+            self.is_saved = True
 
             # Запись новых настроек в файл конфигурации
-            config = ConfigParser()
-            config['DEFAULT'] = {'project_name': self.new_project_name,
-                                 'path_to_project': self.new_path_to_project,
-                                 'data_file': ''}
-            with open('config.ini', 'w') as configfile:
-                config.write(configfile)
+            self.config_file(action='set', name=name, path=path)
 
             # Сохраняем новые настройки проекта
             settings.path_to_project = self.new_path_to_project
@@ -635,8 +676,8 @@ class SaveLoad:
 
     def menu_new_project(self):
         """ Пункт меню Создание нового проекта """
-        if self.history:
-            # Если история не пустая, то предложить сохранить проект
+        if not self.is_saved:
+            # Если проект не сохранен, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
                 self.save_project()
 
@@ -646,8 +687,8 @@ class SaveLoad:
 
     def menu_open_project(self):
         """ Пункт меню Открыть проект """
-        if self.history:
-            # Если история не пустая, то предложить сохранить проект
+        if not self.is_saved:
+            # Если проект не сохранен, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
                 self.save_project()
 
@@ -670,10 +711,31 @@ class SaveLoad:
 
     def menu_save_as_project(self):
         """ Пункт меню Сохранить проект как """
+        if not self.is_saved:
+            # Если проект не сохранен, то предложить сохранить проект
+            if messagebox.askyesno('Сохранение проекта', 'Сохранить проект перед копированием?'):
+                self.save_project()
+
         # Открываем диалоговое окно для выбора проекта
-        path = fd.askdirectory(initialdir=self.new_path_to_project, title="Открыть проект")
-        if not path:
-            return
+        self.dialog_new_project('Сохранить проект как...')  # Открываем диалоговое окно для выбора пути и имени проекта
+        if self.new_project_name:
+            try:
+                new_project = os.path.join(self.new_path_to_project, self.new_project_name)
+                # Копируем содержимое папки проекта  новую папку
+                shutil.copytree(os.path.join(settings.path_to_project, settings.project_name), new_project)
+                # Если имя проекта отличается от исходного, переименовываем файл скрипта в новом месте
+                if self.new_project_name != settings.project_name:
+                    os.rename(os.path.join(new_project, f'{settings.project_name}.json'),
+                              os.path.join(new_project, f'{self.new_project_name}.json'))
+
+                # Сохраняем новые настройки проекта
+                settings.path_to_project = self.new_path_to_project
+                settings.project_name = self.new_project_name
+                settings.update_settings()
+                logger.warning(f'Проект {self.new_project_name} сохранен.')
+                self.is_saved = True
+            except Exception:
+                raise
 
 
     def save_project(self):
@@ -686,6 +748,7 @@ class SaveLoad:
         with open(file_path, "w") as f:
             json.dump({'script': script, 'settings': sett}, f)
         logger.warning(f'Проект {settings.project_name} сохранен.')
+        self.is_saved = True
 
     def open_project(self):
         """ Загрузка проекта """
@@ -747,10 +810,11 @@ class SaveLoad:
             settings.update_settings()
 
             logger.warning(f'Проект {self.new_project_name} открыт.')
-        except:
-            raise LoadError('Ошибка чтения скрипта.')
+            self.is_saved = True
+        except Exception as err:
+            raise LoadError(f'Ошибка загрузки проекта {err}')
 
-    def dialog_new_project(self):
+    def dialog_new_project(self, operation='Создание нового проекта'):
         """ Диалоговое окно для создания нового проекта
 
         Проект - это папка с 2 вложенными папками: data  и elements_img.
@@ -805,7 +869,7 @@ class SaveLoad:
 
         # Создаем окно
         window = Toplevel()
-        window.title('Создание нового проекта')
+        window.title(operation)
         # Разместить окно в центре экрана
         window.geometry('400x215')
         window.transient(self.root)  # Поверх окна
@@ -824,7 +888,7 @@ class SaveLoad:
         button_path.place(x=10, y=80)
         label_full_path = Label(window, text='')
         label_full_path.place(x=10, y=140)
-        button_create = Button(window, text='Создать проект', command=create_project)
+        button_create = Button(window, text='Применить', command=create_project)
         button_create.place(x=250, y=170)
 
         # Подписываемся на события
@@ -835,8 +899,32 @@ class SaveLoad:
         window.focus_set()
         window.wait_window()
 
+    def config_file(self, action='get', name='', path='', data=''):
+        """ Изменение файла конфигурации
 
-if __name__ == '__main__':
-    # блок кода, который будет выполнен только при запуске модуля
-    a = Editor(None)
+        Действие get, set, del указывает операцию с файлом конфигурации.
+        del - удаление данных только о файле источника данных.
+        """
+        config = ConfigParser()
+        if action == 'set':
+            if name:
+                config['PROJECT']['project_name'] = name
+            if path:
+                config['PROJECT']['path_to_project'] = path
+            if data:
+                config['PROJECT']['data_file'] = data
+        elif action == 'del':
+            config['PROJECT']['data_file'] = ''
+        else:
+            """ Получение файла конфигурации """
+            config.read('config.ini')
+            out = dict()
+            out['name'] = config['PROJECT'].get('project_name', '')
+            out['path'] = config['PROJECT'].get('path_to_project', '')
+            out['data'] = config['PROJECT'].get('data_file', '')
+            return out
+
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+
 

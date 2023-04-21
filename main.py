@@ -47,7 +47,7 @@ def on_closing():
     config = ConfigParser()
     config['DEFAULT'] = {'project_name': settings.project_name,
                          'path_to_project': settings.path_to_project,
-                         'data_file': settings.data_file}
+                         'data_file': data_source.data_file,}
 
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
@@ -173,8 +173,11 @@ data_source.editor = editor  # Передаем ссылку на редакто
 
 SaveLoad.editor = editor  # Передаем ссылку на редактор
 SaveLoad.display_commands = display_commands  # Передаем ссылку на список команд
+SaveLoad.data_source = data_source  # Передаем ссылку на источник данных
 
 load_save = SaveLoad(root)
+
+data_source.save_load = load_save  # Передаем ссылку на объект сохранения/загрузки
 
 # Меню
 mainmenu = Menu(root)
@@ -186,15 +189,24 @@ filemenu.add_command(label="Открыть проект", command=load_save.menu
 filemenu.add_command(label="Сохранить проект", command=load_save.menu_save_project)
 filemenu.add_command(label="Сохранить проект как...", command=load_save.menu_save_as_project)
 filemenu.add_separator()
-filemenu.add_command(label="Источник данных", command=data_source.load_file)
+filemenu.add_command(label="Очистить проект", command=load_save.menu_save_as_project)
 filemenu.add_separator()
 filemenu.add_command(label="Выход")
-
 mainmenu.add_cascade(label="Файл", menu=filemenu)
 
-mainmenu.add_command(label="Настройки скрипта",
+menu_data_source = Menu(mainmenu, tearoff=0)
+menu_data_source.add_command(label="Подключить источник данных", command=data_source.menu_data_source)
+menu_data_source.add_command(label="Сбросить источник данных", command=data_source.menu_reset_pointers)
+menu_data_source.add_command(label="Отключить источник данных", command=data_source.menu_delete_data_source)
+mainmenu.add_cascade(label="Данные", menu=menu_data_source)
+
+mainmenu.add_command(label="Настройки",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
 
+# TODO: Добавить иконки в меню
+# save_icon = PhotoImage(file="icon/copy.png")
+# mainmenu.entryconfigure(3, image=save_icon)
+# mainmenu.entryconfigure(4, image=save_icon)
 
 
 
