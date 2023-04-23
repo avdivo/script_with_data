@@ -553,9 +553,9 @@ class DataSource:
                 if os.path.exists(os.path.join(settings.path_to_data, name)):
                     if messagebox.askyesno('Замена файла', f'Файл {name} уже существует. Заменить?'):
                         os.remove(os.path.join(settings.path_to_data, name))
-                    else:
-                        # Копирование источника данных в папку для данных data
-                        shutil.copy(new_file, settings.path_to_data)
+                else:
+                    # Копирование источника данных в папку для данных data
+                    shutil.copy(new_file, settings.path_to_data)
                 self.load_file(name)  # Загрузка файла
                 logger.warning(f'Источник данных {self.data_source_file} загружен.')
 
@@ -906,22 +906,22 @@ class SaveLoad:
         del - удаление данных только о файле источника данных.
         """
         config = ConfigParser()
+        """ Получение файла конфигурации """
+        config.read('config.ini')
         if action == 'set':
             if name:
-                config['PROJECT']['project_name'] = name
+                config['DEFAULT']['project_name'] = name
             if path:
-                config['PROJECT']['path_to_project'] = path
+                config['DEFAULT']['path_to_project'] = path
             if data:
-                config['PROJECT']['data_file'] = data
+                config['DEFAULT']['data_file'] = data
         elif action == 'del':
-            config['PROJECT']['data_file'] = ''
+            config['DEFAULT']['data_file'] = ''
         else:
-            """ Получение файла конфигурации """
-            config.read('config.ini')
             out = dict()
-            out['name'] = config['PROJECT'].get('project_name', '')
-            out['path'] = config['PROJECT'].get('path_to_project', '')
-            out['data'] = config['PROJECT'].get('data_file', '')
+            out['name'] = config['DEFAULT'].get('project_name', '')
+            out['path'] = config['DEFAULT'].get('path_to_project', '')
+            out['data'] = config['DEFAULT'].get('data_file', '')
             return out
 
         with open('config.ini', 'w') as configfile:

@@ -41,18 +41,8 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
-    # for filename in os.listdir(settings.path_to_elements):
-    #     print(filename, '- удален')
-    #     os.unlink(settings.path_to_elements + filename)
-    config = ConfigParser()
-    config['DEFAULT'] = {'project_name': settings.project_name,
-                         'path_to_project': settings.path_to_project,
-                         'data_file': data_source.data_file,}
-
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
+    load_save.config_file(name=settings.project_name, path=settings.path_to_project, data=data_source.data_source_file)
     root.destroy()
-
 
 
 # Интерфейс
