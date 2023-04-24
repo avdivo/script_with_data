@@ -41,7 +41,8 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
-    load_save.config_file(name=settings.project_name, path=settings.path_to_project, data=data_source.data_source_file)
+    load_save.config_file(action='set', name=settings.project_name,
+                          path=settings.path_to_project, data=data_source.data_source_file)
     root.destroy()
 
 

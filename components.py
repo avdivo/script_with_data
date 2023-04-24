@@ -235,7 +235,7 @@ class Editor:
     Представляет основной интерфейс редактора: выбор команды, кнопки действий.
     Без виджетов ввода данных, они находятся в самих командах.
     А так-же принимает ссылку на фрейм для сообщений, куда размещает виджет
-    и выводит сообщения через отднльный метод
+    и выводит сообщения через отдельный метод
 
     """
     # TODO Правильная обработка множественного выбора строк в списке
@@ -707,11 +707,6 @@ class SaveLoad:
 
     def menu_save_as_project(self):
         """ Пункт меню Сохранить проект как """
-        if not self.is_saved:
-            # Если проект не сохранен, то предложить сохранить проект
-            if messagebox.askyesno('Сохранение проекта', 'Сохранить проект перед копированием?'):
-                self.save_project()
-
         # Открываем диалоговое окно для выбора проекта
         self.dialog_new_project('Сохранить проект как...')  # Открываем диалоговое окно для выбора пути и имени проекта
         if self.new_project_name:
@@ -719,15 +714,15 @@ class SaveLoad:
                 new_project = os.path.join(self.new_path_to_project, self.new_project_name)
                 # Копируем содержимое папки проекта  новую папку
                 shutil.copytree(os.path.join(settings.path_to_project, settings.project_name), new_project)
-                # Если имя проекта отличается от исходного, переименовываем файл скрипта в новом месте
-                if self.new_project_name != settings.project_name:
-                    os.rename(os.path.join(new_project, f'{settings.project_name}.json'),
-                              os.path.join(new_project, f'{self.new_project_name}.json'))
-
+                # Удаляем в новом проекте файл скрипта
+                os.remove(os.path.join(new_project, f'{settings.project_name}.json'))
                 # Сохраняем новые настройки проекта
                 settings.path_to_project = self.new_path_to_project
                 settings.project_name = self.new_project_name
                 settings.update_settings()
+                # Сохраняем актуальный скрипт в новый проект
+                self.save_project()
+
                 logger.warning(f'Проект {self.new_project_name} сохранен.')
                 self.is_saved = True
             except Exception:
@@ -743,6 +738,9 @@ class SaveLoad:
         # сохраняем в файл
         with open(file_path, "w") as f:
             json.dump({'script': script, 'settings': sett}, f)
+        # Исправляем файл конфигурации
+        self.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
+                         data=self.data_source_file)
         logger.warning(f'Проект {settings.project_name} сохранен.')
         self.is_saved = True
 
