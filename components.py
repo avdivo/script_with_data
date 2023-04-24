@@ -241,6 +241,7 @@ class Editor:
     # TODO Правильная обработка множественного выбора строк в списке
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
     data = data  # Ссылка на класс с данными о скрипте
+    save_load = None  # Ссылка на объект класса SaveLoad
 
     def __init__(self, root):
         """ При инициализации принимает ссылку на виджет, куда выводить элементы интерфейса """
@@ -324,6 +325,9 @@ class Editor:
         try:
             self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
             self.display_commands.out_commands()  # Обновляем список
+            self.save_load.save_history()  # Сохраняем историю
+            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+
         except LabelAlreadyExists as err:
             # При неудачном добавлении в случае совпадения имен блоков и меток
             # добавление отменяется и выводится сообщение
@@ -334,6 +338,8 @@ class Editor:
         self.current_cmd.save()
         self.data.change_command(self.current_cmd)  # Изменяем команду
         self.display_commands.out_commands()  # Обновляем список
+        self.save_load.save_history()  # Сохраняем историю
+        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
 
 class DisplayCommands:
@@ -345,6 +351,7 @@ class DisplayCommands:
     """
     data = data  # Ссылка на класс с данными о скрипте
     editor = None  # Ссылка на объект класса Редактор (реализация паттерна Наблюдатель)
+    save_load = None  # Ссылка на класс сохранения и загрузки
 
     def __init__(self, root, frame):
         """ Принимает ссылку на окно программы и фрейм для кнопок"""
@@ -483,6 +490,9 @@ class DisplayCommands:
                             # Вставляем скопированные команды
                             self.data.add_new_command(obj)
                             ok = False  # Операция прошла успешно
+                            self.save_load.save_history()  # Сохраняем историю
+                            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+
                         except LabelAlreadyExists:
                             # Добавление команды не выполнено по причине дублирования имени метки или блока
                             obj.value += f"_{choice(string.ascii_lowercase) + str(randint(0, 100))}"
@@ -504,6 +514,9 @@ class DisplayCommands:
                 self.operation = ''
 
             self.out_commands()  # Обновляем список
+            self.save_load.save_history()  # Сохраняем историю
+            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+
             logger.warning(mess)
 
         else:
@@ -522,6 +535,9 @@ class DisplayCommands:
         # Очищаем данные операции
         self.list_copy = []
         self.operation = ''
+
+        self.save_load.save_history()  # Сохраняем историю
+        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
         self.out_commands()  # Обновляем список
 
@@ -614,9 +630,12 @@ class SaveLoad:
         self.new_project_name = ''
         self.new_path_to_project = ''
         self.new_project_cancel = True  # Отмена создания нового проекта
-        self.is_saved = False  # Сохранен ли проект
-        self.history = []  # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
         self.root = root  # Ссылка на главное окно
+
+        self.is_saved = False  # Сохранен ли проект
+        # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
+        self.history = deque(maxlen=100)  # Помнит последние 100 состояний скрипта
+        self.history_pointer = -1  # Указатель на текущее состояние скрипта
 
         # Проверка файла конфигурации
         if os.path.exists('config.ini'):
@@ -728,21 +747,62 @@ class SaveLoad:
             except Exception:
                 raise
 
+    def data_preparation(self):
+        """ Подготовка данных для сохранения """
+        script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command],
+                            default=lambda o: o.__json__())  # Подготовка скрипта
+        sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())  # Подготовка настроек
+        return {'script': script, 'settings': sett}
 
     def save_project(self):
         """ Сохранение проекта """
-        script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command],
-                            default=lambda o: o.__json__())
-        sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())
-        file_path = os.path.join(settings.path_to_script, f'{settings.project_name}.json')
+        for_save = self.data_preparation()  # Подготовка данных для сохранения
         # сохраняем в файл
+        file_path = os.path.join(settings.path_to_script, f'{settings.project_name}.json')
         with open(file_path, "w") as f:
-            json.dump({'script': script, 'settings': sett}, f)
+            json.dump(for_save, f)
         # Исправляем файл конфигурации
         self.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
                          data=self.data_source_file)
         logger.warning(f'Проект {settings.project_name} сохранен.')
         self.is_saved = True
+
+    def change_script_and_settings(self, data_dict):
+        """ Замена скрипта и настроек
+
+        Принимает словарь с данными скрипта и настроек из файла или истории
+        """
+        script = json.loads(data_dict['script'])
+        sett = json.loads(data_dict['settings'])
+
+        # Удаляем старый скрипт и записываем новый
+        data.queue_command.clear()  # Очередь команд
+        data.obj_command.clear()  # Список команд
+        llist.labels.clear()  # Список меток
+        data.pointer_command = 0
+
+        # При построении скрипта команды меток и названий блоков должны быть созданы и добавлены в первую очередь
+        # Поэтому создаем их, добавляем
+        for i, cmd_dict in enumerate(script):
+            # Создаем объект команды с метками по краткой записи
+            if cmd_dict['cmd'] == 'BlockCmd' or cmd_dict['cmd'] == 'LabelCmd':
+                insert = CommandClasses.create_command(
+                    *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des'])
+                data.add_new_command(insert)
+
+        # Создаем остальные и вставляем на свои места
+        for i, cmd_dict in enumerate(script):
+            # Добавляем остальные команды по краткой записи
+            if cmd_dict['cmd'] != 'BlockCmd' and cmd_dict['cmd'] != 'LabelCmd':
+                data.pointer_command = i - 1  # Указатель, куда вставить команду
+                data.add_new_command(CommandClasses.create_command(
+                    *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des']))
+
+        # Обновляем список, предварительно установив указатель на начало
+        data.pointer_command = -1
+        self.display_commands.out_commands()
+
+        settings.set_settings_from_dict(sett)  # Устанавливаем настройки
 
     def open_project(self):
         """ Загрузка проекта """
@@ -765,38 +825,8 @@ class SaveLoad:
             file_path = os.path.join(self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')
             # Загружаем данные из файла в переменную
             with open(file_path, "r") as f:
-                commands_dict = json.load(f)
-            script = json.loads(commands_dict['script'])
-            sett = json.loads(commands_dict['settings'])
-
-            # Удаляем старый скрипт и записываем новый
-            data.queue_command.clear()  # Очередь команд
-            data.obj_command.clear()  # Список команд
-            llist.labels.clear()  # Список меток
-            data.pointer_command = 0
-
-            # При построении скрипта команды меток и названий блоков должны быть созданы и добавлены в первую очередь
-            # Поэтому создаем их, добавляем
-            for i, cmd_dict in enumerate(script):
-                # Создаем объект команды с метками по краткой записи
-                if cmd_dict['cmd'] == 'BlockCmd' or cmd_dict['cmd'] == 'LabelCmd':
-                    insert = CommandClasses.create_command(
-                        *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des'])
-                    data.add_new_command(insert)
-
-            # Создаем остальные и вставляем на свои места
-            for i, cmd_dict in enumerate(script):
-                # Добавляем остальные команды по краткой записи
-                if cmd_dict['cmd'] != 'BlockCmd' and cmd_dict['cmd'] != 'LabelCmd':
-                    data.pointer_command = i - 1  # Указатель, куда вставить команду
-                    data.add_new_command(CommandClasses.create_command(
-                        *cmd_dict['val'], command=cmd_dict['cmd'], description=cmd_dict['des']))
-
-            # Обновляем список, предварительно установив указатель на начало
-            data.pointer_command = -1
-            self.display_commands.out_commands()
-
-            settings.set_settings_from_dict(sett)  # Устанавливаем настройки
+                data_dict = json.load(f)
+            self.change_script_and_settings(data_dict)  # Заменяем скрипт и настройки
 
             # Запоминаем путь к проекту и его имя в настройках
             settings.path_to_project = self.new_path_to_project
@@ -921,4 +951,30 @@ class SaveLoad:
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
 
+    def save_history(self):
+        """ Сохранение истории
 
+        История изменений сохраняется в свойстве self.history. Имеет лимит записей, старые
+        записи уничтожаются по мере добавления новых. Записи добавляются после совершения операций.
+        """
+        self.history.append(self.data_preparation())
+        self.history_pointer = len(self.history)  # Указатель на последнюю запись
+
+    def undo_button(self):
+        """ Отмена последнего изменения """
+        if data.script_started or data.is_listening:
+            return  # Отмена невозможна, если запущен скрипт или слушатель
+
+        if self.history_pointer > 0:
+            self.history_pointer -= 1
+            self.change_script_and_settings(self.history[self.history_pointer])  # Заменяем скрипт и настройки
+            logger.warning('Отмена изменений.')
+
+    def return_button(self):
+        """ Возврат к более позднему изменению (отмененному ранее) """
+        if data.script_started or data.is_listening or self.history_pointer == len(self.history) - 1:
+            return  # Возврат невозможен, если запущен скрипт или слушатель или указатель на последней записи
+
+        self.history_pointer += 1
+        self.change_script_and_settings(self.history[self.history_pointer])  # Заменяем скрипт и настройки
+        logger.warning('Возврат изменений.')

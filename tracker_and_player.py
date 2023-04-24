@@ -27,6 +27,7 @@ class Tracker:
 
     display_commands = None  # Ссылка на объект отображающий команды (реализация паттерна Наблюдатель)
     data = None  # Ссылка на класс с данными о скрипте
+    save_load = None  # Ссылка на класс сохранения и загрузки
 
     def __init__(self, root):
         self.root = root  # Ссылка на главное окно программы
@@ -77,6 +78,8 @@ class Tracker:
             # self.listener_kb.join()
             self.is_listening = False
             self.data.is_listening = False
+            self.save_load.save_history()  # Сохраняем историю
+            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """

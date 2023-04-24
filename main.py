@@ -41,7 +41,7 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
-    load_save.config_file(action='set', name=settings.project_name,
+    save_load.config_file(action='set', name=settings.project_name,
                           path=settings.path_to_project, data=data_source.data_source_file)
     root.destroy()
 
@@ -70,9 +70,6 @@ frame1.place(x=INDENT, y=0)
 frame2 = LabelFrame(root, width=385, height=170, text='Редактор команд', foreground='#083863')
 frame2.place(x=INDENT, y=100)
 
-# Изображение элемента
-# element_image = PhotoImage(file="elements/elem_230228_163525.png")
-
 # Редактор скрипта ----------------------------
 frame3 = LabelFrame(root, width=385, height=130, text='Редактор скрипта', foreground='#083863')
 frame3.place(x=INDENT, y=285)
@@ -80,19 +77,6 @@ frame3.place(x=INDENT, y=285)
 # # Информация
 frame4 = LabelFrame(root, width=385, height=135, text='Информация', foreground='#083863')
 frame4.place(x=INDENT, y=430)
-
-
-# История ---------------------------------------
-icon10 = PhotoImage(file="icon/undo.png")
-icon11 = PhotoImage(file="icon/return.png")
-
-undo_button = Button(root, command='', image=icon10, width=160, height=34)
-undo_button.place(x=412, y=settings.win_h-43)
-ToolTip(undo_button, msg="Отменить", delay=0.5)
-
-delete_button = Button(root, command='', image=icon11, width=160, height=34)
-delete_button.place(x=602, y=settings.win_h-43)
-ToolTip(delete_button, msg="Вернуть", delay=0.5)
 
 
 def run_script():
@@ -164,21 +148,24 @@ SaveLoad.editor = editor  # Передаем ссылку на редактор
 SaveLoad.display_commands = display_commands  # Передаем ссылку на список команд
 SaveLoad.data_source = data_source  # Передаем ссылку на источник данных
 
-load_save = SaveLoad(root)
+save_load = SaveLoad(root)
 
-data_source.save_load = load_save  # Передаем ссылку на объект сохранения/загрузки
+data_source.save_load = save_load  # Передаем ссылку на объект сохранения/загрузки
+editor.save_load = save_load  # Передаем ссылку на объект сохранения/загрузки
+display_commands.save_load = save_load  # Передаем ссылку на объект сохранения/загрузки
+tracker.save_load = save_load  # Передаем ссылку на объект сохранения/загрузки
 
 # Меню
 mainmenu = Menu(root)
 root.config(menu=mainmenu)
 
 filemenu = Menu(mainmenu, tearoff=0)
-filemenu.add_command(label="Новый проект", command=load_save.menu_new_project)
-filemenu.add_command(label="Открыть проект", command=load_save.menu_open_project)
-filemenu.add_command(label="Сохранить проект", command=load_save.menu_save_project)
-filemenu.add_command(label="Сохранить проект как...", command=load_save.menu_save_as_project)
+filemenu.add_command(label="Новый проект", command=save_load.menu_new_project)
+filemenu.add_command(label="Открыть проект", command=save_load.menu_open_project)
+filemenu.add_command(label="Сохранить проект", command=save_load.menu_save_project)
+filemenu.add_command(label="Сохранить проект как...", command=save_load.menu_save_as_project)
 filemenu.add_separator()
-filemenu.add_command(label="Очистить проект", command=load_save.menu_save_as_project)
+filemenu.add_command(label="Очистить проект", command=save_load.menu_save_as_project)
 filemenu.add_separator()
 filemenu.add_command(label="Выход")
 mainmenu.add_cascade(label="Файл", menu=filemenu)
@@ -196,6 +183,19 @@ mainmenu.add_command(label="Настройки",
 # save_icon = PhotoImage(file="icon/copy.png")
 # mainmenu.entryconfigure(3, image=save_icon)
 # mainmenu.entryconfigure(4, image=save_icon)
+
+
+# История ---------------------------------------
+icon10 = PhotoImage(file="icon/undo.png")
+icon11 = PhotoImage(file="icon/return.png")
+
+undo_button = Button(root, command=save_load.undo_button, image=icon10, width=160, height=34)
+undo_button.place(x=412, y=settings.win_h-43)
+ToolTip(undo_button, msg="Отменить", delay=0.5)
+
+return_button = Button(root, command=save_load.return_button, image=icon11, width=160, height=34)
+return_button.place(x=602, y=settings.win_h-43)
+ToolTip(return_button, msg="Вернуть", delay=0.5)
 
 
 root.mainloop()
