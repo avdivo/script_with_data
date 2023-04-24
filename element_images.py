@@ -91,9 +91,9 @@ def save_image(x_point :int, y_point :int) -> str:
     x_point = x_point - x_reg - a
     y_point = y_point - y_reg - a
 
-    # cv2.imshow('', image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.imshow('', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     # Перевод изображения в оттенки серого
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 

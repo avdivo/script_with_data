@@ -199,5 +199,4 @@ mainmenu.add_command(label="Настройки",
 # mainmenu.entryconfigure(4, image=save_icon)
 
 
-
 root.mainloop()
