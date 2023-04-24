@@ -686,6 +686,9 @@ class SaveLoad:
             settings.path_to_project = self.new_path_to_project
             settings.project_name = self.new_project_name
             settings.update_settings()
+
+            self.open_project()  # Открываем новый проект
+
         except Exception as err:
             logger.error(f'Ошибка при создании проекта {err}')
 
