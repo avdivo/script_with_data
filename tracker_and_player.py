@@ -8,12 +8,17 @@ from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
 import platform
+import logging
 
 from threading import Thread
 
 from settings import settings
 from element_images import save_image, pattern_search
 from exceptions import TemplateNotFoundError, ElementNotFound
+
+
+# создание логгера и обработчика
+logger = logging.getLogger('logger')
 
 kb = kb_Controller()
 mouse = mouse_Controller()
@@ -154,6 +159,9 @@ class Player:
         ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
     def run_thread(self):
+        if not len(self.data.queue_command):
+            logger.warning('Нет команд для выполнения')
+            return
         """ Запуск функции выполнения скрипта в отдельном потоке """
         self.data.work_settings = settings.get_dict_settings()  # Рабочая копия настроек
         self.data.work_labels = dict()  # Заполняем словарь меток и названий блоков
@@ -163,6 +171,7 @@ class Player:
                 self.data.work_labels[obj.value] = self.data.queue_command.index(key)
 
         new_thread = Thread(target=self.run_script)  # Создаём поток
+        logger.warning('Выполнение скрипта')
         new_thread.start()  # Запускаем поток
 
     def run_command(self, cmd, val, des=None):
@@ -183,7 +192,6 @@ class Player:
                 mouse.press(Btn.right)
                 mouse.release(Btn.right)
             else:
-                error = None
                 if settings.s_confirm_element or settings.s_full_screen_search:
                     # Включена проверка места клика по изображению или поиск по всему экрану
                     # Координаты будут старыми, новыми (при поиске по всему экрану), или будет исключение
@@ -191,10 +199,9 @@ class Player:
                         mouse.position = pattern_search(val[2], val[0], val[1])
                     except (TemplateNotFoundError, ElementNotFound) as err:
                         if self.data.work_settings['s_error_no_element'].react == 'ignore':
-                            # Если не стоп и не переход, значит действие нужно выполнить
-                            error = err
+                            logger.error(f'Ошибка:\n{err}\nРеакция - продолжение выполнения скрипта.')
                         else:
-                            raise
+                            raise (err)
 
                 if cmd == 'MouseClickLeft':
                     # Клик левой копкой мыши
@@ -204,10 +211,6 @@ class Player:
                 elif cmd == 'MouseClickDouble':
                     # Двойной клик
                     mouse.click(Btn.left, 2)
-
-                if error:
-                    # После выполнения действия, если была ошибка - транслируем ее
-                    raise ElementNotFound(error)
 
             sleep(self.data.work_settings['s_click_pause']) # Пауза после клика мыши
 

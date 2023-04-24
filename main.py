@@ -34,7 +34,7 @@ from settings import settings
 from commands import CommandClasses
 from components import Editor, DisplayCommands, DataSource, SaveLoad, data
 from tracker_and_player import Tracker, Player
-from exceptions import NoCommandOrStop, DataError
+from exceptions import NoCommandOrStop, DataError, TemplateNotFoundError, ElementNotFound
 from messages import Messages
 from data_types import llist
 
@@ -97,7 +97,6 @@ ToolTip(delete_button, msg="Вернуть", delay=0.5)
 def run_script():
     """ Выполнение скрипта """
     data.script_started = True  # Скрипт работает
-    logger.error('message')
     if data.pointer_command == -1:
         data.pointer_command = 0
     while data.script_started:
@@ -110,9 +109,8 @@ def run_script():
         except NoCommandOrStop as err:
             logger.error(err)
             data.script_started = False
-        except DataError as err:
+        except (DataError, TemplateNotFoundError, ElementNotFound) as err:
             logger.error(err)
-            pass
         except:
             data.script_started = False
             raise

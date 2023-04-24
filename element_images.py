@@ -91,9 +91,9 @@ def save_image(x_point :int, y_point :int) -> str:
     x_point = x_point - x_reg - a
     y_point = y_point - y_reg - a
 
-    cv2.imshow('', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('', image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     # Перевод изображения в оттенки серого
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -145,9 +145,10 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         return (x_point, y_point)
 
     # Получение шаблона
+    if not os.path.exists(f'{settings.path_to_elements}/{name_template}'):
+        raise TemplateNotFoundError('Шаблон с таким именем не найден.')
     template = cv2.imread(f'{settings.path_to_elements}/{name_template}', 0)
-    if not template:
-        raise TemplateNotFoundError('Шаблон с таким именем не найден')
+
     # Сохранить ширину в переменной w и высоту в переменной h шаблона
     w, h = template.shape
 

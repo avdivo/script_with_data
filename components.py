@@ -23,7 +23,8 @@ import logging
 import shutil
 
 from commands import CommandClasses
-from exceptions import NoCommandOrStop, LabelAlreadyExists, DataError, ElementNotFound, LoadError
+from exceptions import NoCommandOrStop, \
+    LabelAlreadyExists, DataError, ElementNotFound, LoadError, TemplateNotFoundError
 from data_types import llist
 from settings import settings
 from tracker_and_player import Player
@@ -81,7 +82,10 @@ class CountingDict(dict):
             if not sum(1 for obj in data.obj_command.values() if hasattr(obj, 'image') and obj.image == img):
                 # Перебираем все команды, если в других этот элемент не используется - удаляем его
                 print(img, '- удален')
-                os.unlink(settings.path_to_elements + img)
+                try:
+                    os.unlink(os.path.join(settings.path_to_elements, img))
+                except Exception as err:
+                    logger.error(f'Удалено. Ошибка при удалении изображений {err}')
 
         else:
             super().__delitem__(key)  # Вызываем базовую реализацию метода
@@ -119,7 +123,7 @@ class DataForWorker:
         self.data_source = None  # dict()  Источник данных {'field': list}
         self.pointers_data_source = None  # dict() Указатели на позицию чтения из поля {'field': n}
 
-        self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатур
+        self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатуры
 
         self.script_started = False  # False - остановит скрипт, True - позволит выполняться
         self.is_listening = False  # False - не работает слушатель, True - работает слушатель
@@ -186,7 +190,6 @@ class DataForWorker:
             self.obj_command[temp] = cmd  # Меняем объект команды под курсором
 
     def run_command(self):
-        error = None
         """ Выполнение очередной команды и переход на следующую"""
         try:
             self.obj_command[self.queue_command[self.pointer_command]].run_command()
@@ -195,36 +198,30 @@ class DataForWorker:
         except DataError as err:
             # Обработка ошибок данных в зависимости от текущих настроек реакции
             if data.work_settings['s_error_no_data'].react == 'stop':
-                raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку данных:\n{err}')
+                raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку данных\n"{err}"')
             elif data.work_settings['s_error_no_data'].react == 'ignore':
-                error = err
+                logger.error(f'Ошибка:\n"{err}"\nРеакция - продолжение выполнения скрипта.')
             else:
                 # Продолжение выполнения скрипта, но с другого места
                 label = data.work_settings['s_error_no_data'].label
                 self.pointer_command = self.work_labels[label.label]
                 raise DataError(f'Ошибка данных:\n{err}\nРеакция - переход к метке "{label}".')
 
-        except ElementNotFound as err:
+        except (ElementNotFound, TemplateNotFoundError) as err:
             # Ошибка связанная с элементами изображения
             if data.work_settings['s_error_no_element'].react == 'stop':
-                raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку:\n{err}')
-            elif data.work_settings['s_error_no_element'].react == 'ignore':
-                error = err
+                raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку \n"{err}"')
             else:
                 # Продолжение выполнения скрипта, но с другого места
                 label = data.work_settings['s_error_no_element'].label
                 self.pointer_command = self.work_labels[label.label]
-                raise DataError(f'Ошибка:\n{err}\nРеакция - переход к метке "{label}".')
+                raise DataError(f'Ошибка\n"{err}"\nРеакция - переход к метке "{label}".')
 
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
             self.pointer_command += 1
             # Между выполнением команд есть регулируемая пауза
             sleep(self.work_settings['s_command_pause'])  # Пауза между командами (всеми)
-
-            if error:
-                # Ошибка данных может не останавливать скрипт, продолжаем его выполнение, но ниже сообщим об ошибке
-                raise DataError(f'Ошибка:\n{error}\nРеакция - продолжение выполнения скрипта.')
         else:
             raise NoCommandOrStop('Нет команд для выполнения.')
 
@@ -417,7 +414,6 @@ class DisplayCommands:
             # Выводим список
             self.tree.insert('', 'end', id, values=(i+1, self.data.obj_command[id]))
         self.tree.selection_set(self.tree.get_children()[data.pointer_command+1])  # Выделяем строку
-        # self.tree.focus_set()
         pass
 
     def clear(self):
