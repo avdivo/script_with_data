@@ -9,7 +9,7 @@
 import os
 from configparser import ConfigParser
 from tkinter import *
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from tkinter import filedialog as fd
 
 from tktooltip import ToolTip
@@ -21,6 +21,7 @@ from random import choice, randint
 import json
 import logging
 import shutil
+import re
 
 from commands import CommandClasses
 from exceptions import NoCommandOrStop, \
@@ -837,9 +838,48 @@ class SaveLoad:
             settings.update_settings()
 
             logger.warning(f'Проект {self.new_project_name} открыт.')
+            self.save_history()  # Сохраняем историю
             self.is_saved = True
+
         except Exception as err:
             raise LoadError(f'Ошибка загрузки проекта {err}')
+
+    def rename_project(self):
+        """ Переименование проекта """
+        try:
+            # Диалоговое окно для ввода имени проекта
+            # создаем диалоговое окно для ввода текста
+            text = simpledialog.askstring("Переименование проекта", "Новое имя проекта:")
+            # Проверка на пустую строку и допустимые символы файловой системы
+            if text is None or text == '':
+                return
+            if not re.match(r'^[a-zA-Z0-9_\-]+$', text):
+                logger.warning('Недопустимое имя проекта.')
+                return
+            # Проверка на существование проекта с таким именем
+            if os.path.exists(os.path.join(self.new_path_to_project, text)):
+                logger.warning('Проект с таким именем уже существует.')
+                return
+
+            # Переименовываем файл скрипта
+            os.rename(os.path.join(settings.path_to_script, f'{settings.project_name}.json'),
+                      os.path.join(settings.path_to_script, f'{text}.json'))
+            # Переименовываем папку проекта
+            os.rename(os.path.join(settings.path_to_project, settings.project_name),
+                      os.path.join(settings.path_to_project, text))
+
+            logger.warning(f'Текущий проект "{settings.project_name}" переименован в "{text}".')
+
+            # Запоминаем новое имя в настройках
+            settings.project_name = text
+            settings.update_settings()
+
+            # Вносим изменения в файл конфигурации
+            self.config_file(action='set', name='text')
+
+        except Exception as err:
+            raise
+            logger.error(f'Ошибка переименования проекта "{err}"')
 
     def dialog_new_project(self, operation='Создание нового проекта'):
         """ Диалоговое окно для создания нового проекта
