@@ -166,7 +166,7 @@ filemenu.add_command(label="Сохранить проект", command=save_load.
 filemenu.add_command(label="Сохранить проект как...", command=save_load.menu_save_as_project)
 filemenu.add_command(label="Переименовать проект", command=save_load.rename_project)
 filemenu.add_separator()
-filemenu.add_command(label="Удалить лишние изображения", command=save_load.menu_save_as_project)
+filemenu.add_command(label="Удалить лишние изображения", command=editor.menu_delete_images)
 filemenu.add_separator()
 filemenu.add_command(label="Выход")
 mainmenu.add_cascade(label="Проект", menu=filemenu)

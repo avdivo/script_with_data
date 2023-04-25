@@ -73,20 +73,20 @@ class CountingDict(dict):
                  if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd']
             llist.labels = names
 
-        elif data.obj_command[key].__class__.__name__ == 'MouseClickLeft' \
-                or data.obj_command[key].__class__.__name__ == 'MouseClickDouble':
-            # Удаление изображений элементов
-            img = data.obj_command[key].image  # Узнаем картинку удаляемой команды
-            super().__delitem__(key)  # Вызываем базовую реализацию метода (удаляем уоманду)
-            if not img:
-                return
-            if not sum(1 for obj in data.obj_command.values() if hasattr(obj, 'image') and obj.image == img):
-                # Перебираем все команды, если в других этот элемент не используется - удаляем его
-                print(img, '- удален')
-                try:
-                    os.unlink(os.path.join(settings.path_to_elements, img))
-                except Exception as err:
-                    logger.error(f'Удалено. Ошибка при удалении изображений {err}')
+        # elif data.obj_command[key].__class__.__name__ == 'MouseClickLeft' \
+        #         or data.obj_command[key].__class__.__name__ == 'MouseClickDouble':
+        #     # Удаление изображений элементов
+        #     img = data.obj_command[key].image  # Узнаем картинку удаляемой команды
+        #     super().__delitem__(key)  # Вызываем базовую реализацию метода (удаляем уоманду)
+        #     if not img:
+        #         return
+        #     if not sum(1 for obj in data.obj_command.values() if hasattr(obj, 'image') and obj.image == img):
+        #         # Перебираем все команды, если в других этот элемент не используется - удаляем его
+        #         print(img, '- удален')
+        #         try:
+        #             os.unlink(os.path.join(settings.path_to_elements, img))
+        #         except Exception as err:
+        #             logger.error(f'Удалено. Ошибка при удалении изображений {err}')
 
         else:
             super().__delitem__(key)  # Вызываем базовую реализацию метода
@@ -341,6 +341,32 @@ class Editor:
         self.display_commands.out_commands()  # Обновляем список
         self.save_load.save_history()  # Сохраняем историю
         self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+
+    def menu_delete_images(self):
+        """ Удаление неиспользуемых изображений элементов.
+
+        В процессе редактирования изображения элементов для координации мыши остаются после удаления самого
+        клика мышью. Это сделано для возможностей истории, чтобы можно было вернуть удаленное действие.
+        Эта функция находит неиспользуемые изображения и удаляет их.
+        """
+        # Составляем список изображений используемых в командах
+        images = []
+        for command in self.data.obj_command.values():
+            if command.__class__.__name__ == 'MouseClickLeft' \
+                            or command.__class__.__name__ == 'MouseClickDouble':
+                images.append(command.image)
+
+        # Просматриваем все изображения в папке и удаляем неиспользуемые
+        i = 0
+        for image in os.listdir(settings.path_to_elements):
+            if image not in images:
+                try:
+                    os.remove(os.path.join(settings.path_to_elements, image))
+                except:
+                    i -= 1
+                i += 1
+
+        logger.warning(f'Удалено {i} изображений элементов')
 
 
 class DisplayCommands:
