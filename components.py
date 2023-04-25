@@ -393,7 +393,13 @@ class DisplayCommands:
         self.tree.place(x=0, y=0)
         self.out_commands()
 
-        self.tree.bind("<<TreeviewSelect>>", self.on_select)
+        self.tree.bind("<Delete>", self.delete)  # Обработка нажатия del на списке
+        self.tree.bind("<<TreeviewSelect>>", self.on_select)  # Обработка выбора строки в списке
+        self.tree.bind("<Control-c>", self.copy)  # Обработка Ctrl+C на списке
+        self.tree.bind("<Control-x>", self.cut)  # Обработка Ctrl+X на списке
+        self.tree.bind("<Control-v>", self.paste)  # Обработка Ctrl+V на списке
+        # Обработка Ctrl+a на списке
+        self.tree.bind("<Control-a>", lambda n: self.tree.selection_set(self.tree.get_children()))
 
         # Рисуем кнопки для работы со списком
         self.list_copy = []  # Список хранит id скопированных строк
@@ -403,21 +409,31 @@ class DisplayCommands:
         self.icon7 = PhotoImage(file="icon/cut.png")
         self.icon8 = PhotoImage(file="icon/paste.png")
         self.icon9 = PhotoImage(file="icon/delete.png")
+        self.icon_up = PhotoImage(file="icon/up.png")
+        self.icon_down = PhotoImage(file="icon/down.png")
 
-        copy_button = Button(frame, command=self.copy, image=self.icon6, width=160, height=34)
-        copy_button.place(x=10, y=10)
+        up_button = Button(frame, command=self.up, image=self.icon_up, width=80, height=34)
+        up_button.place(x=10, y=10)
+        ToolTip(up_button, msg="Копировать команды", delay=0.5)
+
+        copy_button = Button(frame, command=self.copy, image=self.icon6, width=120, height=34)
+        copy_button.place(x=105, y=10)
         ToolTip(copy_button, msg="Копировать команды", delay=0.5)
 
-        cut_button = Button(frame, command=self.cut, image=self.icon7, width=160, height=34)
-        cut_button.place(x=200, y=10)
+        cut_button = Button(frame, command=self.cut, image=self.icon7, width=120, height=34)
+        cut_button.place(x=240, y=10)
         ToolTip(cut_button, msg="Переместить команды", delay=0.5)
 
-        paste_button = Button(frame, command=self.paste, image=self.icon8, width=160, height=34)
-        paste_button.place(x=10, y=58)
+        down_button = Button(frame, command=self.down, image=self.icon_down, width=80, height=34)
+        down_button.place(x=10, y=58)
+        ToolTip(down_button, msg="Копировать команды", delay=0.5)
+
+        paste_button = Button(frame, command=self.paste, image=self.icon8, width=120, height=34)
+        paste_button.place(x=105, y=58)
         ToolTip(paste_button, msg="Вставить команды", delay=0.5)
 
-        delete_button = Button(frame, command=self.delete, image=self.icon9, width=160, height=34)
-        delete_button.place(x=200, y=58)
+        delete_button = Button(frame, command=self.delete, image=self.icon9, width=120, height=34)
+        delete_button.place(x=240, y=58)
         ToolTip(delete_button, msg="Удалить команды", delay=0.5)
 
     def on_select(self, event):
@@ -467,7 +483,7 @@ class DisplayCommands:
         """ Принимает список id строк, возвращает их номера str """
         return [str(self.data.queue_command.index(i)+1) for i in ids]
 
-    def copy(self):
+    def copy(self, event=None):
         """ Обработчик кнопки Копировать """
         self.list_copy = self.get_selected()  # id выделенных команд
         if not self.list_copy:
@@ -477,7 +493,7 @@ class DisplayCommands:
                               f'\nСтроки будут вставлены после выделенной строки.')
         self.operation = 'copy'
 
-    def cut(self):
+    def cut(self, event=None):
         """ Обработчик кнопки Вырезать """
         self.list_copy = self.get_selected()  # id выделенных команд
         if not self.list_copy:
@@ -488,7 +504,7 @@ class DisplayCommands:
                           f'\nСкопированные строки будут удалены')
         self.operation = 'cut'
 
-    def paste(self):
+    def paste(self, event=None):
         """ Обработчик кнопки Вставить
 
         Вставка при копировании и переносе происходит по разному. При копировании создается новый
@@ -551,7 +567,7 @@ class DisplayCommands:
             logger.warning('Операция отменена.')
             pass
 
-    def delete(self):
+    def delete(self, event=None):
         """ Обработчик кнопки Удалить """
         list_del = self.get_selected()  # id выделенных команд
         if not list_del:
@@ -567,6 +583,39 @@ class DisplayCommands:
         self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
         self.out_commands()  # Обновляем список
+
+    def up(self, event=None):
+        """ Перемещение выделенных строк вверх
+
+        Используя вырезать и вставить переносим выделенные строки на 1 вверх,
+        после вставки выделяем перенесенные строки на новых местах.
+        """
+        first_selected = self.data.queue_command.index(self.get_selected()[0])  # Индекс первой выделенной строки
+        if first_selected == 0:
+            return
+        self.cut()  # Вырезаем выделенные строки
+        # Создаем копию списка выделенных строк
+        list_copy = self.list_copy.copy()
+        self.data.pointer_command = first_selected - 2  # Устанавливаем указатель перед верхней строкой
+        self.paste()  # Вставляем выделенные строки
+        self.tree.selection_set(list_copy)  # Выделяем перенесенные строки
+        self.save_load.save_history()  # Сохраняем историю
+        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+
+
+    def down(self, event=None):
+        """ Перемещение выделенных строк вниз """
+        first_selected = self.data.queue_command.index(self.get_selected()[0])  # Индекс первой выделенной строки
+        last_selected = self.data.queue_command.index(self.get_selected()[-1])  # Индекс последней выделенной строки
+        if last_selected == len(self.data.queue_command) - 1:
+            return
+        self.cut()
+        list_copy = self.list_copy.copy()
+        self.data.pointer_command = first_selected  # Устанавливаем указатель на первую выделенную строку
+        self.paste()
+        self.tree.selection_set(list_copy)
+        self.save_load.save_history()  # Сохраняем историю
+        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
 
 class DataSource:

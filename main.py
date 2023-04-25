@@ -25,7 +25,7 @@
 import os
 from configparser import ConfigParser
 from tkinter import *
-from tkinter import ttk
+from tkinter import messagebox
 from tktooltip import ToolTip
 import logging
 
@@ -41,6 +41,11 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
+    if not save_load.is_saved:
+        # Если проект не сохранен, то предложить сохранить проект
+        if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
+            save_load.save_project()
+
     save_load.config_file(action='set', name=settings.project_name,
                           path=settings.path_to_project, data=data_source.data_source_file)
     root.destroy()
@@ -168,7 +173,7 @@ filemenu.add_command(label="Переименовать проект", command=sa
 filemenu.add_separator()
 filemenu.add_command(label="Удалить лишние изображения", command=editor.menu_delete_images)
 filemenu.add_separator()
-filemenu.add_command(label="Выход")
+filemenu.add_command(label="Выход", command=on_closing)
 mainmenu.add_cascade(label="Проект", menu=filemenu)
 
 menu_data_source = Menu(mainmenu, tearoff=0)
