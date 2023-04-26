@@ -1081,6 +1081,7 @@ class SaveLoad:
         записи уничтожаются по мере добавления новых. Записи добавляются после совершения операций.
         """
         state = self.data_preparation()
+        print(state)
         selected = self.display_commands.get_selected()  # Находим выделенные строки
         # Определяем их номера в списке и записываем в историю
         state['selected'] = [self.display_commands.tree.index(item) for item in selected]
@@ -1097,7 +1098,13 @@ class SaveLoad:
             state = self.history[self.history_pointer]
             self.change_script_and_settings(state)  # Заменяем скрипт и настройки
             # Получаем номера выделенных строк, формируем список индексов в списке и выделяем
-            selected = [self.display_commands.tree.get_children()[item] for item in state['selected'] if item != 'zero']
+            selected = []
+            for item in state['selected']:
+                try:
+                    selected.append(self.display_commands.tree.get_children()[item])
+                except IndexError:
+                    # Предотвращаем ошибки если не найдет индекса
+                    pass
             if not selected:
                 selected = ['zero']
             self.display_commands.tree.selection_set(selected)

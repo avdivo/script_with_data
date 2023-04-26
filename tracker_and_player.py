@@ -78,8 +78,10 @@ class Tracker:
             # self.listener_kb.join()
             self.is_listening = False
             self.data.is_listening = False
-            self.save_load.save_history()  # Сохраняем историю
             self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+            # Сохраняем историю задержкой для фиксации последней команды
+            # TODO Возможно задержку нужно корректировать в зависимости от пауз
+            self.root.after(500, self.save_load.save_history)
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
