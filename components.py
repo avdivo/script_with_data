@@ -157,13 +157,14 @@ class DataForWorker:
         """ Добавление новой команды
 
         Принимает объект команды
-
+        Возвращает id команды
         """
         key = self.next_id()  # Получаем новый id
         try:
             self.obj_command[key] = cmd  # Добавляем объект в dict
             self.pointer_command += 1  # Строка добавляется в позицию за указателем и на нее ставим указатель
             self.queue_command.insert(self.pointer_command, key)  # Добавляем id в очередь
+            return key  # Возвращаем id команды
         except LabelAlreadyExists as err:
             # При неудачном добавлении в случае совпадения имен блоков и меток
             # добавление отменяется
@@ -392,7 +393,7 @@ class DisplayCommands:
         self.tree.column("#2", stretch=NO, width=300)
         self.tree.place(x=0, y=0)
         self.out_commands()
-
+        # Выделить третью строку в списке
         self.tree.bind("<Delete>", self.delete)  # Обработка нажатия del на списке
         self.tree.bind("<<TreeviewSelect>>", self.on_select)  # Обработка выбора строки в списке
         self.tree.bind("<Control-c>", self.copy)  # Обработка Ctrl+C на списке
@@ -518,6 +519,12 @@ class DisplayCommands:
             # имени метки или блока. В этом случае будет возвращено исключение.
             # При копировании нужно сгенерировать новое название метки и изменить его,
             # после чего повторить попытку добавления команды.
+            list_select = []  # Запишем сюда вставленные строки, чтобы выделить их после вставления
+            # Строки будут вставлены за последней выделенной строкой, определяем ее
+            if self.get_selected():
+                data.pointer_command = self.data.queue_command.index(self.get_selected()[-1])
+            else:
+                data.pointer_command = -1
             mess = 'Операция выполнена успешно.'
             if self.operation == 'copy':
                 # Копирование элементов
@@ -531,10 +538,9 @@ class DisplayCommands:
                     while ok:
                         try:
                             # Вставляем скопированные команды
-                            self.data.add_new_command(obj)
+                            key = self.data.add_new_command(obj)
+                            list_select.append(key)  # Записываем id вставленной команды
                             ok = False  # Операция прошла успешно
-                            self.save_load.save_history()  # Сохраняем историю
-                            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
                         except LabelAlreadyExists:
                             # Добавление команды не выполнено по причине дублирования имени метки или блока
@@ -552,11 +558,13 @@ class DisplayCommands:
                 for i, elem in enumerate(elements):
                     self.data.queue_command.insert(self.data.pointer_command+1+i, elem)
 
+                list_select = self.list_copy.copy()  # Список строк для выделения
                 # Очищаем данные операции
                 self.list_copy = []
                 self.operation = ''
 
             self.out_commands()  # Обновляем список
+            self.tree.selection_set(list_select)  # Выделяем вставленные строки
             self.save_load.save_history()  # Сохраняем историю
             self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
@@ -590,32 +598,29 @@ class DisplayCommands:
         Используя вырезать и вставить переносим выделенные строки на 1 вверх,
         после вставки выделяем перенесенные строки на новых местах.
         """
-        first_selected = self.data.queue_command.index(self.get_selected()[0])  # Индекс первой выделенной строки
-        if first_selected == 0:
-            return
+        # Определяем индекс строки куда вставлять
+        try:
+            where_to_insert = self.data.queue_command.index(self.get_selected()[0]) - 2
+            if where_to_insert < -1:
+                return
+        except:
+            where_to_insert = -1
         self.cut()  # Вырезаем выделенные строки
-        # Создаем копию списка выделенных строк
-        list_copy = self.list_copy.copy()
-        self.data.pointer_command = first_selected - 2  # Устанавливаем указатель перед верхней строкой
+        self.tree.selection_set(self.tree.get_children()[where_to_insert+1])  # Выделяем строку куда вставлять
         self.paste()  # Вставляем выделенные строки
-        self.tree.selection_set(list_copy)  # Выделяем перенесенные строки
-        self.save_load.save_history()  # Сохраняем историю
-        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
-
 
     def down(self, event=None):
         """ Перемещение выделенных строк вниз """
-        first_selected = self.data.queue_command.index(self.get_selected()[0])  # Индекс первой выделенной строки
-        last_selected = self.data.queue_command.index(self.get_selected()[-1])  # Индекс последней выделенной строки
-        if last_selected == len(self.data.queue_command) - 1:
+        all_selected =self.get_selected()
+        if not all_selected:
+            return
+        where_to_insert = self.data.queue_command.index(self.get_selected()[0]) + 1 # Индекс строки куда вставлять
+        last_index = self.data.queue_command.index(self.get_selected()[-1])  # Индекс последней выделенной строки
+        if last_index == len(self.data.queue_command) - 1:
             return
         self.cut()
-        list_copy = self.list_copy.copy()
-        self.data.pointer_command = first_selected  # Устанавливаем указатель на первую выделенную строку
+        self.tree.selection_set(self.tree.get_children()[where_to_insert])  # Выделяем строку куда вставлять
         self.paste()
-        self.tree.selection_set(list_copy)
-        self.save_load.save_history()  # Сохраняем историю
-        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
 
 
 class DataSource:
@@ -1075,8 +1080,12 @@ class SaveLoad:
         История изменений сохраняется в свойстве self.history. Имеет лимит записей, старые
         записи уничтожаются по мере добавления новых. Записи добавляются после совершения операций.
         """
-        self.history.append(self.data_preparation())
-        self.history_pointer = len(self.history)  # Указатель на последнюю запись
+        state = self.data_preparation()
+        selected = self.display_commands.get_selected()  # Находим выделенные строки
+        # Определяем их номера в списке и записываем в историю
+        state['selected'] = [self.display_commands.tree.index(item) for item in selected]
+        self.history.append(state)
+        self.history_pointer = len(self.history)-1  # Указатель истории на последнюю запись
 
     def undo_button(self):
         """ Отмена последнего изменения """
@@ -1085,8 +1094,14 @@ class SaveLoad:
 
         if self.history_pointer > 0:
             self.history_pointer -= 1
-            self.change_script_and_settings(self.history[self.history_pointer])  # Заменяем скрипт и настройки
-            logger.warning('Отмена изменений.')
+            state = self.history[self.history_pointer]
+            self.change_script_and_settings(state)  # Заменяем скрипт и настройки
+            # Получаем номера выделенных строк, формируем список индексов в списке и выделяем
+            selected = [self.display_commands.tree.get_children()[item] for item in state['selected']]
+            if not  selected:
+                selected = ['zero']
+            self.display_commands.tree.selection_set(selected)
+            logger.warning(f'Состояние {self.history_pointer+1}')
 
     def return_button(self):
         """ Возврат к более позднему изменению (отмененному ранее) """
@@ -1094,5 +1109,11 @@ class SaveLoad:
             return  # Возврат невозможен, если запущен скрипт или слушатель или указатель на последней записи
 
         self.history_pointer += 1
-        self.change_script_and_settings(self.history[self.history_pointer])  # Заменяем скрипт и настройки
-        logger.warning('Возврат изменений.')
+        state = self.history[self.history_pointer]
+        self.change_script_and_settings(state)  # Заменяем скрипт и настройки
+        # Получаем номера выделенных строк, формируем список индексов в списке и выделяем
+        selected = [self.display_commands.tree.get_children()[item] for item in state['selected']]
+        if not selected:
+            selected = ['zero']
+        self.display_commands.tree.selection_set(selected)
+        logger.warning(f'Состояние {self.history_pointer+1}')
