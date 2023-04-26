@@ -1097,8 +1097,8 @@ class SaveLoad:
             state = self.history[self.history_pointer]
             self.change_script_and_settings(state)  # Заменяем скрипт и настройки
             # Получаем номера выделенных строк, формируем список индексов в списке и выделяем
-            selected = [self.display_commands.tree.get_children()[item] for item in state['selected']]
-            if not  selected:
+            selected = [self.display_commands.tree.get_children()[item] for item in state['selected'] if item != 'zero']
+            if not selected:
                 selected = ['zero']
             self.display_commands.tree.selection_set(selected)
             logger.warning(f'Состояние {self.history_pointer+1}')
