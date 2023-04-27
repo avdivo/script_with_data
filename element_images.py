@@ -72,7 +72,8 @@ def save_image(x_point :int, y_point :int) -> str:
 
     # Перебор сохраненных элементов, был ли ранее такой сохранен
     for name in os.listdir(settings.path_to_elements):
-        template = cv2.imread(f'{settings.path_to_elements}/{name}', 0)
+        # template = cv2.imread(f'{settings.path_to_elements}/name}', 0)
+        template = cv2.imread(os.path.join(settings.path_to_elements, name), 0)
         # Проверяем, что шаблон не полностью белый
         if np.mean(template) < 250:
             # Операция сопоставления
@@ -121,7 +122,8 @@ def save_image(x_point :int, y_point :int) -> str:
     ROI = image[y:y+h, x:x+w]
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     filename = "_".join([BASENAME, suffix])  # e.g. 'mylogfile_120508_171442'
-    cv2.imwrite(f'{settings.path_to_elements}/{filename}.png', ROI)
+    # cv2.imwrite(f'{settings.path_to_elements}/{filename}.png', ROI)
+    cv2.imwrite(os.path.join(settings.path_to_elements, f'{filename}.png'), ROI)
 
     # print(ROI.set_printoptions(threshold=ROI.nan))
 
@@ -145,9 +147,11 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         return (x_point, y_point)
 
     # Получение шаблона
-    if not os.path.exists(f'{settings.path_to_elements}/{name_template}'):
+    # if not os.path.exists(f'{settings.path_to_elements}/{name_template}'):
+    if not os.path.exists(os.path.join(settings.path_to_elements, name_template)):
         raise TemplateNotFoundError('Шаблон с таким именем не найден.')
-    template = cv2.imread(f'{settings.path_to_elements}/{name_template}', 0)
+    # template = cv2.imread(f'{settings.path_to_elements}/{name_template}', 0)
+    template = cv2.imread(os.path.join(settings.path_to_elements, name_template), 0)
 
     # Сохранить ширину в переменной w и высоту в переменной h шаблона
     w, h = template.shape
