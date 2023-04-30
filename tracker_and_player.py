@@ -37,6 +37,7 @@ class Tracker:
         self.listener_kb = None  # Слушатель клавиатуры
         self.is_listening = False  # Слушатели выключены
         self.img = None  # Хранит изображение под курсором при последнем клике
+        self.pressing_keys_set = set()  # Множество нажатых клавиш (для недопущения автоповтора)
 
         # Кнопки управления записью
         self.icon1 = PhotoImage(file="icon/record.png")
@@ -63,6 +64,8 @@ class Tracker:
 
         self.is_listening = True  # Слушатели включены
         self.data.is_listening = True  # Дублируем в data
+
+        self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
@@ -117,6 +120,11 @@ class Tracker:
     def on_press(self, key=None):
         if not self.is_listening:
             return
+        if key in self.pressing_keys_set:
+            # Если клавиша уже нажата, то ничего не делаем
+            return
+        self.pressing_keys_set.add(key)  # Добавляем нажатую клавишу в множество
+
         # Получаем название клавиши одним словом или буквой
         try:
             out = key.char
@@ -136,6 +144,8 @@ class Tracker:
     def on_release(self, key):
         if not self.is_listening:
             return
+        self.pressing_keys_set.remove(key)  # Удаляем клавишу из множества
+
         # Получаем название клавиши одним словом или буквой
         try:
             out = key.char

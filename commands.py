@@ -248,16 +248,14 @@ class KeyDown(CommandClasses):
         """ Принимает название клавиши и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
-        self.values = ['backspace', 'tab', 'enter', 'shift', 'ctrl', 'alt', 'pause', 'caps_lock', 'esc', 'space',
-                       'page_up', 'page_down', 'end', 'home', 'left', 'up', 'right', 'down', 'insert', 'delete',
-                       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                       's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'numpad_0', 'numpad_1', 'numpad_2', 'numpad_3',
-                       'numpad_4', 'numpad_5', 'numpad_6', 'numpad_7', 'numpad_8', 'numpad_9', 'multiply', 'add',
-                       'subtract', 'decimal', 'divide', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10',
-                       'f11', 'f12', 'num_lock', 'scroll_lock', 'left_shift', 'right_shift', 'left_ctrl', 'right_ctrl',
-                       'left_alt', 'right_alt', 'menu', 'print_screen', 'left_bracket', 'right_bracket', 'semicolon',
-                       'comma', 'period', 'quote', 'forward_slash', 'back_slash', 'equal', 'hyphen', 'space']
+        self.values = ['backspace', 'tab', 'enter', 'escape', 'space', 'shift', 'shift_r', 'shift_l', 'control',
+                        'ctrl', 'ctrl_r', 'ctrl_l', 'alt', 'alt_r', 'alt_l', 'pause', 'caps_lock', 'scroll_lock',
+                        'print_screen', 'insert', 'delete', 'home', 'end', 'page_up', 'page_down', 'left', 'up',
+                        'right', 'down', 'menu', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11',
+                        'f12', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
+                        'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з',
+                        'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
+                        'ъ', 'ы', 'ь', 'э']
         self.value = args[0]
         if self.value in self.values:
             self.value_var = StringVar(value=self.value)
