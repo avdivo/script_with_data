@@ -65,6 +65,7 @@ class Tracker:
         self.is_listening = True  # Слушатели включены
         self.data.is_listening = True  # Дублируем в data
 
+        self.ctrl_pressed = False  # Ctrl не нажата
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
     def stop_btn(self):
@@ -85,8 +86,8 @@ class Tracker:
             # Сохраняем историю задержкой для фиксации последней команды
             # TODO Возможно задержку нужно корректировать в зависимости от пауз
             # self.display_commands.delete()  # Удаляем последнюю команду (это остановка записи)
-            self.root.after(800, self.display_commands.delete)
-            self.root.after(1000, self.save_load.save_history)
+            self.root.after(1000, self.display_commands.delete)
+            self.root.after(800, self.save_load.save_history)
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
@@ -149,7 +150,7 @@ class Tracker:
             self.ctrl_pressed = False
         if not self.is_listening:
             return
-        self.pressing_keys_set.remove(key)  # Удаляем клавишу из множества
+        self.pressing_keys_set.discard(key)  # Удаляем клавишу из множества
 
         # Получаем название клавиши одним словом или буквой
         try:
