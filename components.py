@@ -214,7 +214,6 @@ class DataForWorker:
         self.top.resizable(width=False, height=False)  # Запрет изменения размеров
         self.top.geometry(f'{700}x{325}+{0}+{0}')  # Рисуем окно
 
-        # self.top.grab_set()  # Захват фокуса
         self.top.focus_set()  # Установка фокуса
         self.top.bind('<Escape>', lambda event: self.top.destroy())  # Закрытие по Esc
 
@@ -230,9 +229,6 @@ class DataForWorker:
         while self.top.winfo_exists():
             self.top.update()
             sleep(0.1)
-
-
-
 
     def run_command(self):
         """ Выполнение очередной команды и переход на следующую"""
@@ -1127,7 +1123,6 @@ class SaveLoad:
         записи уничтожаются по мере добавления новых. Записи добавляются после совершения операций.
         """
         state = self.data_preparation()
-        print(state)
         selected = self.display_commands.get_selected()  # Находим выделенные строки
         # Определяем их номера в списке и записываем в историю
         state['selected'] = [self.display_commands.tree.index(item) for item in selected]

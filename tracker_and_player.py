@@ -84,7 +84,9 @@ class Tracker:
             self.save_load.is_saved = False  # Сбрасываем флаг сохранения
             # Сохраняем историю задержкой для фиксации последней команды
             # TODO Возможно задержку нужно корректировать в зависимости от пауз
-            self.root.after(500, self.save_load.save_history)
+            # self.display_commands.delete()  # Удаляем последнюю команду (это остановка записи)
+            self.root.after(800, self.display_commands.delete)
+            self.root.after(1000, self.save_load.save_history)
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
