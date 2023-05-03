@@ -53,6 +53,7 @@ def on_closing():
 
 # Интерфейс
 root = Tk()
+data.root = root  # Передаем ссылку сылку на главное окно
 
 root.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
 

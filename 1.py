@@ -1,59 +1,53 @@
-import numpy as np
-
-def fill(matrix, x, y):
-    """ Обход точек и формирование списка смещения каждой точки от заданной """
-    start_x, start_y = x, y
-    out = []
-    stack = [(x, y)]
-    while stack:
-        x, y = stack.pop()
-        if matrix[x][y] == 1:
-            matrix[x][y] = 2
-            out.append((x - start_x, y - start_y))
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    if dx == dy == 0:
-                        continue
-                    new_x = x + dx
-                    new_y = y + dy
-                    if 0 <= new_x < matrix.shape[0] and 0 <= new_y < matrix.shape[1]:
-                        stack.append((new_x, new_y))
-    return out
-
-# Начальный рисунок
-matrix = np.array([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 1, 1, 1, 1, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0]
-
-])
-
-# Найти координаты верхней левой точки объекта в матрице
-for x in range(matrix.shape[0]):
-    for y in range(matrix.shape[1]):
-        if matrix[x][y] == 1:
-            break
-    else:
-        continue
-    break
+import tkinter as tk
+from tkinter import ttk
+from threading import Thread
+import time
 
 
-offset = fill(matrix, x, y)  # Список смещений точек от начальной
-print(offset)  # Как выглядит список смещений
+class MainApp:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Main App")
 
-# Восстановить рисунок из списка смещений в матрице размера 20х20
-# со смещением начальной точки 5, 5
+        self.start_button = ttk.Button(self.master, text="Start", command=self.start_thread)
+        self.start_button.pack(padx=10, pady=10)
 
-matrix = np.zeros((20, 20), dtype=int)
-x, y = 5, 5
-for dx, dy in offset:
-    matrix[x + dx][y + dy] = 1
+        self.message_count = 0
+        self.stop_event = False
 
-print(matrix)
+    def start_thread(self):
+        thread = Thread(target=self.thread_function)
+        thread.start()
+
+    def thread_function(self):
+        while not self.stop_event:
+            self.message_count += 1
+            print(f"Message {self.message_count}")
+            time.sleep(3)
+            if self.message_count == 3:
+                self.stop_event = True
+                self.open_modal()
+
+    def open_modal(self):
+        modal_window = tk.Toplevel(self.master)
+        modal_window.title("Modal Window")
+
+        modal_label = ttk.Label(modal_window, text="Messages stopped")
+        modal_label.pack(padx=10, pady=10)
+
+        ok_button = ttk.Button(modal_window, text="OK", command=self.close_modal)
+        ok_button.pack(padx=10, pady=10)
+
+        modal_window.grab_set()
+
+    def close_modal(self):
+        self.master.focus_set()
+        self.master.grab_set()
+        self.master.lift()
+        self.master.focus_force()
+        self.master.grab_release()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MainApp(root)
+    root.mainloop()

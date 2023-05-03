@@ -9,7 +9,7 @@
 import os
 from configparser import ConfigParser
 from tkinter import *
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox, simpledialog, Toplevel
 from tkinter import filedialog as fd
 
 from tktooltip import ToolTip
@@ -24,6 +24,7 @@ import shutil
 import re
 
 from commands import CommandClasses
+from data_input import DataInput
 from exceptions import NoCommandOrStop, \
     LabelAlreadyExists, DataError, ElementNotFound, LoadError, TemplateNotFoundError
 from data_types import llist
@@ -100,6 +101,7 @@ class DataForWorker:
     очередь выполнения, объекты команд, стек для циклов и подпрограмм, источник данных.
 
     """
+    root = None  # Ссылка на главное окно программы
 
     def __init__(self):
         """ Инициализация
@@ -191,6 +193,55 @@ class DataForWorker:
             del self.obj_command[temp]
             self.obj_command[temp] = cmd  # Меняем объект команды под курсором
 
+    def stop_for_dialog(self, mess):
+        """ Остановка скрипта для диалога. Получение указаний от пользователя
+
+        Выводится модальное окно, которое предлагает пользователю выбор действия:
+        - Продолжить выполнение скрипта
+        - Остановить скрипт
+        - Перейти к указанной метке или блоку
+        - Перезапустить скрипт
+        """
+        # Выводим модальное окно размером 300х200 с заголовком и текстовым сообщением о причине остановки выполнения
+        # скрипта.
+        # Ниже выпадающий список с метками и блоками и кнопкой Перейти.
+        # Еще ниже кнопки Перезапустить, Остановить, Продолжить.
+        # При закрытии окна (можно по Esc), скрипт продолжает выполняться.
+
+        self.top = Toplevel(self.root)  # Новое окно
+        self.top.title("Остановка скрипта для диалога")  # Заголовок
+        # self.top.transient(self.root)  # Поверх окна
+
+        # Размер окна
+        win_w = 700
+        win_h = 325
+        # Размер экрана
+        w = self.root.winfo_screenwidth()
+        h = self.root.winfo_screenheight()
+        # print(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')
+        self.top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
+        self.top.resizable(width=False, height=False)  # Запрет изменения размеров
+
+        # self.top.grab_set()  # Захват фокуса
+        self.top.focus_set()  # Установка фокуса
+        self.top.bind('<Escape>', lambda event: self.top.destroy())  # Закрытие по Esc
+
+        # Выпадающий список с метками и блоками
+        self.widget = DataInput.CreateInput(self.top, llist(), x=10, y=71)  # Виджеты для разных типов данных
+
+
+        self.top.grab_set()
+        # self.top.focus_set()
+        # self.top.wait_window()
+        while not self.top.winfo_ismapped():
+            self.top.update()
+        while self.top.winfo_exists():
+            self.top.update()
+            sleep(0.1)
+
+
+
+
     def run_command(self):
         """ Выполнение очередной команды и переход на следующую"""
         try:
@@ -218,6 +269,9 @@ class DataForWorker:
                 label = data.work_settings['s_error_no_element'].label
                 self.pointer_command = self.work_labels[label.label]
                 raise DataError(f'Ошибка\n"{err}"\nРеакция - переход к метке "{label}".')
+
+
+        # self.stop_for_dialog('Остановка скрипта для диалога')
 
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
