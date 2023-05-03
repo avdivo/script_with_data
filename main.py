@@ -142,6 +142,7 @@ tracker.display_commands = display_commands  # И на список команд
 
 
 player = Player(root, run_script)
+player.tracker = tracker
 player.data = data
 data.func_execute_event = player.run_command  # Назначаем функцию, которая будет выполнять события мыши и клавиатуры
 

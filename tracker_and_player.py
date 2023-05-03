@@ -118,6 +118,13 @@ class Tracker:
             self.to_export(cmd='MouseClickRight', val=[args[0], args[1]], des='')
 
     def on_press(self, key=None):
+        """ Обработка события ажатия клавиши """
+        if key == Key.esc and self.ctrl_pressed:
+            # Остановка записи или воспроизведения при нажатии ctrl+esc
+            self.stop_btn()
+            return False
+        elif key == Key.ctrl:
+            self.ctrl_pressed = True
         if not self.is_listening:
             return
         if key in self.pressing_keys_set:
@@ -134,14 +141,10 @@ class Tracker:
         # TODO периодически возникают ошибки при неправильны названиях клавиш
         # TODO как-то предотвратить запись комбинаций остановки записи
         self.to_export(cmd='KeyDown', val=[out], des='')
-        if key == Key.esc and self.ctrl_pressed:
-            # Выход из программы при нажатии ctrl+esc
-            self.stop_btn()
-            return False
-        elif key == Key.ctrl:
-            self.ctrl_pressed = True
 
     def on_release(self, key):
+        if key == Key.ctrl:
+            self.ctrl_pressed = False
         if not self.is_listening:
             return
         self.pressing_keys_set.remove(key)  # Удаляем клавишу из множества
@@ -153,13 +156,12 @@ class Tracker:
             out = str(key)[4:]
         # Отправляем на создание объекта команды и запись
         self.to_export(cmd='KeyUp', val=[out], des='')
-        if key == Key.ctrl:
-            self.ctrl_pressed = False
 
 
 class Player:
     """ Воспроизведение события мыши или клавиатуры """
     data = None  # Ссылка на класс с данными о скрипте
+    tracker = None  # Ссылка на класс прослушивания клавиатуры и мыши
 
     def __init__(self, root, run_script):
         """ Принимает ссылку на главное окно и функцию, которую нужно запустить для выполнения скрипта """
@@ -174,10 +176,15 @@ class Player:
         ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
     def run_thread(self):
+        """ Запуск функции выполнения скрипта в отдельном потоке """
         if not len(self.data.queue_command):
             logger.warning('Нет команд для выполнения')
             return
-        """ Запуск функции выполнения скрипта в отдельном потоке """
+
+        # Запуск слушателя клавиатуры для остановки
+        self.tracker.listener_kb = KeyboardListener(on_press=self.tracker.on_press, on_release=self.tracker.on_release)
+        self.tracker.listener_kb.start()
+
         self.data.work_settings = settings.get_dict_settings()  # Рабочая копия настроек
         self.data.work_labels = dict()  # Заполняем словарь меток и названий блоков
         for key, obj in self.data.obj_command.items():

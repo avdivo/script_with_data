@@ -210,17 +210,9 @@ class DataForWorker:
 
         self.top = Toplevel(self.root)  # Новое окно
         self.top.title("Остановка скрипта для диалога")  # Заголовок
-        # self.top.transient(self.root)  # Поверх окна
 
-        # Размер окна
-        win_w = 700
-        win_h = 325
-        # Размер экрана
-        w = self.root.winfo_screenwidth()
-        h = self.root.winfo_screenheight()
-        # print(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')
-        self.top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
         self.top.resizable(width=False, height=False)  # Запрет изменения размеров
+        self.top.geometry(f'{700}x{325}+{0}+{0}')  # Рисуем окно
 
         # self.top.grab_set()  # Захват фокуса
         self.top.focus_set()  # Установка фокуса
