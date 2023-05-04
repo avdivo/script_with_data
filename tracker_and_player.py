@@ -73,6 +73,7 @@ class Tracker:
         if self.data.script_started:
             # Остановка выполнения скрипта
             self.data.script_started = False
+            logger.error('Пользователь остановил выполнение скрипта.')
             return
         if self.is_listening:
             # Остановка записи

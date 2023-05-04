@@ -294,10 +294,6 @@ class DataForWorker:
                 self.pointer_command = self.work_labels[label.label]
                 raise DataError(f'Ошибка\n"{err}"\nРеакция - переход к метке "{label}".')
 
-        # self.stop_for_dialog('Остановка скрипта для диалога')
-        # if self.modal_stop:
-        #     raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
-
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди
             self.pointer_command += 1

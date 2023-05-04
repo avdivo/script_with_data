@@ -695,3 +695,16 @@ class StopCmd(CycleEnd):
     def run_command(self):
         """ Выполнение команды """
         raise NoCommandOrStop(f'Выполнена команда Стоп.')
+
+
+class DialogCmd(CycleEnd):
+    """ Остановка скрипта и вывод диалогового окна пользователю для выбора дальнейших действий """
+    command_name = 'Диалоговое окно'
+    command_description = 'Остановить выполнение скрипта. Спросить у пользователя что делать дальше.'
+    for_sort = 145
+
+    def run_command(self):
+        """ Выполнение команды """
+        self.data.stop_for_dialog('Скрипт остановлен для выбора дальнейших действий.')
+        if self.data.modal_stop:
+            raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
