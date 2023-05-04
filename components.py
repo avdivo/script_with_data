@@ -136,6 +136,10 @@ class DataForWorker:
         # Заполняется перед выполнением скрипта
         self.work_labels = None
 
+        # Обеспечение работы модального окна диалога с пользователем
+        self.modal_stop = False  # Если в модальном окне диалога с пользователем нажато Остановка
+        self.widget = None  # Виджет пользовательского типа llist (метка для перехода)
+
     def next_id(self):
         """ Генерирует id новой команды """
         self.id_command += 1
@@ -208,18 +212,31 @@ class DataForWorker:
         # Еще ниже кнопки Перезапустить, Остановить, Продолжить.
         # При закрытии окна (можно по Esc), скрипт продолжает выполняться.
 
+        self.modal_stop = False  # Сообщаем главной программе, продолжать выполнение скрипта
+
         self.top = Toplevel(self.root)  # Новое окно
         self.top.title("Остановка скрипта для диалога")  # Заголовок
 
         self.top.resizable(width=False, height=False)  # Запрет изменения размеров
-        self.top.geometry(f'{700}x{325}+{0}+{0}')  # Рисуем окно
+        self.top.geometry(f'{500}x{200}+{0}+{0}')  # Рисуем окно
+
+        m = Message(self.top, width=500, anchor='w', text=mess)  # Сообщение о причине остановки
+        m.place(x=0, y=10)
+        m.config(foreground='#0000FF')
+
+        # Выпадающий список с метками и блоками и кнопкой Перейти
+        frame = LabelFrame(self.top, width=480, height=70, text='Перейти к метке или блоку', foreground='#083863')
+        frame.place(x=10, y=70)
+        self.widget = DataInput.CreateInput(frame, llist(), x=5, y=10)  # Виджет для типа данных меток
+        Button(frame, text='Перейти', command=self.goto_label).place(x=380, y=6)  # Кнопка для перехода к метке или блоку
+
+        # 3 кнопки для действий
+        Button(self.top, text='Перезапустить', width=15, command=self.restart).place(x=10, y=160)
+        Button(self.top, text='Остановить', width=15, command=self.stop_script).place(x=175, y=160)
+        Button(self.top, text='Продолжить', width=15, command=self.top.destroy).place(x=340, y=160)
 
         self.top.focus_set()  # Установка фокуса
         self.top.bind('<Escape>', lambda event: self.top.destroy())  # Закрытие по Esc
-
-        # Выпадающий список с метками и блоками
-        self.widget = DataInput.CreateInput(self.top, llist(), x=10, y=71)  # Виджеты для разных типов данных
-
 
         self.top.grab_set()
         # self.top.focus_set()
@@ -229,6 +246,25 @@ class DataForWorker:
         while self.top.winfo_exists():
             self.top.update()
             sleep(0.1)
+
+    def restart(self):
+        """ Перезапуск скрипта сначала """
+        self.pointer_command = -1
+        self.top.destroy()
+
+    def stop_script(self):
+        """ Остановить скрипт """
+        self.modal_stop = True  # Остановить скрипт
+        self.top.destroy()
+
+    def goto_label(self):
+        """ Запуск скрипта с указанной метки или блока """
+        llist_value = self.widget.result  # Результат выбора метки для перехода в формате llist
+        if llist_value:
+            # Создаем объект команды перехода и просто выполняем ее
+            cmd = CommandClasses.create_command(llist_value, command='RunCmd')
+            cmd.run_command()
+            self.top.destroy()
 
     def run_command(self):
         """ Выполнение очередной команды и переход на следующую"""
@@ -258,8 +294,9 @@ class DataForWorker:
                 self.pointer_command = self.work_labels[label.label]
                 raise DataError(f'Ошибка\n"{err}"\nРеакция - переход к метке "{label}".')
 
-
         # self.stop_for_dialog('Остановка скрипта для диалога')
+        # if self.modal_stop:
+        #     raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
 
         if self.pointer_command+1 < len(self.queue_command):
             # Еще есть команды в очереди

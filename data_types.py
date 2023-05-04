@@ -30,6 +30,9 @@ class llist:
     def __json__(self):
         return self.__str__()
 
+    def __bool__(self):
+        return bool(self.label)
+
     @classmethod
     def set_list(cls, l):
         """ Записываем метки в список класса """
