@@ -103,6 +103,17 @@ class FieldInt(DataInput):
         # self.widget.configure(placeholder='Введите текст')
         self.widget.place(x=self.x, y=self.y)
         self.widget.bind('<Return>', self.func_event)  # Ловим нажатие Enter
+        self.widget.bind("<Control-c>", self.copy_text)
+        self.widget.bind("<Control-v>", self.paste_text)
+
+    def copy_text(self, event):
+        """ Копирование """
+        self.widget.clipboard_clear()
+        self.widget.clipboard_append(self.widget.selection_get())
+
+    def paste_text(self, event):
+        """ Вставка """
+        self.widget.insert(INSERT, self.widget.clipboard_get())
 
     # entry.configure(placeholder='Введите текст'))
     def is_valid(self, val):
@@ -133,7 +144,7 @@ class FieldStr(FieldInt):
 
         # Если значения не заданы, определяем по умолчанию
         width = width if width else 31
-        length = length if length else 50
+        length = length if length else 100
 
         super().__init__(root, value, x=x, y=y, func_event=func_event, black_list=black_list,
                          width=width, length=length)

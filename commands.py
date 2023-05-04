@@ -460,7 +460,7 @@ class WriteCmd(PauseCmd):
     """ Вывести текст """
     command_name = 'Вывести текст'
     command_description = 'Эта команда напечатает указанный текст в месте, где установлен курсор. ' \
-                          'Длина текста не должна превышать 50 символов.'
+                          'Длина текста не должна превышать 100 символов.'
     for_sort = 50
 
     def __init__(self, *args, description):
@@ -697,14 +697,15 @@ class StopCmd(CycleEnd):
         raise NoCommandOrStop(f'Выполнена команда Стоп.')
 
 
-class DialogCmd(CycleEnd):
+class DialogCmd(WriteCmd):
     """ Остановка скрипта и вывод диалогового окна пользователю для выбора дальнейших действий """
     command_name = 'Диалоговое окно'
-    command_description = 'Остановить выполнение скрипта. Спросить у пользователя что делать дальше.'
+    command_description = 'Остановить выполнение скрипта. Сообщить пользователю по какой причине остановлен скрипт.' \
+                          ' Длина сообщения не должна превышать 100 символов.'
     for_sort = 145
 
     def run_command(self):
         """ Выполнение команды """
-        self.data.stop_for_dialog('Скрипт остановлен для выбора дальнейших действий.')
+        self.data.stop_for_dialog(self.value)
         if self.data.modal_stop:
             raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
