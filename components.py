@@ -278,6 +278,11 @@ class DataForWorker:
                 raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку данных\n"{err}"')
             elif data.work_settings['s_error_no_data'].react == 'ignore':
                 logger.error(f'Ошибка:\n"{err}"\nРеакция - продолжение выполнения скрипта.')
+            elif data.work_settings['s_error_no_data'].react == 'dialog':
+                # Остановка выполнения скрипта и вывод модального окна
+                self.stop_for_dialog(f'Остановка выполнения скрипта\nРеакция на ошибку данных\n"{err}"')
+                if self.modal_stop:
+                    raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
             else:
                 # Продолжение выполнения скрипта, но с другого места
                 label = data.work_settings['s_error_no_data'].label
@@ -288,6 +293,13 @@ class DataForWorker:
             # Ошибка связанная с элементами изображения
             if data.work_settings['s_error_no_element'].react == 'stop':
                 raise NoCommandOrStop(f'Остановка выполнения скрипта\nРеакция на ошибку \n"{err}"')
+            elif data.work_settings['s_error_no_element'].react == 'ignore':
+                logger.error(f'Ошибка:\n"{err}"\nРеакция - продолжение выполнения скрипта.')
+            elif data.work_settings['s_error_no_element'].react == 'dialog':
+                # Остановка выполнения скрипта и вывод модального окна
+                self.stop_for_dialog(f'Остановка выполнения скрипта\nРеакция на ошибку данных\n"{err}"')
+                if self.modal_stop:
+                    raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
             else:
                 # Продолжение выполнения скрипта, но с другого места
                 label = data.work_settings['s_error_no_element'].label
@@ -544,8 +556,9 @@ class DisplayCommands:
 
     def clear(self):
         """ Очистка списка команд """
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        # for item in self.tree.get_children():
+        #     self.tree.delete(item)
+        self.tree.delete(*self.tree.get_children())
 
     def get_selected(self):
         """ Возвращает список выделенных в списке id строк """

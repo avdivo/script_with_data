@@ -42,16 +42,16 @@ class llist:
 class eres:
     """ Тип данных определяющий реакцию на ошибку
 
-    Могут быть 3 типа реакции на ошибку:
+    Могут быть 4 типа реакции на ошибку:
     stop - остановит скрипт
     ignore - проигнорировать ошибку
+    dialog - вывести диалоговое окно с выбором действия
     run - запустить скрипт с указанной метки
-    Класс создает объект из строкового представления: stop: / ignore: / run:name
-    В первых 2 случаях второй аргумент не нужен, в третьем указывает метку в скрипте
-
+    Класс создает объект из строкового представления: stop: / ignore: / dialog: / run:name
+    В первых 3 случаях второй аргумент не нужен, в третьем указывает метку в скрипте
     """
 
-    react_list = ['stop', 'ignore', 'run']
+    react_list = ['stop', 'ignore', 'dialog', 'run']
     def __new__(cls, arg):
         """ Позволяем принимать аргументы своего типа, при этом не создавая новый объект """
         if isinstance(arg, cls):
@@ -68,7 +68,7 @@ class eres:
                 raise ValueError('Неверное значение. Нет разделителя ":".')
             react, label = string.split(':')
             if react not in self.react_list:
-                raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
+                raise ValueError('Неверное значение. Принимаются: stop/ignore/dialog/run.')
             self._label = llist(label)  # Тип данных - метки
             self._react = react
         elif not isinstance(string, eres):
@@ -92,7 +92,7 @@ class eres:
     @react.setter
     def react(self, react: str):
         if react not in self.react_list:
-            raise ValueError('Неверное значение. Принимаются: stop/ignore/run.')
+            raise ValueError('Неверное значение. Принимаются: stop/ignore/dialog/run.')
         self._react = react
         self.label = ''  # Тип данных - метки
 
