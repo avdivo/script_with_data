@@ -34,6 +34,11 @@ class Settings(object):
         self.win_w = 800
         self.win_h = 610
 
+        # Настройки скрипта по умолчанию
+        self.default_settings()
+
+    def default_settings(self):
+        self.is_saved = True  # Проект сохранен (сбрасывается при изменении)
         # Все настройки скрипта начинаются с s_
         self.s_key_pause = (0.0, 'Пауза между нажатием клавиш клавиатуры')
         self.s_click_pause = (0.5, 'Пауза после клика мыши')
@@ -41,8 +46,8 @@ class Settings(object):
         self.s_confirm_element = (True, 'Проверять наличие элемента (кнопки, иконки...)')
         self.s_search_attempt = (3, 'Сколько раз следует повторить паузу в 1 секунду')
         self.s_full_screen_search = (True, 'Производить поиск элемента на всем экране')
-        self.s_error_no_element = (eres('stop:'), "Реакция скрипта на исключение 'Нет элемента'")
-        self.s_error_no_data = (eres('ignore:'), "Реакция скрипта на исключение 'Нет данных'")
+        self.s_error_no_element = (eres('dialog:'), "Реакция скрипта на исключение 'Нет элемента'")
+        self.s_error_no_data = (eres('dialog:'), "Реакция скрипта на исключение 'Нет данных'")
         self.s_description = ('', 'Описание скрипта')
 
     def update_settings(self):
@@ -122,6 +127,7 @@ class Settings(object):
         for var, val in self.obj.items():
             self.obj[var] = val.result  # Собираем результаты настроек
         self.set_settings_from_dict(self.obj)  # Эта же функция используется при чтении настроек из файла
+        self.is_saved = False  # Изменения в проекте не сохранены
         self.top.destroy()  # Закрытие окна
 
 

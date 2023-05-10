@@ -41,7 +41,7 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
-    if not save_load.is_saved:
+    if not settings.is_saved:
         # Если проект не сохранен, то предложить сохранить проект
         if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
             save_load.save_project()

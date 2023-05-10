@@ -415,7 +415,7 @@ class Editor:
             self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
             self.display_commands.out_commands()  # Обновляем список
             self.save_load.save_history()  # Сохраняем историю
-            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+            settings.is_saved = False  # Изменения в проекте не сохранены
 
         except LabelAlreadyExists as err:
             # При неудачном добавлении в случае совпадения имен блоков и меток
@@ -428,7 +428,7 @@ class Editor:
         self.data.change_command(self.current_cmd)  # Изменяем команду
         self.display_commands.out_commands()  # Обновляем список
         self.save_load.save_history()  # Сохраняем историю
-        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+        settings.is_saved = False  # Изменения в проекте не сохранены
 
     def menu_delete_images(self):
         """ Удаление неиспользуемых изображений элементов.
@@ -654,7 +654,7 @@ class DisplayCommands:
             self.out_commands()  # Обновляем список
             self.tree.selection_set(list_select)  # Выделяем вставленные строки
             self.save_load.save_history()  # Сохраняем историю
-            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+            settings.is_saved = False  # Изменения в проекте не сохранены
 
             logger.warning(mess)
 
@@ -676,7 +676,7 @@ class DisplayCommands:
         self.operation = ''
 
         self.save_load.save_history()  # Сохраняем историю
-        self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+        settings.is_saved = False  # Изменения в проекте не сохранены
 
         self.out_commands()  # Обновляем список
 
@@ -801,7 +801,7 @@ class SaveLoad:
         self.new_project_cancel = True  # Отмена создания нового проекта
         self.root = root  # Ссылка на главное окно
 
-        self.is_saved = False  # Сохранен ли проект
+        settings.is_saved = False  # Изменения в проекте не сохранены
         # История скрипта, сохраняет каждое предыдущее состояние скрипта в виде списка словарей
         self.history = deque(maxlen=100)  # Помнит последние 100 состояний скрипта
         self.history_pointer = -1  # Указатель на текущее состояние скрипта
@@ -846,7 +846,9 @@ class SaveLoad:
                 json.dump({"script": "[]", "settings": "{}"}, f)
 
             logger.warning(f'Создан новый проект {name}.')
-            self.is_saved = True
+            settings.is_saved = True  # Изменения в проекте не сохранены
+
+            settings.default_settings()  # Сброс настроек по умолчанию
 
             # Запись новых настроек в файл конфигурации
             self.config_file(action='set', name=name, path=path)
@@ -863,7 +865,7 @@ class SaveLoad:
 
     def menu_new_project(self):
         """ Пункт меню Создание нового проекта """
-        if not self.is_saved:
+        if not settings.is_saved:
             # Если проект не сохранен, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
                 self.save_project()
@@ -874,7 +876,7 @@ class SaveLoad:
 
     def menu_open_project(self):
         """ Пункт меню Открыть проект """
-        if not self.is_saved:
+        if not settings.is_saved:
             # Если проект не сохранен, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
                 self.save_project()
@@ -915,7 +917,7 @@ class SaveLoad:
                 self.save_project()
 
                 logger.warning(f'Проект {self.new_project_name} сохранен.')
-                self.is_saved = True
+                settings.is_saved = True
             except Exception:
                 raise
 
@@ -937,7 +939,7 @@ class SaveLoad:
         self.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
                          data=self.data_source_file)
         logger.warning(f'Проект {settings.project_name} сохранен.')
-        self.is_saved = True
+        settings.is_saved = True
 
     def change_script_and_settings(self, data_dict):
         """ Замена скрипта и настроек
@@ -1007,7 +1009,7 @@ class SaveLoad:
 
             logger.warning(f'Проект {self.new_project_name} открыт.')
             self.save_history()  # Сохраняем историю
-            self.is_saved = True
+            settings.is_saved = True
 
         except Exception as err:
             raise LoadError(f'Ошибка загрузки проекта {err}')
