@@ -7,7 +7,7 @@
 #   описание формы для редактирования
 #   метод для выполнения
 # ---------------------------------------------------------------------------
-
+import shutil
 from time import sleep
 from abc import ABC, abstractmethod
 from tkinter import *
@@ -20,6 +20,7 @@ from data_types import llist, eres
 from data_input import DataInput
 from settings import settings
 from exceptions import DataError, NoCommandOrStop
+from element_images import generate_image_name
 
 
 class CommandClasses(ABC):
@@ -203,15 +204,26 @@ class MouseClickLeft(MouseClickRight):
         """ Загрузка изображения элемента """
         # TODO: ограничить выбор одной папкой или копировать изображение в нужную папку
         try:
-            self.image = fd.askopenfilename(
+            new_path_image = fd.askopenfilename(
                 filetypes=(("image", "*.png"),
                            ("All files", "*.*")))
-            if self.image:
-                # Удалить путь и ищем файл только в определенном пути,
-                # если он не там - то не открываем
-                self.image = settings.path_to_elements + os.path.basename(self.image)
-                self.element_image = PhotoImage(file=self.image)
-                self.widget_button.configure(image=self.element_image)
+
+            # Если файл с выбранным именем уже существует в папке изображений элементов текущего проекта
+            # то копируем его с новым именем в эту папку (имя генерируем функцией generate_image_name из element_image)
+            # если нет, то просто копируем и устанавливаем новое имя текущему элементу
+            new_image = os.path.basename(new_path_image)
+            if os.path.exists(os.path.join(settings.path_to_elements, new_image)):
+                self.image = generate_image_name()
+                shutil.copy(new_path_image, os.path.join(settings.path_to_elements, self.image))
+            else:
+                self.image = new_image
+                shutil.copy(new_path_image, settings.path_to_elements)
+
+            # Загружаем изображение в виджет
+            self.element_image = PhotoImage(file=os.path.join(settings.path_to_elements, self.image))
+            self.widget_button.configure(image=self.element_image)
+            # Применяем настройки к кнопке
+            self.widget_button.update()
         except:
             pass
 

@@ -23,13 +23,7 @@ from exceptions import TemplateNotFoundError, ElementNotFound
 from settings import settings
 
 
-# Настройки
-FIRST_REGION = 96  # Сторона квадрата, в котором ищутся сохраненные элементы
-REGION = 48  # Сторона квадрата с сохраняемым элементом
-
-BASENAME = "elem"  # Префикс для имени файла при сохранении изображения элемента
-
-REGION_FOR_SEARCH = 96  # Сторона квадрата в котором производится первоначальный поиск элемента
+# Настройки в settings.py
 
 def screenshot(x_reg: int = 0, y_reg: int = 0, region: int = 0):
     """ Скриншот заданного квадрата или всего экрана
@@ -45,14 +39,24 @@ def screenshot(x_reg: int = 0, y_reg: int = 0, region: int = 0):
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
 
+def generate_image_name() -> str:
+    """ Генерация имени нового изображения элемента
+
+    Возвращает имя нового изображения элемента в формате:
+    <имя проекта>_<дата и время>.png
+
+    """
+    return f'{settings.basename}_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'
+
+
 def save_image(x_point :int, y_point :int) -> str:
     """ Сохранение изображения кнопки/иконки (элемента) если он еще не сохранен
 
     Функция принимает в качестве аргументов координаты точки на экране.
     Предполагается, что эта точка расположена на элементе, изображение которого нужно сохранить или найти.
-    Точка принимается как цент квадрата со стороной FIRST_REGION внутри которого должен находиться
+    Точка принимается как цент квадрата со стороной settings.first_region внутри которого должен находиться
     элемент (кнопка, иконка...). Проверяются сохраненные элементы. Если такого нет квадрат обрезается
-    до размера стороны REGION и сохраняется. Если есть, возвращается его имя.
+    до размера стороны settings.region и сохраняется. Если есть, возвращается его имя.
     Возвращает имя нового или существующего изображения.
 
     """
@@ -61,11 +65,11 @@ def save_image(x_point :int, y_point :int) -> str:
     method = cv2.TM_CCOEFF_NORMED  # Метод расчёта корреляции между изображениями
 
     # Вычисляем координаты квадрата для скриншота
-    x_reg = x_point - FIRST_REGION // 2
-    y_reg = y_point - FIRST_REGION // 2
+    x_reg = x_point - settings.first_region // 2
+    y_reg = y_point - settings.first_region // 2
 
     # Делаем скриншот нужного квадрата
-    image = screenshot(x_reg, y_reg, FIRST_REGION-1)
+    image = screenshot(x_reg, y_reg, settings.first_region-1)
 
     # Перевод изображения в оттенки серого
     grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -85,8 +89,8 @@ def save_image(x_point :int, y_point :int) -> str:
 
     # Если выбранный элемент ранее не был сохранен, сохраним его
     # Обрезаем квадрат
-    a = (FIRST_REGION - REGION) // 2
-    image = image[a: a + REGION, a: a + REGION]
+    a = (settings.first_region - settings.region) // 2
+    image = image[a: a + settings.region, a: a + settings.region]
 
     # Координаты точки на новом регионе
     x_point = x_point - x_reg - a
@@ -116,16 +120,12 @@ def save_image(x_point :int, y_point :int) -> str:
         # Проверены все контуры, точка не принадлежит ни одному
         # Выбираем весь квадрат
         x = y = 0
-        w = h = REGION
+        w = h = settings.region
 
     # Сохраняем изображение найденного элемента
     ROI = image[y:y+h, x:x+w]
-    suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-    filename = "_".join([BASENAME, suffix])  # e.g. 'mylogfile_120508_171442'
-    # cv2.imwrite(f'{settings.path_to_elements}/{filename}.png', ROI)
+    filename = generate_image_name()  # e.g. 'mylogfile_120508_171442'
     cv2.imwrite(os.path.join(settings.path_to_elements, f'{filename}.png'), ROI)
-
-    # print(ROI.set_printoptions(threshold=ROI.nan))
 
     return f'{filename}.png'
 
@@ -162,11 +162,11 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
     while repeat and settings.s_confirm_element:
         # Проверка включена и попытки заданы.
         # Вычисляем координаты квадрата для скриншота
-        x_reg = x_point - REGION_FOR_SEARCH // 2
-        y_reg = y_point - REGION_FOR_SEARCH // 2
+        x_reg = x_point - settings.region_for_search // 2
+        y_reg = y_point - settings.region_for_search // 2
 
         # Делаем скриншот нужного квадрата
-        image = screenshot(x_reg, y_reg, REGION_FOR_SEARCH - 1)
+        image = screenshot(x_reg, y_reg, settings.region_for_search - 1)
 
         # Перевод изображения в оттенки серого
         gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

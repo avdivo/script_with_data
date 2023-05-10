@@ -29,7 +29,6 @@ from exceptions import NoCommandOrStop, \
     LabelAlreadyExists, DataError, ElementNotFound, LoadError, TemplateNotFoundError
 from data_types import llist
 from settings import settings
-from tracker_and_player import Player
 
 
 # создание логгера и обработчика

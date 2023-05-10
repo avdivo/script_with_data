@@ -83,7 +83,7 @@ class Tracker:
             # self.listener_kb.join()
             self.is_listening = False
             self.data.is_listening = False
-            self.save_load.is_saved = False  # Сбрасываем флаг сохранения
+            settings.is_saved = False  # Изменения в проекте не сохранены
             # Сохраняем историю задержкой для фиксации последней команды
             # TODO Возможно задержку нужно корректировать в зависимости от пауз
             # self.display_commands.delete()  # Удаляем последнюю команду (это остановка записи)
