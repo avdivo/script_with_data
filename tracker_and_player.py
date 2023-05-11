@@ -122,6 +122,7 @@ class Tracker:
             self.to_export(cmd='MouseClickRight', val=[args[0], args[1]], des='')
 
     def on_press(self, key=None):
+        print(key)
         """ Обработка события ажатия клавиши """
         if key == Key.esc and self.ctrl_pressed:
             # Остановка записи или воспроизведения при нажатии ctrl+esc

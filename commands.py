@@ -260,7 +260,7 @@ class KeyDown(CommandClasses):
         """ Принимает название клавиши и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
-        self.values = ['backspace', 'tab', 'enter', 'esc', 'space', 'shift', 'shift_r', 'shift_l', 'control',
+        self.values = ['backspace', 'tab', 'enter', 'esc', 'space', 'shift', 'shift_r', 'shift_l', 'control', 'cmd',
                         'ctrl', 'ctrl_r', 'ctrl_l', 'alt', 'alt_r', 'alt_l', 'pause', 'caps_lock', 'scroll_lock',
                         'print_screen', 'insert', 'delete', 'home', 'end', 'page_up', 'page_down', 'left', 'up',
                         'right', 'down', 'menu', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11',
