@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Модуль для записи и воспроизведения событий мыши и клавиатуры
 # ---------------------------------------------------------------------------
-
+import string
 from time import sleep
 from tkinter import *
 from tktooltip import ToolTip
@@ -122,7 +122,16 @@ class Tracker:
             self.to_export(cmd='MouseClickRight', val=[args[0], args[1]], des='')
 
     def on_press(self, key=None):
-        print(key)
+        """ Нажатие клавиши """
+        # Нажатая буквенная клавиша должна быть в нижнем регистре русской или английской раскладки
+        # Для Windows она может быть в другом формате, если нажата Ctrl или быть большой. Исправим это
+
+        # Список английских и русских строчных букв
+        letters = string.ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+        key1 = str(self.listener_kb.canonical(key))
+        if key1 in letters:
+            key = key1
+
         """ Обработка события ажатия клавиши """
         if key == Key.esc and self.ctrl_pressed:
             # Остановка записи или воспроизведения при нажатии ctrl+esc

@@ -76,7 +76,6 @@ def save_image(x_point :int, y_point :int) -> str:
 
     # Перебор сохраненных элементов, был ли ранее такой сохранен
     for name in os.listdir(settings.path_to_elements):
-        # template = cv2.imread(f'{settings.path_to_elements}/name}', 0)
         template = cv2.imread(os.path.join(settings.path_to_elements, name), 0)
         # Проверяем, что шаблон не полностью белый
         if np.mean(template) < 250:
