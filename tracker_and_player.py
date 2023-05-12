@@ -33,8 +33,8 @@ class Tracker:
         self.root = root  # Ссылка на главное окно программы
         self.single = False  # Для определения клика мыши, одинарный или двойной
         self.ctrl_pressed = False  # Инициализация флага нажатия клавиши ctrl
-        self.listener_mouse = None  # Слушатель мыши
-        self.listener_kb = None  # Слушатель клавиатуры
+        self.listener_mouse = MouseListener(on_click=self.on_click)  # Слушатель мыши
+        self.listener_kb = KeyboardListener(on_press=self.on_press, on_release=self.on_release)  # Слушатель клавиатуры
         self.is_listening = False  # Слушатели выключены
         self.img = None  # Хранит изображение под курсором при последнем клике
         self.pressing_keys_set = set()  # Множество нажатых клавиш (для недопущения автоповтора)
@@ -55,11 +55,9 @@ class Tracker:
         """ Обработка нажатия кнопки записи """
         # TODO Обозначит что идет запись/воспроизведение
         # Запуск слушателя мыши
-        self.listener_mouse = MouseListener(on_click=self.on_click)
         self.listener_mouse.start()
 
         # Запуск слушателя клавиатуры
-        self.listener_kb = KeyboardListener(on_press=self.on_press, on_release=self.on_release)
         self.listener_kb.start()
 
         self.is_listening = True  # Слушатели включены
@@ -68,13 +66,26 @@ class Tracker:
         self.ctrl_pressed = False  # Ctrl не нажата
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
+    def reset_kb(self):
+        """ Вернуть состояние клавиатуры в исходное """
+        # Отпустить все клавиши
+        kb.release(Key.ctrl)
+        kb.release(Key.alt)
+        kb.release(Key.shift)
+
+        # Вернуть состояние клавиатуры в исходное
+        kb.press(Key.esc)
+        kb.release(Key.esc)
+
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
         if self.data.script_started:
             # Остановка выполнения скрипта
             self.data.script_started = False
+            self.reset_kb()
             logger.error('Пользователь остановил выполнение скрипта.')
             return
+
         if self.is_listening:
             # Остановка записи
             self.listener_mouse.stop()

@@ -100,10 +100,12 @@ def run_script():
         except NoCommandOrStop as err:
             logger.error(err)
             data.script_started = False
+            tracker.reset_kb()  # Сбросить клавиатуру
         except (DataError, TemplateNotFoundError, ElementNotFound) as err:
             logger.error(err)
         except:
             data.script_started = False
+            tracker.reset_kb()  # Сбросить клавиатуру
             raise
 
 
