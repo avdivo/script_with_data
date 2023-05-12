@@ -121,22 +121,19 @@ class Tracker:
             # Отправляем на создание объекта команды и запись
             self.to_export(cmd='MouseClickRight', val=[args[0], args[1]], des='')
 
-    def on_press(self, key=None):
-        """ Нажатие клавиши """
-        # Нажатая буквенная клавиша должна быть в нижнем регистре русской или английской раскладки
-        # Для Windows она может быть в другом формате, если нажата Ctrl или быть большой. Исправим это
-
-        # Список английских и русских строчных букв
-        letters = string.ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    def get_str_key(self, key):
+        """ Получение названия клавиши в виде строки """
+        # Получаем название клавиши одним словом или буквой
         try:
-            key1 = self.listener_kb.canonical(key).char
-            if key1 in letters:
-                print(key1)
-                key = key1
+            out = self.listener_kb.canonical(key).char
+            if not out:
+                raise
         except:
-            pass
+            out = str(key)[4:]
+        return out
 
-        """ Обработка события ажатия клавиши """
+    def on_press(self, key=None):
+        """ Обработка события нажатия клавиши """
         if key == Key.esc and self.ctrl_pressed:
             # Остановка записи или воспроизведения при нажатии ctrl+esc
             self.stop_btn()
@@ -150,15 +147,8 @@ class Tracker:
             return
         self.pressing_keys_set.add(key)  # Добавляем нажатую клавишу в множество
 
-        # Получаем название клавиши одним словом или буквой
-        try:
-            out = key.char
-        except:
-            out = str(key)[4:]
         # Отправляем на создание объекта команды и запись
-        # TODO периодически возникают ошибки при неправильны названиях клавиш
-        # TODO как-то предотвратить запись комбинаций остановки записи
-        self.to_export(cmd='KeyDown', val=[out], des='')
+        self.to_export(cmd='KeyDown', val=[self.get_str_key(key)], des='')
 
     def on_release(self, key):
         if key == Key.ctrl:
@@ -167,13 +157,8 @@ class Tracker:
             return
         self.pressing_keys_set.discard(key)  # Удаляем клавишу из множества
 
-        # Получаем название клавиши одним словом или буквой
-        try:
-            out = key.char
-        except:
-            out = str(key)[4:]
         # Отправляем на создание объекта команды и запись
-        self.to_export(cmd='KeyUp', val=[out], des='')
+        self.to_export(cmd='KeyUp', val=[self.get_str_key(key)], des='')
 
 
 class Player:

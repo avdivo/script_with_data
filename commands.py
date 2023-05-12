@@ -260,14 +260,18 @@ class KeyDown(CommandClasses):
         """ Принимает название клавиши и пользовательское описание команды"""
         super().__init__(description=description)
         self.widget = None
+
         self.values = ['backspace', 'tab', 'enter', 'esc', 'space', 'shift', 'shift_r', 'shift_l', 'control', 'cmd',
-                        'ctrl', 'ctrl_r', 'ctrl_l', 'alt', 'alt_r', 'alt_l', 'pause', 'caps_lock', 'scroll_lock',
-                        'print_screen', 'insert', 'delete', 'home', 'end', 'page_up', 'page_down', 'left', 'up',
-                        'right', 'down', 'menu', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11',
-                        'f12', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
-                        'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з',
-                        'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
-                        'ъ', 'ы', 'ь', 'э']
+                        'ctrl', 'ctrl_r', 'ctrl_l', 'alt', 'alt_r', 'alt_gr', 'alt_l', 'pause', 'caps_lock',
+                        'scroll_lock', 'print_screen', 'insert', 'delete', 'home', 'end', 'page_up', 'page_down',
+                        'left', 'up', 'right', 'down', 'menu',
+                        'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12',
+                        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+                        '`', '-', '=', ']', '[', '\\', ';', "'", ',', '.', '/',
+                        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+                        't', 'u', 'v', 'w', 'x', 'y', 'z',
+                        'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с',
+                        'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э']
         self.value = args[0]
         if self.value in self.values:
             self.value_var = StringVar(value=self.value)
