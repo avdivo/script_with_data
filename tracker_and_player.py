@@ -128,9 +128,13 @@ class Tracker:
 
         # Список английских и русских строчных букв
         letters = string.ascii_lowercase + 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-        key1 = str(self.listener_kb.canonical(key))
-        if key1 in letters:
-            key = key1
+        try:
+            key1 = self.listener_kb.canonical(key).char
+            if key1 in letters:
+                print(key1)
+                key = key1
+        except:
+            pass
 
         """ Обработка события ажатия клавиши """
         if key == Key.esc and self.ctrl_pressed:
