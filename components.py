@@ -1020,7 +1020,7 @@ class SaveLoad:
             # Проверка на пустую строку и допустимые символы файловой системы
             if text is None or text == '':
                 return
-            if not re.match(r'^[a-zA-Z0-9_\-]+$', text):
+            if not re.match(r'^[a-zA-Zа-яА-Я0-9_\- ]+$', text):
                 logger.warning('Недопустимое имя проекта.')
                 return
             # Проверка на существование проекта с таким именем
