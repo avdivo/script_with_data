@@ -144,7 +144,7 @@ class FieldStr(FieldInt):
 
         # Если значения не заданы, определяем по умолчанию
         width = width if width else 31
-        length = length if length else 100
+        length = length if length else 500
 
         super().__init__(root, value, x=x, y=y, func_event=func_event, black_list=black_list,
                          width=width, length=length)
