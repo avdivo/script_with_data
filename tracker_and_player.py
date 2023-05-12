@@ -2,6 +2,7 @@
 # Модуль для записи и воспроизведения событий мыши и клавиатуры
 # ---------------------------------------------------------------------------
 import string
+import time
 from time import sleep
 from tkinter import *
 from tktooltip import ToolTip
@@ -32,12 +33,13 @@ class Tracker:
     def __init__(self, root):
         self.root = root  # Ссылка на главное окно программы
         self.single = False  # Для определения клика мыши, одинарный или двойной
-        self.ctrl_pressed = False  # Инициализация флага нажатия клавиши ctrl
         self.listener_mouse = MouseListener(on_click=self.on_click)  # Слушатель мыши
         self.listener_kb = KeyboardListener(on_press=self.on_press, on_release=self.on_release)  # Слушатель клавиатуры
         self.is_listening = False  # Слушатели выключены
         self.img = None  # Хранит изображение под курсором при последнем клике
         self.pressing_keys_set = set()  # Множество нажатых клавиш (для недопущения автоповтора)
+        self.esc_time = time.time()  # Время нажатия клавиши esc
+        self.delete_cmd = 0  # Сколько команд удалить после остановки записи, 1 - при остановке кнопкой, 2 - esc
 
         # Кнопки управления записью
         self.icon1 = PhotoImage(file="icon/record.png")
@@ -55,15 +57,17 @@ class Tracker:
         """ Обработка нажатия кнопки записи """
         # TODO Обозначит что идет запись/воспроизведение
         # Запуск слушателя мыши
+        self.listener_mouse = MouseListener(on_click=self.on_click)  # Слушатель мыши
         self.listener_mouse.start()
 
         # Запуск слушателя клавиатуры
+        self.listener_kb = KeyboardListener(on_press=self.on_press, on_release=self.on_release)  # Слушатель клавиатуры
         self.listener_kb.start()
 
         self.is_listening = True  # Слушатели включены
         self.data.is_listening = True  # Дублируем в data
+        self.delete_cmd = 0  # Неизвестно как будет остановлена запись
 
-        self.ctrl_pressed = False  # Ctrl не нажата
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
     def reset_kb(self):
@@ -87,6 +91,10 @@ class Tracker:
             return
 
         if self.is_listening:
+            if not self.delete_cmd:
+                # Переменная имеет значение, если запись остановлена нажатием esc
+                self.delete_cmd = 1  # Удалить 1 команду если остановлено кнопкой
+
             # Остановка записи
             self.listener_mouse.stop()
             # self.listener_mouse.join()
@@ -95,10 +103,12 @@ class Tracker:
             self.is_listening = False
             self.data.is_listening = False
             settings.is_saved = False  # Изменения в проекте не сохранены
-            # Сохраняем историю задержкой для фиксации последней команды
-            # TODO Возможно задержку нужно корректировать в зависимости от пауз
-            # self.display_commands.delete()  # Удаляем последнюю команду (это остановка записи)
-            self.root.after(1000, self.display_commands.delete)
+            if self.delete_cmd == 2:
+                # Удалить 2 команды если остановлено esc. Для этого выделим их
+                self.display_commands.tree.selection_set(self.data.queue_command[self.data.pointer_command - 1],
+                                                         self.data.queue_command[self.data.pointer_command])
+            self.root.after(1000, self.display_commands.delete)  # Удаляем выделенные строки
+            # Сохраняем историю с задержкой для фиксации последней команды
             self.root.after(800, self.save_load.save_history)
 
     def single_click(self, args):
@@ -124,7 +134,7 @@ class Tracker:
                 self.single = True
                 self.root.after(300, lambda: self.single_click(args))
             else:
-                # Фиксация 
+                # Фиксация
                 self.single = False
                 self.to_export(cmd='MouseClickDouble', val=[args[0], args[1], self.img], des='')
 
@@ -145,12 +155,15 @@ class Tracker:
 
     def on_press(self, key=None):
         """ Обработка события нажатия клавиши """
-        if key == Key.esc and self.ctrl_pressed:
-            # Остановка записи или воспроизведения при нажатии ctrl+esc
-            self.stop_btn()
-            return False
-        elif key == Key.ctrl:
-            self.ctrl_pressed = True
+        if key == Key.esc:
+            # Остановка записи или воспроизведения при нажатии esc 2 раза за 0.2 сек.
+            if time.time() - self.esc_time < 0.5:
+                self.delete_cmd = 2  # Удалить 2 команды если остановлено esc (нажатие и отпускание)
+                self.stop_btn()
+                return False
+            else:
+                self.esc_time = time.time()
+
         if not self.is_listening:
             return
         if key in self.pressing_keys_set:
@@ -162,8 +175,6 @@ class Tracker:
         self.to_export(cmd='KeyDown', val=[self.get_str_key(key)], des='')
 
     def on_release(self, key):
-        if key == Key.ctrl:
-            self.ctrl_pressed = False
         if not self.is_listening:
             return
         self.pressing_keys_set.discard(key)  # Удаляем клавишу из множества
@@ -282,14 +293,21 @@ class Player:
                 kb.type(val[0])
             else:
                 # Вывод русского текста в Linux
-                mem = self.root.clipboard_get()
-                self.root.clipboard_clear()
-                self.root.clipboard_append(val[0])
+                try:
+                    mem = self.root.clipboard_get()
+                    self.root.clipboard_clear()
+                    self.root.clipboard_append(val[0])
+                except:
+                    mem = ''
                 kb.press(Key.ctrl)
                 kb.press('v')
                 kb.release('v')
                 kb.release(Key.ctrl)
                 sleep(0.2)  # Без паузы видимо успевает очистить раньше, чем вставить
-                self.root.clipboard_clear()
-                self.root.clipboard_append(mem)
+                try:
+                    self.root.clipboard_clear()
+                    self.root.clipboard_append(mem)
+                except:
+                    pass
                 self.root.update()
+

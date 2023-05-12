@@ -555,8 +555,6 @@ class DisplayCommands:
 
     def clear(self):
         """ Очистка списка команд """
-        # for item in self.tree.get_children():
-        #     self.tree.delete(item)
         self.tree.delete(*self.tree.get_children())
 
     def get_selected(self):
