@@ -124,9 +124,9 @@ def save_image(x_point :int, y_point :int) -> str:
     # Сохраняем изображение найденного элемента
     ROI = image[y:y+h, x:x+w]
     filename = generate_image_name()  # e.g. 'mylogfile_120508_171442'
-    cv2.imwrite(os.path.join(settings.path_to_elements, f'{filename}.png'), ROI)
+    cv2.imwrite(os.path.join(settings.path_to_elements, filename), ROI)
 
-    return f'{filename}.png'
+    return filename
 
 
 def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tuple:
