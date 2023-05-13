@@ -9,6 +9,7 @@ from tkinter import *
 from tkinter import ttk
 
 from data_types import llist
+from settings import settings
 
 class DataInput:
     """ Базовый класс
@@ -100,22 +101,19 @@ class FieldInt(DataInput):
 
         self.value = StringVar(value=self.value)  # Переменная хранящая введенный текст
         self.widget = Entry(self.root, width=self.width, validate="key", validatecommand=check, textvariable=self.value)
-        # self.widget.configure(placeholder='Введите текст')
         self.widget.place(x=self.x, y=self.y)
         self.widget.bind('<Return>', self.func_event)  # Ловим нажатие Enter
         self.widget.bind("<Control-KeyPress>", self.keypress)  # Обработка нажатия клавиш на списке
-        # self.widget.bind("<Control-c>", self.copy_text)
-        # self.widget.bind("<Control-v>", self.paste_text)
 
     def keypress(self, event):
         """ Обработка нажатия клавиш на списке """
         code = event.keycode
-        if code == 38:
+        if code == settings.hotkeys['Ctrl_A']:
             # Ctrl+a
             self.widget.select_clear()
             self.widget.select_range(0, 'end')
             return 'break'
-        elif code == 54:
+        elif code == settings.hotkeys['Ctrl_C']:
             # Ctrl+c
             if len(self.widget.get()) == 0:
                 return 'break'
@@ -123,9 +121,10 @@ class FieldInt(DataInput):
                 # Если ничего не выделено, выделяем все
                 self.widget.select_range(0, END)
             self.copy_text()
-        elif code == 55:
+        elif code == settings.hotkeys['Ctrl_V']:
             # Ctrl+v
             self.paste_text()
+            return 'break'
 
     def copy_text(self):
         """ Копирование """
@@ -134,8 +133,7 @@ class FieldInt(DataInput):
 
     def paste_text(self):
         """ Вставка """
-        # self.widget.insert(INSERT, self.widget.clipboard_get())
-        pass
+        self.widget.insert(INSERT, self.widget.clipboard_get())
 
     def is_valid(self, val):
         """ Пускает только целое число или пустую строку """

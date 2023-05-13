@@ -521,23 +521,22 @@ class DisplayCommands:
     def keypress(self, event):
         """ Обработка нажатия клавиш на списке """
         code = event.keycode
-        print(code)
-        if code == 38:
+        if code == settings.hotkeys['Ctrl_A']:
             # Ctrl+a
             self.tree.selection_set(self.tree.get_children())
-        elif code == 54:
+        elif code == settings.hotkeys['Ctrl_C']:
             # Ctrl+c
             self.copy()
-        elif code == 53:
+        elif code == settings.hotkeys['Ctrl_X']:
             # Ctrl+x
             self.cut()
-        elif code == 55:
+        elif code == settings.hotkeys['Ctrl_V']:
             # Ctrl+v
             self.paste()
-        elif code == 111:
+        elif code == settings.hotkeys['Ctrl_Up']:
             # Ctrl+up
             self.up()
-        elif code == 116:
+        elif code == settings.hotkeys['Ctrl_Down']:
             # Ctrl+down
             self.down()
 

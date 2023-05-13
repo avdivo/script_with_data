@@ -6,6 +6,7 @@
 
 import os
 import tkinter as tk
+import platform
 
 from data_input import *
 from data_types import eres
@@ -39,6 +40,15 @@ class Settings(object):
         # Размер окна
         self.win_w = 800
         self.win_h = 610
+
+        # Коды сочетания клавиш для разных систем
+        self.hotkeys = {'Ctrl_A': 38, 'Ctrl_C': 54, 'Ctrl_X': 53, 'Ctrl_V': 55,
+                        'Ctrl_Up': 111, 'Ctrl_Down': 116}  # Linux
+        # Определяем операционную систему
+        self.os = platform.system()
+        if self.os == 'Windows':
+            self.hotkeys = {'Ctrl_A': 65, 'Ctrl_C': 67, 'Ctrl_X': 88, 'Ctrl_V': 86,
+                       'Ctrl_Up': 38, 'Ctrl_Down': 40}  # Windows
 
         # Настройки скрипта по умолчанию
         self.default_settings()
