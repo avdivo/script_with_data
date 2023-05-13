@@ -29,6 +29,7 @@ from exceptions import NoCommandOrStop, \
     LabelAlreadyExists, DataError, ElementNotFound, LoadError, TemplateNotFoundError
 from data_types import llist
 from settings import settings
+from define_platform import system
 
 
 # создание логгера и обработчика
@@ -521,22 +522,22 @@ class DisplayCommands:
     def keypress(self, event):
         """ Обработка нажатия клавиш на списке """
         code = event.keycode
-        if code == settings.hotkeys['Ctrl_A']:
+        if code == system.hotkeys['Ctrl_A']:
             # Ctrl+a
             self.tree.selection_set(self.tree.get_children())
-        elif code == settings.hotkeys['Ctrl_C']:
+        elif code == system.hotkeys['Ctrl_C']:
             # Ctrl+c
             self.copy()
-        elif code == settings.hotkeys['Ctrl_X']:
+        elif code == system.hotkeys['Ctrl_X']:
             # Ctrl+x
             self.cut()
-        elif code == settings.hotkeys['Ctrl_V']:
+        elif code == system.hotkeys['Ctrl_V']:
             # Ctrl+v
             self.paste()
-        elif code == settings.hotkeys['Ctrl_Up']:
+        elif code == system.hotkeys['Ctrl_Up']:
             # Ctrl+up
             self.up()
-        elif code == settings.hotkeys['Ctrl_Down']:
+        elif code == system.hotkeys['Ctrl_Down']:
             # Ctrl+down
             self.down()
 

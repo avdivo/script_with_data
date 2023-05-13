@@ -8,12 +8,12 @@ from tkinter import *
 from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
-import platform
 import logging
 
 from threading import Thread
 
 from settings import settings
+from define_platform import system
 from element_images import save_image, pattern_search
 from exceptions import TemplateNotFoundError, ElementNotFound
 
@@ -288,7 +288,7 @@ class Player:
             # Функция работает для Windows, но для Linux русские буквы не работают
             # определить операционную систему и реализовать вывод русского текста в Linux
 
-            if platform.system() == 'Windows':
+            if system.os == 'Windows':
                 # Для Windows
                 kb.type(val[0])
             else:

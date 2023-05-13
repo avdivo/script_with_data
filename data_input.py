@@ -9,7 +9,8 @@ from tkinter import *
 from tkinter import ttk
 
 from data_types import llist
-from settings import settings
+from define_platform import system
+
 
 class DataInput:
     """ Базовый класс
@@ -108,12 +109,12 @@ class FieldInt(DataInput):
     def keypress(self, event):
         """ Обработка нажатия клавиш на списке """
         code = event.keycode
-        if code == settings.hotkeys['Ctrl_A']:
+        if code == system.hotkeys['Ctrl_A']:
             # Ctrl+a
             self.widget.select_clear()
             self.widget.select_range(0, 'end')
             return 'break'
-        elif code == settings.hotkeys['Ctrl_C']:
+        elif code == system.hotkeys['Ctrl_C']:
             # Ctrl+c
             if len(self.widget.get()) == 0:
                 return 'break'
@@ -121,7 +122,7 @@ class FieldInt(DataInput):
                 # Если ничего не выделено, выделяем все
                 self.widget.select_range(0, END)
             self.copy_text()
-        elif code == settings.hotkeys['Ctrl_V']:
+        elif code == system.hotkeys['Ctrl_V']:
             # Ctrl+v
             self.paste_text()
             return 'break'
