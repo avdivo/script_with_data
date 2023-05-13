@@ -103,15 +103,37 @@ class FieldInt(DataInput):
         # self.widget.configure(placeholder='Введите текст')
         self.widget.place(x=self.x, y=self.y)
         self.widget.bind('<Return>', self.func_event)  # Ловим нажатие Enter
-        self.widget.bind("<Control-c>", self.copy_text)
-        self.widget.bind("<Control-v>", self.paste_text)
+        self.widget.bind("<Control-KeyPress>", self.keypress)  # Обработка нажатия клавиш на списке
+        # self.widget.bind("<Control-c>", self.copy_text)
+        # self.widget.bind("<Control-v>", self.paste_text)
 
-    def copy_text(self, event):
+    def keypress(self, event):
+        """ Обработка нажатия клавиш на списке """
+        code = event.keycode
+        print(code)
+        if code == 38:
+            # Ctrl+a
+            self.widget.select_clear()
+            self.widget.select_range(0, 'end')
+            return 'break'
+        elif code == 54:
+            # Ctrl+c
+            if len(self.widget.get()) == 0:
+                return 'break'
+            if not self.widget.selection_present():
+                # Если ничего не выделено, выделяем все
+                self.widget.select_range(0, END)
+            self.copy_text()
+        elif code == 55:
+            # Ctrl+v
+            self.paste_text()
+
+    def copy_text(self):
         """ Копирование """
         self.widget.clipboard_clear()
         self.widget.clipboard_append(self.widget.selection_get())
 
-    def paste_text(self, event):
+    def paste_text(self):
         """ Вставка """
         self.widget.insert(INSERT, self.widget.clipboard_get())
 

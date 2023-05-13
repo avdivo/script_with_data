@@ -482,12 +482,7 @@ class DisplayCommands:
         # Выделить третью строку в списке
         self.tree.bind("<Delete>", self.delete)  # Обработка нажатия del на списке
         self.tree.bind("<<TreeviewSelect>>", self.on_select)  # Обработка выбора строки в списке
-        self.tree.bind("<Control-c>", self.copy)  # Обработка Ctrl+C на списке
-        self.tree.bind("<Control-x>", self.cut)  # Обработка Ctrl+X на списке
-        self.tree.bind("<Control-v>", self.paste)  # Обработка Ctrl+V на списке
-        # Обработка Ctrl+a на списке
-        self.tree.bind("<Control-a>", lambda n: self.tree.selection_set(self.tree.get_children()))
-
+        self.tree.bind("<Control-KeyPress>", self.keypress)  # Обработка нажатия клавиш на списке
         # Рисуем кнопки для работы со списком
         self.list_copy = []  # Список хранит id скопированных строк
         self.operation = ''  # Может быть copy или cut
@@ -522,6 +517,29 @@ class DisplayCommands:
         delete_button = Button(frame, command=self.delete, image=self.icon9, width=120, height=34)
         delete_button.place(x=240, y=58)
         ToolTip(delete_button, msg="Удалить команды", delay=0.5)
+
+    def keypress(self, event):
+        """ Обработка нажатия клавиш на списке """
+        code = event.keycode
+        print(code)
+        if code == 38:
+            # Ctrl+a
+            self.tree.selection_set(self.tree.get_children())
+        elif code == 54:
+            # Ctrl+c
+            self.copy()
+        elif code == 53:
+            # Ctrl+x
+            self.cut()
+        elif code == 55:
+            # Ctrl+v
+            self.paste()
+        elif code == 111:
+            # Ctrl+up
+            self.up()
+        elif code == 116:
+            # Ctrl+down
+            self.down()
 
     def on_select(self, event):
         """ Обработка события выбора строки в списке """
