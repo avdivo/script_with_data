@@ -110,7 +110,6 @@ class FieldInt(DataInput):
     def keypress(self, event):
         """ Обработка нажатия клавиш на списке """
         code = event.keycode
-        print(code)
         if code == 38:
             # Ctrl+a
             self.widget.select_clear()
@@ -135,9 +134,9 @@ class FieldInt(DataInput):
 
     def paste_text(self):
         """ Вставка """
-        self.widget.insert(INSERT, self.widget.clipboard_get())
+        # self.widget.insert(INSERT, self.widget.clipboard_get())
+        pass
 
-    # entry.configure(placeholder='Введите текст'))
     def is_valid(self, val):
         """ Пускает только целое число или пустую строку """
         if not val:
