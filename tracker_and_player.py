@@ -9,7 +9,6 @@ from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
 import logging
-import queue
 
 from threading import Thread
 
@@ -17,6 +16,7 @@ from settings import settings
 from define_platform import system
 from element_images import save_image, pattern_search
 from exceptions import TemplateNotFoundError, ElementNotFound
+from hotkeys import hotkeys
 
 
 # создание логгера и обработчика
@@ -39,19 +39,15 @@ class Tracker:
         self.is_listening = False  # Слушатели выключены
         self.img = None  # Хранит изображение под курсором при последнем клике
         self.pressing_keys_set = set()  # Множество нажатых клавиш (для недопущения автоповтора)
-        self.esc_time = time.time()  # Время последнего нажатия клавиши esc
-        self.ctrl_time = time.time()  # Время последнего нажатия клавиши ctrl
+        self.timer = 0  # Некоторый комбинации должны быть выполнены за определенное время
         self.delete_cmd = 0  # Сколько команд удалить после остановки записи, 1 - при остановке кнопкой, 2 - esc
 
-        # Запись событий в программу происходит сразу, если известно,
-        # что текущее событие не может быть составной частью комбинации клавиш.
-        # Или произойти позже, когда стало известно, что комбинация не состоялась,
-        # запишутся не записанные события, а потом то, которое нарушило комбинацию.
-        # Если же комбинация состоялась, она может быть заменена на сокращенную команду.
-        # Для этого используем флаг (set), который указывает, сохранять событие в программу или пока в очередь.
-        # И очередь, в которой сохраняются события пока не будут записаны или удалены.
-        self.save_to_program = set()  #
-        self.queue_event = queue.Queue()  # Очередь событий, которые необходимо записать в программу
+        # События нажатия клавиш клавиатуры и кликов мыши записываются в очередь на запись в программу.
+        # После это происходит проверка очередного события на совпадение с комбинацией событий и если оно подходит,
+        # а комбинация еще не завершена, событие остается в очереди.
+        # Из очереди в программу события записываются только после завершения комбинации в виде одной команды. Или если
+        # комбинация прервалась, то в неизменном виде. Так-же они могут не записываться, если комбинация специальная.
+        self.queue_events = []  # Очередь событий, которые необходимо записать в программу
 
 
         # Кнопки управления записью
@@ -80,7 +76,7 @@ class Tracker:
         self.is_listening = True  # Слушатели включены
         self.data.is_listening = True  # Дублируем в data
         self.delete_cmd = 0  # Неизвестно как будет остановлена запись
-
+        self.queue_events.clear()  # Очищаем очередь событий
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
     def reset_kb(self):
@@ -144,8 +140,40 @@ class Tracker:
         продолжается. Если комбинация не выполнена за определенное время (для некоторых комбинаций), то очередь
         просто переносится в программу, без выполнения программы предусмотренной для комбинации.
         """
-        self.data.make_command(**kwargs)  # Добавляем команду
-        self.display_commands.out_commands()  # Обновляем список
+        self.queue_events.append(kwargs)  # Добавляем событие в очередь
+        if len(self.queue_events) == 1:
+            # Это первое событие в очереди, запоминаем время начала набора комбинации
+            self.timer = time.time()
+
+        res = hotkeys.search_hotkey(kwargs['cmd'], kwargs['val'], len(self.queue_events))  # Поиск комбинаций клавиш
+        if res == 'next':
+            # Комбинация с этим событием в этой позиции есть, но не завершена, ждем продолжения
+            return
+
+        if res:
+            # Это событие завершило комбинацию, есть совпадение
+            # Название комбинации находится в res. Выполняем действия для комбинации
+            self.timer = time.time() - self.timer  # Вычисляем время набора комбинации
+
+            # ---------------------- Действия для комбинаций --------------------------
+            print(res)
+            if res == 'stop' and self.timer < 0.5:
+                # Остановка записи или воспроизведения при нажатии esc 2 раза за 0.5 сек.
+                self.delete_cmd = 0  # Удалять команды из списка программы не надо, они не записывались
+                self.stop_btn()
+                return
+
+            # ------------------------------------------------------------------------
+            self.queue_events.clear()  # Очищаем очередь
+            return
+
+        if not res:
+            for event in self.queue_events:
+                # Добавляем события в список программы
+                self.data.make_command(**event)  # Добавляем команду
+
+            self.queue_events.clear()  # Очищаем очередь
+            self.display_commands.out_commands()  # Обновляем список
 
     def on_click(self, *args):
         """ Клик мыши любой кнопкой"""
@@ -179,18 +207,7 @@ class Tracker:
         return out
 
     def on_press(self, key=None):
-        print(key, type(key))
         """ Обработка события нажатия клавиши """
-        if key == Key.esc:
-            # Остановка записи или воспроизведения при нажатии esc 2 раза за 0.2 сек.
-            if time.time() - self.esc_time < 0.5:
-                self.esc_time = 0
-                self.delete_cmd = 2  # Удалить 2 команды если остановлено esc (нажатие и отпускание)
-                self.stop_btn()
-                return False
-            else:
-                self.esc_time = time.time()
-
         if not self.is_listening:
             return
         if key in self.pressing_keys_set:
