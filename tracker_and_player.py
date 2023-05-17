@@ -39,8 +39,8 @@ class Tracker:
         self.is_listening = False  # Слушатели выключены
         self.img = None  # Хранит изображение под курсором при последнем клике
         self.pressing_keys_set = set()  # Множество нажатых клавиш (для недопущения автоповтора)
-        self.timer = 0  # Некоторый комбинации должны быть выполнены за определенное время
         self.delete_cmd = 0  # Сколько команд удалить после остановки записи, 1 - при остановке кнопкой, 2 - esc
+        self.current_key = None  # сюда записывается клавиша нажатая виртуально, чтобы отсеять ее нажатие в реальных
 
         # События нажатия клавиш клавиатуры и кликов мыши записываются в очередь на запись в программу.
         # После это происходит проверка очередного события на совпадение с комбинацией событий и если оно подходит,
@@ -75,7 +75,7 @@ class Tracker:
 
         self.is_listening = True  # Слушатели включены
         self.data.is_listening = True  # Дублируем в data
-        self.delete_cmd = 0  # Неизвестно как будет остановлена запись
+        self.delete_cmd = 1  # Предполагается остановка записи кнопкой, нужно удалить 1 команду
         self.queue_events.clear()  # Очищаем очередь событий
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
@@ -92,6 +92,8 @@ class Tracker:
 
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
+        self.queue_events.clear()  # Очищаем очередь событий
+
         if self.data.script_started:
             # Остановка выполнения скрипта
             self.data.script_started = False
@@ -100,10 +102,6 @@ class Tracker:
             return
 
         if self.is_listening:
-            if not self.delete_cmd:
-                # Переменная имеет значение, если запись остановлена нажатием esc
-                self.delete_cmd = 1  # Удалить 1 команду если остановлено кнопкой
-
             # Остановка записи
             self.listener_mouse.stop()
             # self.listener_mouse.join()
@@ -112,13 +110,11 @@ class Tracker:
             self.is_listening = False
             self.data.is_listening = False
             settings.is_saved = False  # Изменения в проекте не сохранены
-            if self.delete_cmd == 2:
-                # Удалить 2 команды если остановлено esc. Для этого выделим их
-                self.display_commands.tree.selection_set(self.data.queue_command[self.data.pointer_command - 1],
-                                                         self.data.queue_command[self.data.pointer_command])
-            self.root.after(1000, self.display_commands.delete)  # Удаляем выделенные строки
-            # Сохраняем историю с задержкой для фиксации последней команды
-            self.root.after(800, self.save_load.save_history)
+            if self.delete_cmd:
+                # Удалить команды, если запись остановлена нажатием кнопки
+                self.root.after(1000, self.display_commands.delete)  # Удаляем выделенные строки
+                # Сохраняем историю с задержкой для фиксации последней команды
+                self.root.after(800, self.save_load.save_history)
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
@@ -140,40 +136,45 @@ class Tracker:
         продолжается. Если комбинация не выполнена за определенное время (для некоторых комбинаций), то очередь
         просто переносится в программу, без выполнения программы предусмотренной для комбинации.
         """
+        print(kwargs)
         self.queue_events.append(kwargs)  # Добавляем событие в очередь
-        if len(self.queue_events) == 1:
-            # Это первое событие в очереди, запоминаем время начала набора комбинации
-            self.timer = time.time()
-
         res = hotkeys.search_hotkey(kwargs['cmd'], kwargs['val'], len(self.queue_events))  # Поиск комбинаций клавиш
         if res == 'next':
-            # Комбинация с этим событием в этой позиции есть, но не завершена, ждем продолжения
-            return
+            return  # Комбинация с этим событием в этой позиции есть, но не завершена, ждем продолжения
 
         if res:
             # Это событие завершило комбинацию, есть совпадение
             # Название комбинации находится в res. Выполняем действия для комбинации
-            self.timer = time.time() - self.timer  # Вычисляем время набора комбинации
 
             # ---------------------- Действия для комбинаций --------------------------
-            print(res)
-            if res == 'stop' and self.timer < 0.5:
-                # Остановка записи или воспроизведения при нажатии esc 2 раза за 0.5 сек.
+
+            # -------- Комбинации действующие всегда --------
+            if res == 'stop':
+                # Остановка записи или воспроизведения при нажатии esc 2 раза.
                 self.delete_cmd = 0  # Удалять команды из списка программы не надо, они не записывались
                 self.stop_btn()
                 return
+
+            # -------- Комбинации действующие при записи --------
+            if not self.is_listening:
+                self.queue_events.clear()  # Очищаем очередь
+                return
+
+            if res == 'copy':
+                # Подмена набора комбинации клавиш для копирования встроенной командой
+                pass
 
             # ------------------------------------------------------------------------
             self.queue_events.clear()  # Очищаем очередь
             return
 
-        if not res:
+        if not res and self.is_listening:
             for event in self.queue_events:
                 # Добавляем события в список программы
                 self.data.make_command(**event)  # Добавляем команду
 
-            self.queue_events.clear()  # Очищаем очередь
             self.display_commands.out_commands()  # Обновляем список
+        self.queue_events.clear()  # Очищаем очередь
 
     def on_click(self, *args):
         """ Клик мыши любой кнопкой"""
@@ -208,7 +209,10 @@ class Tracker:
 
     def on_press(self, key=None):
         """ Обработка события нажатия клавиши """
-        if not self.is_listening:
+        key_str = self.get_str_key(key)  # Получаем название клавиши в виде строки
+        if key_str == self.current_key:
+            # Это виртуальное нажатие, не обрабатываем
+            # self.current_key = None
             return
         if key in self.pressing_keys_set:
             # Если клавиша уже нажата, то ничего не делаем
@@ -216,15 +220,21 @@ class Tracker:
         self.pressing_keys_set.add(key)  # Добавляем нажатую клавишу в множество
 
         # Отправляем на создание объекта команды и запись
-        self.to_export(cmd='KeyDown', val=[self.get_str_key(key)], des='')
+        self.to_export(cmd='KeyDown', val=[key_str], des='')
 
     def on_release(self, key):
-        if not self.is_listening:
+        key_str = self.get_str_key(key)  # Получаем название клавиши в виде строки
+        if key_str == self.current_key:
+            # Это виртуальное нажатие, не обрабатываем
+            # self.current_key = None
             return
-
-        self.pressing_keys_set.discard(key)  # Удаляем клавишу из множества
+        # Удаляем клавишу из множества
+        try:
+            self.pressing_keys_set.remove(key)
+        except:
+            return
         # Отправляем на создание объекта команды и запись
-        self.to_export(cmd='KeyUp', val=[self.get_str_key(key)], des='')
+        self.to_export(cmd='KeyUp', val=[key_str], des='')
 
 
 class Player:
@@ -308,6 +318,7 @@ class Player:
         elif cmd[:3] == 'Key':
             # Подготовка к распознаванию как отдельных символов, так и специальных клавиш
             insert = val[0]
+            self.tracker.current_key = insert  # Запоминаем, какую клавишу нажмем, чтобы отличить от реальных нажатий
             if len(insert) == 1:
                 insert = f"'{insert}'"
             else:
