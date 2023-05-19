@@ -66,6 +66,10 @@ class Tracker:
         """ Обработка нажатия кнопки записи """
         # TODO Обозначит что идет запись/воспроизведение
         # Запуск слушателя мыши
+        if self.data.is_listening:
+            # При записи недоступно
+            return
+
         self.listener_mouse = MouseListener(on_click=self.on_click)  # Слушатель мыши
         self.listener_mouse.start()
 
@@ -78,6 +82,8 @@ class Tracker:
         self.delete_cmd = 1  # Предполагается остановка записи кнопкой, нужно удалить 1 команду
         self.queue_events.clear()  # Очищаем очередь событий
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
+
+        logger.error('Идет запись.')
 
     def reset_kb(self):
         """ Вернуть состояние клавиатуры в исходное """
@@ -110,11 +116,12 @@ class Tracker:
             self.is_listening = False
             self.data.is_listening = False
             settings.is_saved = False  # Изменения в проекте не сохранены
-            if self.delete_cmd:
-                # Удалить команды, если запись остановлена нажатием кнопки
-                self.root.after(1000, self.display_commands.delete)  # Удаляем выделенные строки
-                # Сохраняем историю с задержкой для фиксации последней команды
-                self.root.after(800, self.save_load.save_history)
+            logger.error('Запись остановлена.')
+            # if self.delete_cmd:
+            #     # Удалить команды, если запись остановлена нажатием кнопки
+            #     self.root.after(1000, self.display_commands.delete)  # Удаляем выделенные строки
+            #     # Сохраняем историю с задержкой для фиксации последней команды
+            #     self.root.after(800, self.save_load.save_history)
 
     def single_click(self, args):
         """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
@@ -256,6 +263,10 @@ class Player:
 
     def run_thread(self):
         """ Запуск функции выполнения скрипта в отдельном потоке """
+        if self.data.is_listening:
+            # При записи недоступно
+            return
+
         if not len(self.data.queue_command):
             logger.warning('Нет команд для выполнения')
             return

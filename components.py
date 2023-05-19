@@ -369,6 +369,9 @@ class Editor:
 
     def select_command(self, event):
         """ Обработка выбора команды в выпадающем списке """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         if self.current_cmd:
             self.current_cmd.destroy_widgets()  # Удаляем старые виджеты
         try:
@@ -440,6 +443,9 @@ class Editor:
         клика мышью. Это сделано для возможностей истории, чтобы можно было вернуть удаленное действие.
         Эта функция находит неиспользуемые изображения и удаляет их.
         """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         # Составляем список изображений используемых в командах
         images = []
         for command in self.data.obj_command.values():
@@ -500,11 +506,11 @@ class DisplayCommands:
 
         up_button = Button(frame, command=self.up, image=self.icon_up, width=80, height=34)
         up_button.place(x=10, y=10)
-        ToolTip(up_button, msg="Копировать команды", delay=0.5)
+        ToolTip(up_button, msg="Переместить вверх", delay=0.5)
 
         copy_button = Button(frame, command=self.copy, image=self.icon6, width=120, height=34)
         copy_button.place(x=105, y=10)
-        ToolTip(copy_button, msg="Копировать команды", delay=0.5)
+        ToolTip(copy_button, msg="Переместить вниз", delay=0.5)
 
         cut_button = Button(frame, command=self.cut, image=self.icon7, width=120, height=34)
         cut_button.place(x=240, y=10)
@@ -546,9 +552,8 @@ class DisplayCommands:
 
     def on_select(self, event):
         """ Обработка события выбора строки в списке """
-        if self.data.script_started or self.data.is_listening:
-            # Не выполняем действия выбора если выполняется скрипт или идет запись
-            return
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
 
         try:
             selected_item = event.widget.selection()[0]  # Получаем id команды
@@ -592,6 +597,9 @@ class DisplayCommands:
 
     def copy(self, event=None):
         """ Обработчик кнопки Копировать """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         self.list_copy = self.get_selected()  # id выделенных команд
         if not self.list_copy:
             return
@@ -602,6 +610,9 @@ class DisplayCommands:
 
     def cut(self, event=None):
         """ Обработчик кнопки Вырезать """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         self.list_copy = self.get_selected()  # id выделенных команд
         if not self.list_copy:
             return
@@ -618,6 +629,9 @@ class DisplayCommands:
         объект с параметрами старого, при переносе объекты просто меняют положение в списке.
 
         """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         if self.operation and self.list_copy:
             # Убеждаемся, что операция актуальна и скопированные строки есть
 
@@ -683,6 +697,9 @@ class DisplayCommands:
 
     def delete(self, event=None):
         """ Обработчик кнопки Удалить """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         list_del = self.get_selected()  # id выделенных команд
         if not list_del:
             return
@@ -704,6 +721,9 @@ class DisplayCommands:
         Используя вырезать и вставить переносим выделенные строки на 1 вверх,
         после вставки выделяем перенесенные строки на новых местах.
         """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         # Определяем индекс строки куда вставлять
         try:
             where_to_insert = self.data.queue_command.index(self.get_selected()[0]) - 2
@@ -717,6 +737,9 @@ class DisplayCommands:
 
     def down(self, event=None):
         """ Перемещение выделенных строк вниз """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         all_selected =self.get_selected()
         if not all_selected:
             return
@@ -742,6 +765,9 @@ class DataSource:
 
     def menu_data_source(self):
         """ Выбор и подключение источника данных """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         try:
             new_file = fd.askopenfilename(
                 filetypes=(("image", "*.xlsx"), ("image", "*.xls"),
@@ -764,6 +790,9 @@ class DataSource:
 
     def load_file(self, name):
         """ Загрузка excel файла """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         try:
             path_and_name = os.path.join(settings.path_to_data, name)
             if not os.path.exists(path_and_name):
@@ -785,11 +814,17 @@ class DataSource:
 
     def menu_reset_pointers(self):
         """ Сброс указателей источника данных """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         data.pointers_data_source = dict.fromkeys(data.pointers_data_source, 0)
         logger.warning('Указатели источника данных сброшены.')
 
     def menu_delete_data_source(self):
         """ Отключение источника данных """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         self.data_source_file = None
         self.value.set('')
         data.data_source.clear()
@@ -883,6 +918,9 @@ class SaveLoad:
 
     def menu_new_project(self):
         """ Пункт меню Создание нового проекта """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         if not settings.is_saved:
             # Если проект не сохранен, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
@@ -894,6 +932,9 @@ class SaveLoad:
 
     def menu_open_project(self):
         """ Пункт меню Открыть проект """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         if not settings.is_saved:
             # Если проект не сохранен, то предложить сохранить проект
             if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
@@ -914,10 +955,16 @@ class SaveLoad:
 
     def menu_save_project(self):
         """ Пункт меню Сохранить проект """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         self.save_project()
 
     def menu_save_as_project(self):
         """ Пункт меню Сохранить проект как """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         # Открываем диалоговое окно для выбора проекта
         self.dialog_new_project('Сохранить проект как...')  # Открываем диалоговое окно для выбора пути и имени проекта
         if self.new_project_name:
@@ -1034,6 +1081,9 @@ class SaveLoad:
 
     def rename_project(self):
         """ Переименование проекта """
+        if data.script_started or data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         try:
             # Диалоговое окно для ввода имени проекта
             # создаем диалоговое окно для ввода текста
@@ -1198,7 +1248,7 @@ class SaveLoad:
     def undo_button(self):
         """ Отмена последнего изменения """
         if data.script_started or data.is_listening:
-            return  # Отмена невозможна, если запущен скрипт или слушатель
+            return  # Операция невозможна при выполнении или записи скрипта
 
         if self.history_pointer > 0:
             self.history_pointer -= 1
