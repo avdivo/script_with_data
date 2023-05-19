@@ -202,7 +202,9 @@ class MouseClickLeft(MouseClickRight):
 
     def load_image(self):
         """ Загрузка изображения элемента """
-        # TODO: ограничить выбор одной папкой или копировать изображение в нужную папку
+        if self.data.script_started or self.data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         try:
             new_path_image = fd.askopenfilename(
                 filetypes=(("image", "*.png"),

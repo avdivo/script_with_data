@@ -41,6 +41,9 @@ from data_types import llist
 
 def on_closing():
     """ Действия при закрытии программы """
+    if data.script_started or data.is_listening:
+        return  # Операция невозможна при выполнении или записи скрипта
+
     if not settings.is_saved:
         # Если проект не сохранен, то предложить сохранить проект
         if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):

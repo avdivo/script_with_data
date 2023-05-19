@@ -416,6 +416,9 @@ class Editor:
 
     def add_cmd_button(self, event=None):
         """ Добавление команды из редактора в список """
+        if self.data.script_started or self.data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         self.current_cmd.save()
         try:
             self.data.add_new_command(self.current_cmd)  # Добавление команды в очередь
@@ -430,6 +433,9 @@ class Editor:
 
     def change_cmd_button(self, event=None):
         """ Изменение текущей в списке команды на ту, что в редакторе """
+        if self.data.script_started or self.data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
+
         self.current_cmd.save()
         self.data.change_command(self.current_cmd)  # Изменяем команду
         self.display_commands.out_commands()  # Обновляем список

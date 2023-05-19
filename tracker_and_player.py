@@ -66,9 +66,8 @@ class Tracker:
         """ Обработка нажатия кнопки записи """
         # TODO Обозначит что идет запись/воспроизведение
         # Запуск слушателя мыши
-        if self.data.is_listening:
-            # При записи недоступно
-            return
+        if self.data.script_started or self.data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
 
         self.listener_mouse = MouseListener(on_click=self.on_click)  # Слушатель мыши
         self.listener_mouse.start()
@@ -143,7 +142,6 @@ class Tracker:
         продолжается. Если комбинация не выполнена за определенное время (для некоторых комбинаций), то очередь
         просто переносится в программу, без выполнения программы предусмотренной для комбинации.
         """
-        print(kwargs)
         self.queue_events.append(kwargs)  # Добавляем событие в очередь
         res = hotkeys.search_hotkey(kwargs['cmd'], kwargs['val'], len(self.queue_events))  # Поиск комбинаций клавиш
         if res == 'next':
@@ -263,9 +261,8 @@ class Player:
 
     def run_thread(self):
         """ Запуск функции выполнения скрипта в отдельном потоке """
-        if self.data.is_listening:
-            # При записи недоступно
-            return
+        if self.data.script_started or self.data.is_listening:
+            return  # Операция невозможна при выполнении или записи скрипта
 
         if not len(self.data.queue_command):
             logger.warning('Нет команд для выполнения')

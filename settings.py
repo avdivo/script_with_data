@@ -91,6 +91,7 @@ class Settings(object):
 
     def show_window_settings(self, root, w, h):
         """ Отрытие окна настроек """
+
         self.top = tk.Toplevel()  # Новое окно
         self.top.title("Настройки")
         self.top.transient(root)  # Поверх окна
