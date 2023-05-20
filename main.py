@@ -144,6 +144,7 @@ display_commands.editor = editor
 tracker = Tracker(root)  # Трекер клавиатуры и мыши
 tracker.data = data  # Даем трекеру ссылку на данные скрипта
 tracker.display_commands = display_commands  # И на список команд
+CommandClasses.tracker = tracker  # Передаем ссылку на трекер в классы команд
 
 
 player = Player(root, run_script)

@@ -15,12 +15,17 @@ from tkinter import ttk
 from tktooltip import ToolTip
 from tkinter import filedialog as fd
 import os
+import logging
 
 from data_types import llist, eres
 from data_input import DataInput
 from settings import settings
 from exceptions import DataError, NoCommandOrStop
 from element_images import generate_image_name
+
+
+# создание логгера и обработчика
+logger = logging.getLogger('logger')
 
 
 class CommandClasses(ABC):
@@ -31,6 +36,7 @@ class CommandClasses(ABC):
     """
     root = None  # Родительский виджет, куда выводятся виджеты ввода
     data = None  # Объект с данными о выполнении скрипта
+    tracker = None  # Объект для записи скрипта
 
     def __init__(self, description):
         """ Принимает пользовательское описание команды """
@@ -177,7 +183,11 @@ class MouseClickLeft(MouseClickRight):
         super().__init__(*args, description=description)
         self.image = args[2]
         self.element_image = None
+        self.icon_edit = None
+        self.icon_del = None
         self.widget_button = None
+        self.widget_button_edit = None
+        self.widget_button_del = None
 
     def paint_widgets(self):
         """ Отрисовка виджетов """
@@ -195,9 +205,21 @@ class MouseClickLeft(MouseClickRight):
         if not os.path.exists(img):
             img = 'icon/no_element.png'
         self.element_image = PhotoImage(file=img)
+        self.icon_edit = PhotoImage(file="icon/record.png")
+        self.icon_del = PhotoImage(file="icon/delete.png")
+
         self.widget_button = Button(self.root, command=self.load_image, image=self.element_image, width=96, height=96)
         self.widget_button.place(x=273, y=5)
         ToolTip(self.widget_button, msg="Изображение элемента", delay=0.5)
+
+        self.widget_button_edit = Button(self.root, command=self.edit_image, image=self.icon_edit, width=34, height=34)
+        self.widget_button_edit.place(x=273, y=106)
+        ToolTip(self.widget_button_edit, msg="Удалить команды", delay=0.5)
+
+        self.widget_button_del = Button(self.root, command=self.delete_image, image=self.icon_del, width=34, height=34)
+        self.widget_button_del.place(x=334, y=106)
+        ToolTip(self.widget_button_del, msg="Удалить команды", delay=0.5)
+
         self.paint_description()  # Комментарий
 
     def load_image(self):
@@ -224,10 +246,47 @@ class MouseClickLeft(MouseClickRight):
             # Загружаем изображение в виджет
             self.element_image = PhotoImage(file=os.path.join(settings.path_to_elements, self.image))
             self.widget_button.configure(image=self.element_image)
-            # Применяем настройки к кнопке
-            self.widget_button.update()
+            self.widget_button.update()  # Применяем настройки к кнопке
         except:
             pass
+
+    def edit_image(self):
+        """ Редактирование изображения элемента """
+        if self.data.script_started or self.data.is_listening:
+            return
+
+        try:
+            logger.info('Запущена запись скриншота.\nНаведите курсор мыши на нужный элемент и дважды нажмите Alt.\n'
+                        'Для отмены нажмите дважды нажмите Ctrl.')
+            self.tracker.only_screenshot = 'waite'
+            self.tracker.rec_btn()  # Запускаем запись скрипта, но при only_screenshot = 'waite'
+
+            while self.tracker.only_screenshot == 'waite':
+                sleep(0.1)  # Ждем пока не будет получен скриншот
+
+            if self.tracker.only_screenshot:
+                # Если скриншот получен, то меняем им изображение элемента
+                img =os.path.join(settings.path_to_elements, self.tracker.only_screenshot)
+                self.element_image = PhotoImage(file=img)
+                self.widget_button.configure(image=self.element_image)
+                self.widget_button.update()  # Применяем настройки к кнопке
+                logger.error('Скриншот получен.')
+            else:
+                logger.error('Отмена записи скриншота.')
+        except:
+            pass
+
+
+    def delete_image(self):
+        """ Удаление изображения элемента """
+        if self.data.script_started or self.data.is_listening:
+            return
+
+        self.image = ''
+        img = 'icon/no_element.png'
+        self.element_image = PhotoImage(file=img)
+        self.widget_button.configure(image=self.element_image)
+        self.widget_button.update()  # Применяем настройки к кнопке
 
     def command_to_dict(self):
         """ Возвращает словарь с содержимым команды """
@@ -240,6 +299,8 @@ class MouseClickLeft(MouseClickRight):
         self.widget_x.destroy_widgets()
         self.widget_y.destroy_widgets()
         self.widget_button.destroy()
+        self.widget_button_edit.destroy()
+        self.widget_button_del.destroy()
         self.widget_description.destroy_widgets()
 
 
