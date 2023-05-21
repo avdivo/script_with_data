@@ -258,22 +258,20 @@ class MouseClickLeft(MouseClickRight):
         try:
             logger.info('Запущена запись скриншота.\nНаведите курсор мыши на нужный элемент и дважды нажмите Alt.\n'
                         'Для отмены нажмите дважды нажмите Ctrl.')
-            self.tracker.only_screenshot = 'waite'
+            self.tracker.only_screenshot = 'wait'
             self.tracker.rec_btn()  # Запускаем запись скрипта, но при only_screenshot = 'waite'
 
-            while self.tracker.only_screenshot == 'waite':
+            while self.tracker.only_screenshot == 'wait':
                 sleep(0.1)  # Ждем пока не будет получен скриншот
 
             if self.tracker.only_screenshot:
                 # Если скриншот получен, то меняем им изображение элемента
                 self.image = self.tracker.only_screenshot
-                img =os.path.join(settings.path_to_elements, self.image)
+                img = os.path.join(settings.path_to_elements, self.image)
                 self.element_image = PhotoImage(file=img)
                 self.widget_button.configure(image=self.element_image)
                 self.widget_button.update()  # Применяем настройки к кнопке
                 logger.error('Скриншот получен.')
-            else:
-                logger.error('Отмена записи скриншота.')
         except:
             pass
 
