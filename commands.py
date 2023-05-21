@@ -266,7 +266,8 @@ class MouseClickLeft(MouseClickRight):
 
             if self.tracker.only_screenshot:
                 # Если скриншот получен, то меняем им изображение элемента
-                img =os.path.join(settings.path_to_elements, self.tracker.only_screenshot)
+                self.image = self.tracker.only_screenshot
+                img =os.path.join(settings.path_to_elements, self.image)
                 self.element_image = PhotoImage(file=img)
                 self.widget_button.configure(image=self.element_image)
                 self.widget_button.update()  # Применяем настройки к кнопке

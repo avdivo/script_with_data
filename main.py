@@ -28,6 +28,7 @@ from tkinter import *
 from tkinter import messagebox
 from tktooltip import ToolTip
 import logging
+import subprocess
 
 import components
 from settings import settings
@@ -36,7 +37,7 @@ from components import Editor, DisplayCommands, DataSource, SaveLoad, data
 from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop, DataError, TemplateNotFoundError, ElementNotFound
 from messages import Messages
-from data_types import llist
+from define_platform import system
 
 
 def on_closing():
@@ -115,6 +116,16 @@ def run_script():
     return
 
 
+def open_file_explorer():
+    """ Открыть изображения элементов в проводнике """
+    if system.os == 'Windows':
+        os.startfile(settings.path_to_elements)
+    elif system.os == 'Linux':
+        subprocess.Popen(['xdg-open', settings.path_to_elements])
+    else:
+        print('Unsupported OS')
+
+
 # создание логгера и обработчика
 logger = logging.getLogger('logger')
 logger.setLevel(logging.DEBUG)
@@ -180,6 +191,7 @@ filemenu.add_command(label="Сохранить проект как...", command=
 filemenu.add_command(label="Переименовать проект", command=save_load.rename_project)
 filemenu.add_separator()
 filemenu.add_command(label="Удалить лишние изображения", command=editor.menu_delete_images)
+filemenu.add_command(label="Просмотр изображений", command=open_file_explorer)
 filemenu.add_separator()
 filemenu.add_command(label="Выход", command=on_closing)
 mainmenu.add_cascade(label="Проект", menu=filemenu)

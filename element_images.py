@@ -61,7 +61,7 @@ def save_image(x_point: int, y_point: int) -> str:
 
     """
 
-    threshold = 0.8 # Порог
+    threshold = 0.85 # Порог
     method = cv2.TM_CCOEFF_NORMED  # Метод расчёта корреляции между изображениями
 
     # Вычисляем координаты квадрата для скриншота
