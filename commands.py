@@ -214,11 +214,11 @@ class MouseClickLeft(MouseClickRight):
 
         self.widget_button_edit = Button(self.root, command=self.edit_image, image=self.icon_edit, width=34, height=34)
         self.widget_button_edit.place(x=273, y=106)
-        ToolTip(self.widget_button_edit, msg="Удалить команды", delay=0.5)
+        ToolTip(self.widget_button_edit, msg="Скриншот", delay=0.5)
 
         self.widget_button_del = Button(self.root, command=self.delete_image, image=self.icon_del, width=34, height=34)
         self.widget_button_del.place(x=334, y=106)
-        ToolTip(self.widget_button_del, msg="Удалить команды", delay=0.5)
+        ToolTip(self.widget_button_del, msg="Удалить изображение", delay=0.5)
 
         self.paint_description()  # Комментарий
 
@@ -256,8 +256,10 @@ class MouseClickLeft(MouseClickRight):
             return
 
         try:
-            logger.info('Запущена запись скриншота.\nНаведите курсор мыши на нужный элемент и дважды нажмите Alt.\n'
-                        'Для отмены нажмите дважды нажмите Ctrl.')
+            logger.warning('Запущена запись скриншота.\nНаведите курсор мыши на нужный элемент и дважды нажмите Alt.\n'
+                           'После первого нажатия координаты зафиксируются и курсор можно убрать.\n'
+                        'Для отмены дважды нажмите Ctrl.')
+            self.root.update()  # Обновляем окно
             self.tracker.only_screenshot = 'wait'
             self.tracker.rec_btn()  # Запускаем запись скрипта, но при only_screenshot = 'waite'
 
