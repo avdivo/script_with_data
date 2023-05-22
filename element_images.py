@@ -49,6 +49,47 @@ def generate_image_name() -> str:
     return f'{settings.basename}_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'
 
 
+def compare_2_images(small, big):
+    """ Поиск маленького изображения в большом
+
+    Возвращает True или False.
+    Поиск производится стандартным методом openCV, однако перед этим маленькое изображение проверяется на одноцветность
+    и если оно одноцветное, то большое изображение обрезается до размера маленького и если оно тоже одноцветное и имеет
+    тот же цвет, что и маленькое - они признаются одинаковыми.
+    """
+    threshold = 0.85 # Порог
+    method = cv2.TM_CCOEFF_NORMED  # Метод расчёта корреляции между изображениями
+
+    if np.all(small == small[0,0]):
+        # Все пиксели маленького изображения имеют одинаковый цвет
+        # Получение размеров маленького изображения
+        small_height, small_width = small.shape
+
+        # Получение размеров большого изображения
+        large_height, large_width = big.shape
+
+        # Вычисление размеров обрезки
+        crop_height = (large_height - small_height) // 2
+        crop_width = (large_width - small_width) // 2
+
+        # Обрезка большого изображения
+        cropped_image = big[crop_height:large_height - crop_height, crop_width:large_width - crop_width]
+
+        if np.all(cropped_image == small[0,0]):
+            # Все пиксели обрезанного большого изображения имеют такой же цвет, как и маленькое изображение
+            return True
+        else:
+            return False
+
+    res = cv2.matchTemplate(big, small, method)
+    # Ищем координаты совпадающего местоположения в массиве numpy
+    loc = np.where(res >= threshold)
+    if any(loc[-1]):
+        return True
+
+    return False
+
+
 def save_image(x_point: int, y_point: int) -> str:
     """ Сохранение изображения кнопки/иконки (элемента) если он еще не сохранен
 
@@ -60,10 +101,6 @@ def save_image(x_point: int, y_point: int) -> str:
     Возвращает имя нового или существующего изображения.
 
     """
-
-    threshold = 0.85 # Порог
-    method = cv2.TM_CCOEFF_NORMED  # Метод расчёта корреляции между изображениями
-
     # Вычисляем координаты квадрата для скриншота
     x_reg = x_point - settings.first_region // 2
     y_reg = y_point - settings.first_region // 2
@@ -77,14 +114,9 @@ def save_image(x_point: int, y_point: int) -> str:
     # Перебор сохраненных элементов, был ли ранее такой сохранен
     for name in os.listdir(settings.path_to_elements):
         template = cv2.imread(os.path.join(settings.path_to_elements, name), 0)
-        # Проверяем, что шаблон не полностью белый
-        if np.mean(template) < 250:
-            # Операция сопоставления
-            res = cv2.matchTemplate(grayimg, template, method)
-            # Ищем координаты совпадающего местоположения в массиве numpy
-            loc = np.where(res >= threshold)
-            if any(loc[-1]):
-                return name
+        if compare_2_images(template, grayimg):
+            # Сравнение изображений. Такое изображение уже сохранено
+            return name
 
     # Если выбранный элемент ранее не был сохранен, сохраним его
     # Обрезаем квадрат
@@ -146,10 +178,8 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         return (x_point, y_point)
 
     # Получение шаблона
-    # if not os.path.exists(f'{settings.path_to_elements}/{name_template}'):
     if not os.path.exists(os.path.join(settings.path_to_elements, name_template)):
         raise TemplateNotFoundError('Шаблон с таким именем не найден.')
-    # template = cv2.imread(f'{settings.path_to_elements}/{name_template}', 0)
     template = cv2.imread(os.path.join(settings.path_to_elements, name_template), 0)
 
     # Сохранить ширину в переменной w и высоту в переменной h шаблона
@@ -170,13 +200,7 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         # Перевод изображения в оттенки серого
         gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Операция сопоставления
-        res = cv2.matchTemplate(gray_img, template, method)
-
-        # Ищем координаты совпадающего местоположения в массиве numpy
-        loc = np.where(res >= threshold)
-
-        if any(loc[-1]):
+        if compare_2_images(template, gray_img):
             # Элемент присутствует в этом месте, подтверждаем координаты
             return (x_point, y_point)
 
