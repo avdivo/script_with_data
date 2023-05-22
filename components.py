@@ -486,10 +486,16 @@ class DisplayCommands:
     def __init__(self, root, frame):
         """ Принимает ссылку на окно программы и фрейм для кнопок"""
 
+        # Функция обновления списка out_commands должна выполняться только когда после последнего ее вызова
+        # прошло заданное время. Т.е. в серии из нескольких вызовов с частотой меньше заданного промежутка
+        # она выполнится только 1 раз после последнего вызова. Переменная для этого механизма.
+        self.start_if_zero = 0
+
         # Create an instance of Style widget
         style = ttk.Style()
         style.theme_use('clam')
 
+        self.root = root
         self.tree = ttk.Treeview(root, show="", columns=('number', 'command'), selectmode="extended", height=28)
         self.tree.column("#1", stretch=NO, width=80)
         self.tree.column("#2", stretch=NO, width=300)
@@ -571,19 +577,31 @@ class DisplayCommands:
         self.editor.command_to_editor(selected_item)  # Выводим команду в редактор по ее id
 
     def out_commands(self):
-        """ Вывод строк в виджет
+        """ Вывод строк в виджет (Обновление списка)
 
         Берет строки из объекта с данными и выводит их в виджет.
         Названия команд запрашивает у их объектов, где при наличии описания возвращается оно, а не название.
 
+        Поддерживает умное обновление. Обновляет список не каждый раз при вызове, а только когда после последнего
+        вызова пройдет заданное время. Чтобы не выполнять обновления для каждой часто идущей команды обновления.
+        Для этого запускает функцию обновления с отсрочкой и добавляет счетчику 1. Функция обновления отнимает 1
+        от счетчика и если он стал 0 - выполняет обновление.
         """
-        self.clear()
-        self.tree.insert('', 0, 'zero', values=('', ''))  # Добавляем пустую строку
-        for i, id in enumerate(data.queue_command):
-            # Выводим список
-            self.tree.insert('', 'end', id, values=(i+1, self.data.obj_command[id]))
-        self.tree.selection_set(self.tree.get_children()[data.pointer_command+1])  # Выделяем строку
-        pass
+        def update_list():
+            self.start_if_zero -= 1
+            if self.start_if_zero < 1:
+                # Отменит все предыдущие обновления, если есть запрос на новое
+                self.start_if_zero = 0
+                self.clear()
+                self.tree.insert('', 0, 'zero', values=('', ''))  # Добавляем пустую строку
+                for i, id in enumerate(data.queue_command):
+                    # Выводим список
+                    self.tree.insert('', 'end', id, values=(i+1, self.data.obj_command[id]))
+                self.tree.selection_set(self.tree.get_children()[data.pointer_command+1])  # Выделяем строку
+                pass
+        # Запускаем функцию обновления списка, с отсрочкой
+        self.start_if_zero += 1
+        self.root.after(500, update_list)
 
     def clear(self):
         """ Очистка списка команд """

@@ -128,12 +128,6 @@ class Tracker:
             logger.error('Запись остановлена.')
             self.save_load.save_history()  # Сохраняем историю
 
-    def single_click(self, args):
-        """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
-        if self.single:
-            self.single = False
-            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], self.img], des='')
-
     def to_export(self, **kwargs):
         """ Добавление команды в список программы, распознавание комбинаций клавиш
 
@@ -202,6 +196,12 @@ class Tracker:
 
             self.display_commands.out_commands()  # Обновляем список
         self.queue_events.clear()  # Очищаем очередь
+
+    def single_click(self, args):
+        """ Фиксация 1 клика, запускается по таймеру и отменяется, если есть клик второй """
+        if self.single:
+            self.single = False
+            self.to_export(cmd='MouseClickLeft', val=[args[0], args[1], self.img], des='')
 
     def on_click(self, *args):
         """ Клик мыши любой кнопкой"""
