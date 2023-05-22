@@ -17,6 +17,7 @@ from define_platform import system
 from element_images import save_image, pattern_search
 from exceptions import TemplateNotFoundError, ElementNotFound
 from hotkeys import hotkeys
+from define_platform import system
 
 
 # создание логгера и обработчика
@@ -232,6 +233,11 @@ class Tracker:
                 raise
         except:
             out = str(key)[4:]
+
+            if out in system.key_replace:
+                # Подмена названий некоторых клавиш например Ctrl_l на Ctrl
+                out = system.key_replace[out]
+
         return out
 
     def on_press(self, key=None):
