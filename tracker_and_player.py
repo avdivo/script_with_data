@@ -9,6 +9,7 @@ from tktooltip import ToolTip
 from pynput.mouse import Listener as MouseListener, Controller as mouse_Controller, Button as Btn
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
 import logging
+import pyautogui
 
 from threading import Thread
 
@@ -344,6 +345,7 @@ class Player:
                     # Клик левой копкой мыши
                     mouse.press(Btn.left)
                     mouse.release(Btn.left)
+                    pyautogui.hotkey('ctrl', 'v')
 
                 elif cmd == 'MouseClickDouble':
                     # Двойной клик
