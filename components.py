@@ -545,6 +545,8 @@ class DisplayCommands:
         code = event.keycode
         if code == system.hotkeys['Ctrl_A']:
             # Ctrl+a
+            if data.script_started or data.is_listening:
+                return  # Операция невозможна при выполнении или записи скрипта
             self.tree.selection_set(self.tree.get_children())
         elif code == system.hotkeys['Ctrl_C']:
             # Ctrl+c
