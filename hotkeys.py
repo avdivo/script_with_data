@@ -11,7 +11,15 @@ class Hotkeys:
         self.hotkeys = {'stop': ['KeyDown_ctrl', 'KeyUp_ctrl', 'KeyDown_ctrl', 'KeyUp_ctrl'],
                         'screenshot': ['KeyDown_alt', 'KeyUp_alt', 'KeyDown_alt', 'KeyUp_alt'],
                         'mouse_position': ['KeyDown_alt', 'KeyUp_alt'],
-                        'copy': ['KeyDown_ctrl', 'KeyDown_c', 'KeyUp_c', 'KeyUp_ctrl'],}
+                        'copy': ['KeyDown_ctrl', 'KeyDown_c', 'KeyUp_c', 'KeyUp_ctrl'],
+                        'copy_rus': ['KeyDown_ctrl', 'KeyDown_с', 'KeyUp_с', 'KeyUp_ctrl'],
+                        'cut': ['KeyDown_ctrl', 'KeyDown_x', 'KeyUp_x', 'KeyUp_ctrl'],
+                        'cut_rus': ['KeyDown_ctrl', 'KeyDown_ч', 'KeyUp_ч', 'KeyUp_ctrl'],
+                        'paste': ['KeyDown_ctrl', 'KeyDown_v', 'KeyUp_v', 'KeyUp_ctrl'],
+                        'paste_rus': ['KeyDown_ctrl', 'KeyDown_м', 'KeyUp_м', 'KeyUp_ctrl'],
+                        'select': ['KeyDown_ctrl', 'KeyDown_a', 'KeyUp_a', 'KeyUp_ctrl'],
+                        'select_rus': ['KeyDown_ctrl', 'KeyDown_ф', 'KeyUp_ф', 'KeyUp_ctrl'],
+                        'language_change': ['KeyDown_alt', 'KeyDown_shift', 'KeyUp_shift', 'KeyUp_alt']}
 
         self.hotkeys_actual = []  # Названия комбинаций, которые удовлетворяют текущей последовательности событий
 

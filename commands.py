@@ -16,6 +16,7 @@ from tktooltip import ToolTip
 from tkinter import filedialog as fd
 import os
 import logging
+import pyautogui
 
 from data_types import llist, eres
 from data_input import DataInput
@@ -789,3 +790,25 @@ class DialogCmd(WriteCmd):
         self.data.stop_for_dialog(self.value)
         if self.data.modal_stop:
             raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
+
+
+class CopyCmd(CycleEnd):
+    """ Копировать """
+    command_name = 'Копировать'
+    command_description = 'Копирует в буфер обмена (аналог Ctrl+C).'
+    for_sort = 190
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('ctrl', 'c')
+
+
+class PasteCmd(CycleEnd):
+    """ Вставить """
+    command_name = 'Вставить'
+    command_description = 'Вставляет из буфера обмена (аналог Ctrl+V).'
+    for_sort = 210
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('ctrl', 'v')

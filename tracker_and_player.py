@@ -151,7 +151,10 @@ class Tracker:
 
         if res:
             # Это событие завершило комбинацию, есть совпадение
-            # Название комбинации находится в res. Выполняем действия для комбинации
+            # Название комбинации находится в res.
+            # Название всегда начинается с ключевого слова и может быть разделено подчеркиванием.
+            # Выполняем действия для комбинации
+            res = res.split('_')[0]
 
             # ---------------------- Действия для комбинаций --------------------------
 
@@ -180,11 +183,18 @@ class Tracker:
 
             if res == 'copy':
                 # Подмена набора комбинации клавиш для копирования встроенной командой
-                pass
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'CopyCmd', 'val': [], 'des': ''})
+                res = None
+
+            if res == 'paste':
+                # Подмена набора комбинации клавиш для копирования встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'PasteCmd', 'val': [], 'des': ''})
+                res = None
 
             # ------------------------------------------------------------------------
-            self.queue_events.clear()  # Очищаем очередь
-            return
+
 
         if self.only_screenshot == 'wait':
             # Ожидание скриншота не предполагает запись команд
@@ -345,7 +355,22 @@ class Player:
                     # Клик левой копкой мыши
                     mouse.press(Btn.left)
                     mouse.release(Btn.left)
-                    pyautogui.hotkey('ctrl', 'v')
+                    # pyautogui.hotkey('alt', 'shift')
+                    # pyautogui.keyDown('l')
+                    # pyautogui.keyUp('l')
+                    # with kb.pressed(Key.alt_l):
+                    #     with kb.pressed(Key.shift):
+                    #         pass
+                    # kb.press(Key.alt_l)
+                    # kb.press(Key.shift)
+                    # kb.release(Key.shift)
+                    # kb.release(Key.alt_l)
+                    # kb.press('м')
+                    # kb.release('м')
+                    # kb.press(Key.ctrl)
+                    # kb.press('м')
+                    # kb.release('м')
+                    # kb.release(Key.ctrl)
 
                 elif cmd == 'MouseClickDouble':
                     # Двойной клик
