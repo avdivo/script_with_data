@@ -154,7 +154,7 @@ class Tracker:
             # Название комбинации находится в res.
             # Название всегда начинается с ключевого слова и может быть разделено подчеркиванием.
             # Выполняем действия для комбинации
-            res = res.split('_')[0]
+            res = res.split()[0]
 
             # ---------------------- Действия для комбинаций --------------------------
 
@@ -182,17 +182,60 @@ class Tracker:
                 return
 
             if res == 'copy':
-                # Подмена набора комбинации клавиш для копирования встроенной командой
+                # Ctrl+C
+                # Подмена набора комбинации клавиш для КОПИРОВАНИЯ встроенной командой
                 self.queue_events.clear()  # Очищаем очередь
                 self.queue_events.append({'cmd': 'CopyCmd', 'val': [], 'des': ''})
-                res = None
+
+            if res == 'cut':
+                # Ctrl+X
+                # Подмена набора комбинации клавиш для ВЫРЕЗАНИЯ встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'CutCmd', 'val': [], 'des': ''})
 
             if res == 'paste':
-                # Подмена набора комбинации клавиш для копирования встроенной командой
+                # Ctrl+V
+                # Подмена набора комбинации клавиш для ВСТАВКИ встроенной командой
                 self.queue_events.clear()  # Очищаем очередь
                 self.queue_events.append({'cmd': 'PasteCmd', 'val': [], 'des': ''})
-                res = None
 
+            if res == 'select':
+                # Ctrl+A
+                # Подмена набора комбинации клавиш для ВЫБРАТЬ ВСЕ встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'SelectCmd', 'val': [], 'des': ''})
+
+            if res == 'language_change':
+                # Alt+Shift
+                # Подмена набора комбинации клавиш для ПЕРЕКЛЮЧЕНИЯ РАСКЛАДКИ встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'LanguageChangeCmd', 'val': [], 'des': ''})
+
+            if res == 'new_tab':
+                # Ctrl+T
+                # Подмена набора комбинации клавиш для НОВОЙ ВКЛАДКИ встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'NewTabCmd', 'val': [], 'des': ''})
+
+            if res == 'next_tab':
+                # Ctrl+Tab
+                # Подмена набора комбинации клавиш для ПЕРЕКЛЮЧЕНИЯ ВКЛАДКИ встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'NextTabCmd', 'val': [], 'des': ''})
+
+            if res == 'next_window':
+                # Alt+Tab
+                # Подмена набора комбинации клавиш для ПЕРЕКЛЮЧЕНИЯ ОКОН встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'NextWindowCmd', 'val': [], 'des': ''})
+
+            if res == 'roll_up_windows':
+                # Cmd+D для Windows и Ctrl+Alt+D для Linux
+                # Подмена набора комбинации клавиш для СВЕРНУТЬ ВСЕ ОКНА встроенной командой
+                self.queue_events.clear()  # Очищаем очередь
+                self.queue_events.append({'cmd': 'RollUpWindowsCmd', 'val': [], 'des': ''})
+
+            res = None
             # ------------------------------------------------------------------------
 
 
@@ -355,22 +398,6 @@ class Player:
                     # Клик левой копкой мыши
                     mouse.press(Btn.left)
                     mouse.release(Btn.left)
-                    # pyautogui.hotkey('alt', 'shift')
-                    # pyautogui.keyDown('l')
-                    # pyautogui.keyUp('l')
-                    # with kb.pressed(Key.alt_l):
-                    #     with kb.pressed(Key.shift):
-                    #         pass
-                    # kb.press(Key.alt_l)
-                    # kb.press(Key.shift)
-                    # kb.release(Key.shift)
-                    # kb.release(Key.alt_l)
-                    # kb.press('м')
-                    # kb.release('м')
-                    # kb.press(Key.ctrl)
-                    # kb.press('м')
-                    # kb.release('м')
-                    # kb.release(Key.ctrl)
 
                 elif cmd == 'MouseClickDouble':
                     # Двойной клик

@@ -12,14 +12,22 @@ class Hotkeys:
                         'screenshot': ['KeyDown_alt', 'KeyUp_alt', 'KeyDown_alt', 'KeyUp_alt'],
                         'mouse_position': ['KeyDown_alt', 'KeyUp_alt'],
                         'copy': ['KeyDown_ctrl', 'KeyDown_c', 'KeyUp_c', 'KeyUp_ctrl'],
-                        'copy_rus': ['KeyDown_ctrl', 'KeyDown_с', 'KeyUp_с', 'KeyUp_ctrl'],
+                        'copy rus': ['KeyDown_ctrl', 'KeyDown_с', 'KeyUp_с', 'KeyUp_ctrl'],
                         'cut': ['KeyDown_ctrl', 'KeyDown_x', 'KeyUp_x', 'KeyUp_ctrl'],
-                        'cut_rus': ['KeyDown_ctrl', 'KeyDown_ч', 'KeyUp_ч', 'KeyUp_ctrl'],
+                        'cut rus': ['KeyDown_ctrl', 'KeyDown_ч', 'KeyUp_ч', 'KeyUp_ctrl'],
                         'paste': ['KeyDown_ctrl', 'KeyDown_v', 'KeyUp_v', 'KeyUp_ctrl'],
-                        'paste_rus': ['KeyDown_ctrl', 'KeyDown_м', 'KeyUp_м', 'KeyUp_ctrl'],
+                        'paste rus': ['KeyDown_ctrl', 'KeyDown_м', 'KeyUp_м', 'KeyUp_ctrl'],
                         'select': ['KeyDown_ctrl', 'KeyDown_a', 'KeyUp_a', 'KeyUp_ctrl'],
-                        'select_rus': ['KeyDown_ctrl', 'KeyDown_ф', 'KeyUp_ф', 'KeyUp_ctrl'],
-                        'language_change': ['KeyDown_alt', 'KeyDown_shift', 'KeyUp_shift', 'KeyUp_alt']}
+                        'select rus': ['KeyDown_ctrl', 'KeyDown_ф', 'KeyUp_ф', 'KeyUp_ctrl'],
+                        'language_change': ['KeyDown_alt', 'KeyDown_shift', 'KeyUp_shift', 'KeyUp_alt'],
+                        'new_tab': ['KeyDown_ctrl', 'KeyDown_t', 'KeyUp_t', 'KeyUp_ctrl'],
+                        'new_browse_tab rus': ['KeyDown_ctrl', 'KeyDown_е', 'KeyUp_е', 'KeyUp_ctrl'],
+                        'next_tab': ['KeyDown_ctrl', 'KeyDown_tab', 'KeyUp_tab', 'KeyUp_ctrl'],
+                        'next_window': ['KeyDown_alt', 'KeyDown_tab', 'KeyUp_tab', 'KeyUp_alt'],
+                        'roll_up_windows Ubuntu': ['KeyDown_ctrl', 'KeyDown_alt', 'KeyDown_d',
+                                                   'KeyUp_d', 'KeyUp_alt', 'KeyUp_ctrl'],
+                        'roll_up_windows Win': ['KeyDown_cmd', 'KeyDown_d', 'KeyUp_d', 'KeyUp_cmd'],
+                        'roll_up_windows WinRus': ['KeyDown_cmd', 'KeyDown_в', 'KeyUp_в', 'KeyUp_cmd']}
 
         self.hotkeys_actual = []  # Названия комбинаций, которые удовлетворяют текущей последовательности событий
 

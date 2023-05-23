@@ -23,6 +23,7 @@ from data_input import DataInput
 from settings import settings
 from exceptions import DataError, NoCommandOrStop
 from element_images import generate_image_name
+from define_platform import system
 
 
 # создание логгера и обработчика
@@ -803,6 +804,16 @@ class CopyCmd(CycleEnd):
         pyautogui.hotkey('ctrl', 'c')
 
 
+class CutCmd(CycleEnd):
+    """ Вырезать """
+    command_name = 'Вырезать'
+    command_description = 'Вырезает в буфер обмена (аналог Ctrl+X).'
+    for_sort = 200
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('ctrl', 'x')
+
 class PasteCmd(CycleEnd):
     """ Вставить """
     command_name = 'Вставить'
@@ -812,3 +823,72 @@ class PasteCmd(CycleEnd):
     def run_command(self):
         """ Выполнение команды """
         pyautogui.hotkey('ctrl', 'v')
+
+
+class SelectCmd(CycleEnd):
+    """ Выделить все """
+    command_name = 'Выделить все'
+    command_description = 'Выделяет все (аналог Ctrl+A).'
+    for_sort = 220
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('ctrl', 'a')
+
+
+class LanguageChangeCmd(CycleEnd):
+    """ Сменить язык """
+    command_name = 'Сменить язык'
+    command_description = 'Сменить язык раскладки клавиатуры (аналог Alt+Shift).'
+    for_sort = 230
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('alt', 'shift')
+
+
+class NewTabCmd(CycleEnd):
+    """ Новая вкладка """
+    command_name = 'Новая вкладка'
+    command_description = 'Открывает новую вкладку (аналог Ctrl+T).'
+    for_sort = 240
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('ctrl', 't')
+
+
+class NextTabCmd(CycleEnd):
+    """ Следующая вкладка """
+    command_name = 'Следующая вкладка'
+    command_description = 'Переходит на следующую вкладку (аналог Ctrl+Tab).'
+    for_sort = 250
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('ctrl', 'tab')
+
+
+class NextWindowCmd(CycleEnd):
+    """ Следующее окно """
+    command_name = 'Следующее окно'
+    command_description = 'Переходит на следующее окно (аналог Alt+Tab).'
+    for_sort = 260
+
+    def run_command(self):
+        """ Выполнение команды """
+        pyautogui.hotkey('alt', 'tab')
+
+
+class RollUpWindowsCmd(CycleEnd):
+    """ Свернуть все окна """
+    command_name = 'Свернуть все окна'
+    command_description = 'Свернуть все окна (аналог Cmd+D для Windows и Ctrl+Alt+D для Linux).'
+    for_sort = 270
+
+    def run_command(self):
+        """ Выполнение команды """
+        if system.os == 'Windows':
+            pyautogui.hotkey('win', 'd')
+        elif system.os == 'Linux':
+            pyautogui.hotkey('ctrl', 'alt', 'd')
