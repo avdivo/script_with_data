@@ -47,8 +47,11 @@ def on_closing():
 
     if not settings.is_saved:
         # Если проект не сохранен, то предложить сохранить проект
-        if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
+        result = messagebox.askyesnocancel('Сохранение проекта', 'Сохранить проект?')
+        if result:
             save_load.save_project()
+        elif result is None:
+            return
 
     save_load.config_file(action='set', name=settings.project_name,
                           path=settings.path_to_project, data=data_source.data_source_file)

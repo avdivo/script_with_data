@@ -941,8 +941,11 @@ class SaveLoad:
 
         if not settings.is_saved:
             # Если проект не сохранен, то предложить сохранить проект
-            if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
+            result = messagebox.askyesnocancel('Сохранение проекта', 'Сохранить проект?')
+            if result:
                 self.save_project()
+            elif result is None:
+                return
 
         self.dialog_new_project()  # Открываем диалоговое окно для выбора пути и имени проекта
         if self.new_project_name:
@@ -955,8 +958,11 @@ class SaveLoad:
 
         if not settings.is_saved:
             # Если проект не сохранен, то предложить сохранить проект
-            if messagebox.askyesno('Сохранение проекта', 'Сохранить проект?'):
+            result = messagebox.askyesnocancel('Сохранение проекта', 'Сохранить проект?')
+            if result:
                 self.save_project()
+            elif result is None:
+                return
 
         # Открываем диалоговое окно для выбора проекта
         path = fd.askdirectory(initialdir=self.new_path_to_project, title="Открыть проект")
