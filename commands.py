@@ -21,8 +21,8 @@ import pyautogui
 from data_types import llist, eres
 from data_input import DataInput
 from settings import settings
-from exceptions import DataError, NoCommandOrStop
-from element_images import generate_image_name
+from exceptions import DataError, NoCommandOrStop, TemplateNotFoundError, ElementNotFound
+from element_images import generate_image_name, pattern_search
 from define_platform import system
 
 
@@ -314,6 +314,30 @@ class MouseClickDouble(MouseClickLeft):
                          'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
                          'в соответствии с настройками скрипта.'
     for_sort = 10
+
+
+class CheckImage(MouseClickLeft):
+    """ Проверка изображения в указанных координатах
+
+    Делает скриншот изображения в указанных координатах, если там то изображение, которое указано в команде,
+    то продолжается выполнение скрипта иначе выполняются действия в соответствии с настройками скрипта при отсутствии
+    элемента.
+    """
+    command_name = 'Проверка изображения'
+    command_description = 'x, y - координаты на экране. Изображение - элемент, который программа ожидает "увидеть" ' \
+                         'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
+                         'в соответствии с настройками скрипта.'
+    for_sort = 25
+
+    def run_command(self):
+        """ Выполнение команды """
+        try:
+            pattern_search(self.image, self.x, self.y, only_check=True)
+        except (TemplateNotFoundError, ElementNotFound) as err:
+            if self.data.work_settings['s_error_no_element'].react == 'ignore':
+                logger.error(f'Ошибка:\n{err}\nРеакция - продолжение выполнения скрипта.')
+            else:
+                raise (err)
 
 
 class KeyDown(CommandClasses):

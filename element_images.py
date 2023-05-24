@@ -161,7 +161,7 @@ def save_image(x_point: int, y_point: int) -> str:
     return filename
 
 
-def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tuple:
+def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0, only_check=False) -> tuple:
     """ Подтверждение присутствия нужной кнопки в указанных координатах или поиск ее на экране
 
     Принимает в качестве первого аргумента имя шаблона (изображения кнопки или ее части),
@@ -174,7 +174,7 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
 
     """
     if not name_template:
-        # Если нет изображения элемента то проверка отменяется
+        # Если нет изображения элемента, то проверка отменяется, подтверждаем наличие элемента
         return (x_point, y_point)
 
     # Получение шаблона
@@ -208,6 +208,10 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tu
         if repeat:
             # После последнего поиска или если он единственный - пауза не нужна
             sleep(1)
+
+    if only_check:
+        # Если нужно только проверить наличие элемента, то возвращаем raise
+        raise ElementNotFound('Элемент не найден в указанном месте.')
 
     if not settings.s_full_screen_search:
         raise ElementNotFound('Элемент не найден в указанной области. Поиск по всему экрану отключен.')

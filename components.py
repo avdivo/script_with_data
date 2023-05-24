@@ -74,21 +74,6 @@ class CountingDict(dict):
                  if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd']
             llist.labels = names
 
-        # elif data.obj_command[key].__class__.__name__ == 'MouseClickLeft' \
-        #         or data.obj_command[key].__class__.__name__ == 'MouseClickDouble':
-        #     # Удаление изображений элементов
-        #     img = data.obj_command[key].image  # Узнаем картинку удаляемой команды
-        #     super().__delitem__(key)  # Вызываем базовую реализацию метода (удаляем уоманду)
-        #     if not img:
-        #         return
-        #     if not sum(1 for obj in data.obj_command.values() if hasattr(obj, 'image') and obj.image == img):
-        #         # Перебираем все команды, если в других этот элемент не используется - удаляем его
-        #         print(img, '- удален')
-        #         try:
-        #             os.unlink(os.path.join(settings.path_to_elements, img))
-        #         except Exception as err:
-        #             logger.error(f'Удалено. Ошибка при удалении изображений {err}')
-
         else:
             super().__delitem__(key)  # Вызываем базовую реализацию метода
 
@@ -300,7 +285,7 @@ class DataForWorker:
                 logger.error(f'Ошибка:\n"{err}"\nРеакция - продолжение выполнения скрипта.')
             elif data.work_settings['s_error_no_element'].react == 'dialog':
                 # Остановка выполнения скрипта и вывод модального окна
-                self.stop_for_dialog(f'Остановка выполнения скрипта\nРеакция на ошибку данных\n"{err}"')
+                self.stop_for_dialog(f'Остановка выполнения скрипта\nРеакция на ошибку изображения.\n"{err}"')
                 if self.modal_stop:
                     raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
             else:
@@ -456,7 +441,8 @@ class Editor:
         images = []
         for command in self.data.obj_command.values():
             if command.__class__.__name__ == 'MouseClickLeft' \
-                            or command.__class__.__name__ == 'MouseClickDouble':
+                    or command.__class__.__name__ == 'MouseClickDouble' \
+                    or command.__class__.__name__ == 'CheckImage':
                 images.append(command.image)
 
         # Просматриваем все изображения в папке и удаляем неиспользуемые
