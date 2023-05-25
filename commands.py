@@ -819,7 +819,7 @@ class DialogCmd(WriteCmd):
 
 class CopyCmd(CycleEnd):
     """ Копировать """
-    command_name = 'Копировать'
+    command_name = 'Копировать Ctrl+C'
     command_description = 'Копирует в буфер обмена (аналог Ctrl+C).'
     for_sort = 190
 
@@ -830,7 +830,7 @@ class CopyCmd(CycleEnd):
 
 class CutCmd(CycleEnd):
     """ Вырезать """
-    command_name = 'Вырезать'
+    command_name = 'Вырезать Ctrl+X'
     command_description = 'Вырезает в буфер обмена (аналог Ctrl+X).'
     for_sort = 200
 
@@ -840,7 +840,7 @@ class CutCmd(CycleEnd):
 
 class PasteCmd(CycleEnd):
     """ Вставить """
-    command_name = 'Вставить'
+    command_name = 'Вставить Ctrl+V'
     command_description = 'Вставляет из буфера обмена (аналог Ctrl+V).'
     for_sort = 210
 
@@ -851,7 +851,7 @@ class PasteCmd(CycleEnd):
 
 class SelectCmd(CycleEnd):
     """ Выделить все """
-    command_name = 'Выделить все'
+    command_name = 'Выделить все Ctrl+A'
     command_description = 'Выделяет все (аналог Ctrl+A).'
     for_sort = 220
 
@@ -862,7 +862,7 @@ class SelectCmd(CycleEnd):
 
 class LanguageChangeCmd(CycleEnd):
     """ Сменить язык """
-    command_name = 'Сменить язык'
+    command_name = 'Сменить язык Alt+Shift'
     command_description = 'Сменить язык раскладки клавиатуры (аналог Alt+Shift).'
     for_sort = 230
 
@@ -873,7 +873,7 @@ class LanguageChangeCmd(CycleEnd):
 
 class NewTabCmd(CycleEnd):
     """ Новая вкладка """
-    command_name = 'Новая вкладка'
+    command_name = 'Новая вкладка Ctrl+T'
     command_description = 'Открывает новую вкладку (аналог Ctrl+T).'
     for_sort = 240
 
@@ -884,7 +884,7 @@ class NewTabCmd(CycleEnd):
 
 class NextTabCmd(CycleEnd):
     """ Следующая вкладка """
-    command_name = 'Следующая вкладка'
+    command_name = 'Следующая вкладка Ctrl+Tab'
     command_description = 'Переходит на следующую вкладку (аналог Ctrl+Tab).'
     for_sort = 250
 
@@ -895,7 +895,7 @@ class NextTabCmd(CycleEnd):
 
 class NextWindowCmd(CycleEnd):
     """ Следующее окно """
-    command_name = 'Следующее окно'
+    command_name = 'Следующее окно Alt+Tab'
     command_description = 'Переходит на следующее окно (аналог Alt+Tab).'
     for_sort = 260
 
@@ -906,7 +906,7 @@ class NextWindowCmd(CycleEnd):
 
 class RollUpWindowsCmd(CycleEnd):
     """ Свернуть все окна """
-    command_name = 'Свернуть все окна'
+    command_name = 'Свернуть все окна Win+D'
     command_description = 'Свернуть все окна (аналог Cmd+D для Windows и Ctrl+Alt+D для Linux).'
     for_sort = 270
 
