@@ -787,7 +787,7 @@ class DataSource:
             return  # Операция невозможна при выполнении или записи скрипта
 
         try:
-            new_file = fd.askopenfilename(
+            new_file = fd.askopenfilename(initialdir=settings.path_to_data,
                 filetypes=(("image", "*.xlsx"), ("image", "*.xls"),
                            ("All files", "*.*")))
             if new_file:
