@@ -167,14 +167,15 @@ class Tracker:
 
             if res == 'screenshot':
                 """ Запись команды проверки места на экране или снятие скриншота """
-                self.only_screenshot = save_image(*self.mouse_position)  # Получаем скриншот
                 if self.only_screenshot == 'wait':
+                    self.only_screenshot = save_image(*self.mouse_position)  # Получаем скриншот
                     self.stop_btn()
                     return
                 # Проверка изображения в нужном месте экрана срабатывает при нажатии 2 раза подряд Alt
                 # Делается скриншот, его имя и координаты передаются для создания команды проверки изображения
                 # Alt, Alt
                 # Подмена набора комбинации клавиш для СКРИНШОТА встроенной командой
+                self.only_screenshot = save_image(*self.mouse_position)  # Получаем скриншот
                 self.queue_events.clear()  # Очищаем очередь
                 self.queue_events.append({'cmd': 'CheckImage', 'val': [*self.mouse_position, self.only_screenshot],
                                           'des': ''})
@@ -382,6 +383,7 @@ class Player:
         KeyDown, KeyUp, Write
 
         """
+        print(cmd, val)
         if cmd[:3] == 'Mou':
             # Команда мыши
             # mouse.position = (val[0], val[1])  # Ставим указатель в нужную позицию
