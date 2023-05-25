@@ -68,6 +68,7 @@ root.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнит
 w = root.winfo_screenwidth()
 h = root.winfo_screenheight()
 
+
 # Рисуем окно
 root.title("Редактор скриптов")
 root.geometry(f'{settings.win_w}x{settings.win_h}+{(w-settings.win_w)//2}+{(h-settings.win_h)//2}')

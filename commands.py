@@ -181,7 +181,7 @@ class MouseClickLeft(MouseClickRight):
 
     def __init__(self, *args, description):
         """ Принимает координаты, изображение в списке и пользовательское описание команды"""
-        self.description = args[3]
+        # self.description = args[3]
         super().__init__(*args, description=description)
         self.image = args[2]
         self.element_image = None
@@ -193,14 +193,7 @@ class MouseClickLeft(MouseClickRight):
 
     def paint_widgets(self):
         """ Отрисовка виджетов """
-        # Виджеты для ввода x, y
-        self.label_x = Label(self.root, text='x=')
-        self.label_x.place(x=10, y=71)
-        self.widget_x = DataInput.CreateInput(self.root, self.x, x=34, y=71)  # Ввод целого числа X
-        self.label_y = Label(self.root, text='y=')
-        self.label_y.place(x=100, y=71)
-        self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
-
+        super().paint_widgets()  # Статные виджеты для клика мышью
         # Изображение элемента
         img = os.path.join(settings.path_to_elements, self.image) if self.image else ''
         # Если изображение есть, то загружаем его, если нет, то подставляем заглушку
@@ -297,14 +290,10 @@ class MouseClickLeft(MouseClickRight):
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        self.label_x.destroy()
-        self.label_y.destroy()
-        self.widget_x.destroy_widgets()
-        self.widget_y.destroy_widgets()
+        super().destroy_widgets()
         self.widget_button.destroy()
         self.widget_button_edit.destroy()
         self.widget_button_del.destroy()
-        self.widget_description.destroy_widgets()
 
 
 class MouseClickDouble(MouseClickLeft):
@@ -328,6 +317,67 @@ class CheckImage(MouseClickLeft):
                          'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
                          'в соответствии с настройками скрипта.'
     for_sort = 25
+
+    def __init__(self, *args, description):
+        """ Принимает на вход x, y, image """
+        super().__init__(*args, description=description)
+        self.widget_button_more = None  # Виджет кнопки "еще"
+        # Количество повторений проверки изображения
+        self.repeat = int(args[3]) if args[3] else settings.s_search_attempt
+        # Действие при отсутствии изображения типа eres
+        self.action = eres(args[4])  if args[3] else settings.s_error_no_element
+        self.message = args[5]  # Сообщение при отсутствии изображения
+        self.widget_repeat = None  # Виджет для ввода количества повторений
+        self.widget_action = None  # Виджет для выбора действия
+        self.widget_message = None  # Виджет для ввода сообщения
+        self.window = None  # Окно с дополнительными настройками
+
+    def paint_widgets(self):
+        """ Отрисовка виджетов для редактирования команды
+        Добавляется мелкая кнопка "еще" правее от координаты y,
+        при нажатии на которую открывается окно с дополнительными настройками
+        """
+        def save_settings():
+            """ Сохранение настроек """
+            self.repeat = self.widget_repeat.result
+            self.action = self.widget_action.result
+            self.message = self.widget_message.result
+            self.window.destroy()
+
+        def additional_settings_modal():
+            """ Вызов окна с дополнительными настройками """
+            # Создаем окно
+            self.window = Toplevel()
+            self.window.title('Дополнительные настройки')
+            # Разместить окно в центре экрана
+            self.window.geometry('630x170')
+            self.window.transient(self.root)  # Поверх окна
+            self.window.update_idletasks()
+            x = (self.window.winfo_screenwidth() - 630) / 2
+            y = (self.window.winfo_screenheight() - 170) / 2
+            self.window.geometry("+%d+%d" % (x, y))
+            self.window.resizable(False, False)
+
+            # Создаем виджеты
+            Label(self.window, text='Сколько секунд ждать изображение').place(x=20, y=20)
+            self.widget_repeat = DataInput.CreateInput(self.window, self.repeat, x=350, y=20)
+            Label(self.window, text='Действие при отсутствии изображения').place(x=20, y=50)
+            self.widget_action = DataInput.CreateInput(self.window, self.action, x=350, y=50)
+            Label(self.window, text='Сообщение при отсутствии изображения').place(x=20, y=80)
+            self.widget_message = DataInput.CreateInput(self.window, self.message, x=350, y=80)
+            Button(self.window, text='Сохранить', command=save_settings).place(x=505, y=120)
+
+            # Запускаем окно
+            self.window.grab_set()
+            self.window.focus_set()
+            self.window.wait_window()
+
+
+
+        super().paint_widgets()
+        self.widget_button_more = Button(self.root, text='ЕЩЕ', command=additional_settings_modal, pady=1)
+        self.widget_button_more.place(x=205, y=71)
+
 
     def run_command(self):
         """ Выполнение команды """

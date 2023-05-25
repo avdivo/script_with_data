@@ -334,7 +334,7 @@ class Editor:
 
         # Вывод виджета выпадающего списка команд
         self.widget = ttk.Combobox(self.root, values=self.commands_name, width=30,
-                     textvariable=self.commands_var, state="readonly")
+                     textvariable=self.commands_var, state="readonly", height=100)
         self.widget.place(x=5, y=5)
         self.widget.bind("<<ComboboxSelected>>", self.select_command)
 
