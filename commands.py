@@ -230,7 +230,7 @@ class MouseClickLeft(MouseClickRight):
             return  # Операция невозможна при выполнении или записи скрипта
 
         try:
-            new_path_image = fd.askopenfilename(
+            new_path_image = fd.askopenfilename(initialdir=settings.path_to_elements,
                 filetypes=(("image", "*.png"),
                            ("All files", "*.*")))
 
