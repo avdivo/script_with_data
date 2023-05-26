@@ -383,7 +383,6 @@ class Player:
         KeyDown, KeyUp, Write
 
         """
-        print(cmd, val)
         if cmd[:3] == 'Mou':
             # Команда мыши
             # mouse.position = (val[0], val[1])  # Ставим указатель в нужную позицию

@@ -325,7 +325,7 @@ class CheckImage(MouseClickLeft):
         # Количество повторений проверки изображения
         self.repeat = int(args[3]) if args[3] else settings.s_search_attempt
         # Действие при отсутствии изображения типа eres
-        self.action = eres(args[4])  if args[3] else settings.s_error_no_element
+        self.action = eres(str(args[4])) if args[4] else eres(str(settings.s_error_no_element))
         self.message = args[5]  # Сообщение при отсутствии изображения
         self.widget_repeat = None  # Виджет для ввода количества повторений
         self.widget_action = None  # Виджет для выбора действия
@@ -372,12 +372,19 @@ class CheckImage(MouseClickLeft):
             self.window.focus_set()
             self.window.wait_window()
 
-
-
         super().paint_widgets()
         self.widget_button_more = Button(self.root, text='ЕЩЕ', command=additional_settings_modal, pady=1)
         self.widget_button_more.place(x=205, y=71)
 
+    def command_to_dict(self):
+        """ Возвращает словарь с содержимым команды """
+        return {'cmd': self.__class__.__name__, 'val': [
+            self.x, self.y, self.image, self.repeat, self.action, self.message], 'des': self.description}
+
+    def destroy_widgets(self):
+        """ Удаление виджетов """
+        super().destroy_widgets()
+        self.widget_button_more.destroy()
 
     def run_command(self):
         """ Выполнение команды """
