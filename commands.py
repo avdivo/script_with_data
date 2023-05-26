@@ -323,7 +323,7 @@ class CheckImage(MouseClickLeft):
         super().__init__(*args, description=description)
         self.widget_button_more = None  # Виджет кнопки "еще"
         # Количество повторений проверки изображения
-        self.repeat = int(args[3]) if args[3] else settings.s_search_attempt
+        self.repeat = args[3] if isinstance(args[3], int) else settings.s_search_attempt
         # Действие при отсутствии изображения типа eres
         self.action = eres(str(args[4])) if args[4] else eres(str(settings.s_error_no_element))
         self.message = args[5]  # Сообщение при отсутствии изображения
