@@ -389,12 +389,25 @@ class CheckImage(MouseClickLeft):
     def run_command(self):
         """ Выполнение команды """
         try:
-            pattern_search(self.image, self.x, self.y, only_check=True)
+            pattern_search(self.image, self.x, self.y, only_check=self.repeat)
         except (TemplateNotFoundError, ElementNotFound) as err:
-            if self.data.work_settings['s_error_no_element'].react == 'ignore':
-                logger.error(f'Ошибка:\n{err}\nРеакция - продолжение выполнения скрипта.')
+            if self.action.react == 'stop':
+                raise NoCommandOrStop(f'Проверка изображения - нет изображения.\nОстановка выполнения скрипта.\n'
+                                      f'"{self.message}"')
+            elif self.action.react == 'ignore':
+                logger.error(f'Проверка изображения - нет изображения.\n"{self.message}"'
+                             f'\nВыполнения скрипта продолжено.')
+            elif self.action.react == 'dialog':
+                # Остановка выполнения скрипта и вывод модального окна
+                self.data.stop_for_dialog(f'Проверка изображения - нет изображения.\n"{self.message}"')
+                if self.data.modal_stop:
+                    raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
             else:
-                raise (err)
+                # Продолжение выполнения скрипта, но с другого места
+                label = self.action.label
+                self.data.pointer_command = self.data.work_labels[label.label]
+                logger.warning(f'Проверка изображения - нет изображения.\n"{self.message}"\n'
+                               f'Переход к метке "{label.label}"')
 
 
 class KeyDown(CommandClasses):
