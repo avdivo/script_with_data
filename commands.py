@@ -251,15 +251,24 @@ class MouseClickLeft(MouseClickRight):
             return
 
         try:
-            logger.warning('Запущена запись скриншота.\nНаведите курсор мыши на нужный элемент и дважды нажмите Alt.\n'
-                           'После первого нажатия координаты зафиксируются и курсор можно убрать.\n'
-                        'Для отмены дважды нажмите Ctrl.')
+            logger.warning('Ctrl, Ctrl (правый) - новые координаты и скриншот.\n'
+                           'Ctrl (правый), Ctrl, Ctrl, Ctrl - только координаты.\n'
+                           'Ctrl, Ctrl - отмена.\n'
+                           'После первого Ctrl координаты зафиксируются и курсор можно убрать.')
             self.root.update()  # Обновляем окно
             self.tracker.only_screenshot = 'wait'
             self.tracker.rec_btn()  # Запускаем запись скрипта, но при only_screenshot = 'waite'
 
+            pos_not = True
             while self.tracker.only_screenshot == 'wait':
                 sleep(0.1)  # Ждем пока не будет получен скриншот
+                if self.tracker.mouse_position and pos_not:
+                    # В процессе ожидания стали доступны координаты (после 1 нажатия кнопки)
+                    # Обновляем координаты в виджетах
+                    self.widget_x.value.set(self.tracker.mouse_position[0])
+                    self.widget_y.value.set(self.tracker.mouse_position[1])
+                    self.root.update()
+                    pos_not = False  # Координаты уже получены
 
             if self.tracker.only_screenshot:
                 # Если скриншот получен, то меняем им изображение элемента
@@ -325,7 +334,12 @@ class CheckImage(MouseClickLeft):
         # Количество повторений проверки изображения
         self.repeat = args[3] if isinstance(args[3], int) else settings.s_search_attempt
         # Действие при отсутствии изображения типа eres
-        self.action = eres(str(args[4])) if args[4] else eres(str(settings.s_error_no_element))
+        try:
+            self.action = eres(str(args[4])) if args[4] else eres(str(settings.s_error_no_element))
+        except ValueError as err:
+            # Метка не найдена или другая ошибка типа данных Llist
+            logger.error(f'{err}\nПереход заменен на Stop.')
+            self.action = 'stop:'
         self.message = args[5]  # Сообщение при отсутствии изображения
         self.widget_repeat = None  # Виджет для ввода количества повторений
         self.widget_action = None  # Виджет для выбора действия
@@ -389,6 +403,7 @@ class CheckImage(MouseClickLeft):
     def run_command(self):
         """ Выполнение команды """
         try:
+            print(self.image, self.x, self.y)
             pattern_search(self.image, self.x, self.y, only_check=self.repeat)
         except (TemplateNotFoundError, ElementNotFound) as err:
             if self.action.react == 'stop':

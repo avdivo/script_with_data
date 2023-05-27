@@ -8,26 +8,26 @@ class Hotkeys:
     """Класс для настройки горячих клавиш и сопоставления их с названиями комбинаций"""
 
     def __init__(self):
-        self.hotkeys = {'stop': ['KeyDown_ctrl', 'KeyUp_ctrl', 'KeyDown_ctrl', 'KeyUp_ctrl'],
-                        'screenshot': ['KeyDown_alt', 'KeyUp_alt', 'KeyDown_alt', 'KeyUp_alt'],
-                        'mouse_position': ['KeyDown_alt', 'KeyUp_alt'],
-                        'copy': ['KeyDown_ctrl', 'KeyDown_c', 'KeyUp_c', 'KeyUp_ctrl'],
-                        'copy rus': ['KeyDown_ctrl', 'KeyDown_с', 'KeyUp_с', 'KeyUp_ctrl'],
-                        'cut': ['KeyDown_ctrl', 'KeyDown_x', 'KeyUp_x', 'KeyUp_ctrl'],
-                        'cut rus': ['KeyDown_ctrl', 'KeyDown_ч', 'KeyUp_ч', 'KeyUp_ctrl'],
-                        'paste': ['KeyDown_ctrl', 'KeyDown_v', 'KeyUp_v', 'KeyUp_ctrl'],
-                        'paste rus': ['KeyDown_ctrl', 'KeyDown_м', 'KeyUp_м', 'KeyUp_ctrl'],
-                        'select': ['KeyDown_ctrl', 'KeyDown_a', 'KeyUp_a', 'KeyUp_ctrl'],
-                        'select rus': ['KeyDown_ctrl', 'KeyDown_ф', 'KeyUp_ф', 'KeyUp_ctrl'],
-                        'language_change': ['KeyDown_alt', 'KeyDown_shift', 'KeyUp_shift', 'KeyUp_alt'],
-                        'new_tab': ['KeyDown_ctrl', 'KeyDown_t', 'KeyUp_t', 'KeyUp_ctrl'],
-                        'new_browse_tab rus': ['KeyDown_ctrl', 'KeyDown_е', 'KeyUp_е', 'KeyUp_ctrl'],
-                        'next_tab': ['KeyDown_ctrl', 'KeyDown_tab', 'KeyUp_tab', 'KeyUp_ctrl'],
-                        'next_window': ['KeyDown_alt', 'KeyDown_tab', 'KeyUp_tab', 'KeyUp_alt'],
-                        'roll_up_windows Ubuntu': ['KeyDown_ctrl', 'KeyDown_alt', 'KeyDown_d',
-                                                   'KeyUp_d', 'KeyUp_alt', 'KeyUp_ctrl'],
-                        'roll_up_windows Win': ['KeyDown_cmd', 'KeyDown_d', 'KeyUp_d', 'KeyUp_cmd'],
-                        'roll_up_windows WinRus': ['KeyDown_cmd', 'KeyDown_в', 'KeyUp_в', 'KeyUp_cmd']}
+        self.hotkeys = {'stop': ['KeyDown-ctrl', 'KeyUp-ctrl', 'KeyDown-ctrl', 'KeyUp-ctrl'],
+                        'screenshot Win': ['KeyDown-ctrl_r', 'KeyUp-ctrl_r', 'KeyDown-ctrl_r', 'KeyUp-ctrl_r'],
+                        'mouse_position Win': ['KeyDown-ctrl_r', 'KeyUp-ctrl_r'],
+                        'copy': ['KeyDown-ctrl', 'KeyDown-c', 'KeyUp-c', 'KeyUp-ctrl'],
+                        'copy rus': ['KeyDown-ctrl', 'KeyDown-с', 'KeyUp-с', 'KeyUp-ctrl'],
+                        'cut': ['KeyDown-ctrl', 'KeyDown-x', 'KeyUp-x', 'KeyUp-ctrl'],
+                        'cut rus': ['KeyDown-ctrl', 'KeyDown-ч', 'KeyUp-ч', 'KeyUp-ctrl'],
+                        'paste': ['KeyDown-ctrl', 'KeyDown-v', 'KeyUp-v', 'KeyUp-ctrl'],
+                        'paste rus': ['KeyDown-ctrl', 'KeyDown-м', 'KeyUp-м', 'KeyUp-ctrl'],
+                        'select': ['KeyDown-ctrl', 'KeyDown-a', 'KeyUp-a', 'KeyUp-ctrl'],
+                        'select rus': ['KeyDown-ctrl', 'KeyDown-ф', 'KeyUp-ф', 'KeyUp-ctrl'],
+                        'language_change': ['KeyDown-alt', 'KeyDown-shift', 'KeyUp-shift', 'KeyUp-alt'],
+                        'new_tab': ['KeyDown-ctrl', 'KeyDown-t', 'KeyUp-t', 'KeyUp-ctrl'],
+                        'new_browse_tab rus': ['KeyDown-ctrl', 'KeyDown-е', 'KeyUp-е', 'KeyUp-ctrl'],
+                        'next_tab': ['KeyDown-ctrl', 'KeyDown-tab', 'KeyUp-tab', 'KeyUp-ctrl'],
+                        'next_window': ['KeyDown-alt', 'KeyDown-tab', 'KeyUp-tab', 'KeyUp-alt'],
+                        'roll_up_windows Ubuntu': ['KeyDown-ctrl', 'KeyDown-alt', 'KeyDown-d',
+                                                   'KeyUp-d', 'KeyUp-alt', 'KeyUp-ctrl'],
+                        'roll_up_windows Win': ['KeyDown-cmd', 'KeyDown-d', 'KeyUp-d', 'KeyUp-cmd'],
+                        'roll_up_windows WinRus': ['KeyDown-cmd', 'KeyDown-в', 'KeyUp-в', 'KeyUp-cmd']}
 
         self.hotkeys_actual = []  # Названия комбинаций, которые удовлетворяют текущей последовательности событий
 
@@ -51,7 +51,7 @@ class Hotkeys:
 
         for hotkey in iterator:
             # Создаем список комбинаций, которые имеют следующее событие такое, какое пришло
-            if self.hotkeys[hotkey][position-1] == f"{cmd}_{val[0]}":
+            if self.hotkeys[hotkey][position-1] == f"{cmd}-{val[0]}":
                 self.hotkeys_actual.append(hotkey)
 
         # На данный момент у нас список комбинаций, последовательность событий в которых такая-же,
@@ -72,11 +72,10 @@ class Hotkeys:
 
     def get_hotkey(self, hotkey):
         """Метод для получения комбинации событий по названию комбинации
-
         """
         out = []
         for i in self.hotkeys[hotkey]:
-            cmd, val = i.split('_')
+            cmd, val = i.split('-')
             out.append({'cmd': cmd, 'val': [val], 'des': ''})  # Возвращаем список готовых словарей для создания команд
         return out
 
