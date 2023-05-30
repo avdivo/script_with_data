@@ -58,7 +58,7 @@ class CommandClasses(ABC):
         Аргументы могут приходить в текстовом виде, каждый класс сам определяет тип своих данных.
 
         """
-        args = args + ('', '', '', '', '')  # Заполняем не пришедшие аргументы пустыми строками
+        args = args + tuple(['']*15)  # Заполняем не пришедшие аргументы пустыми строками
         try:
             required_class = globals()[command]  # В command название класса, создаем его объект
             return required_class(*args, description=description)
@@ -105,6 +105,23 @@ class CommandClasses(ABC):
             subclasses += subclass.get_all_subclasses()
         return subclasses
 
+# Перед кликом мыши в указанных координатах или по команде проверки изображения
+# программа может выполнить поиск заданного изображения на экране, чтобы убедиться в правильности работы.
+# Обычно сначала производится локальная проверка, изображение ищется в квадрате с заданными сторонами
+# и центром, в указанных координатах.
+# Если изображение сразу не найдено, программа может ждать его появления заданное время.
+# В случае неудачного локального поиска может быть выполнен поиск по всему экрану.
+# Если изображение так и не будет найдено, программа выполнит указанное действие
+# или не сделает ничего в зависимости от условия выполнения действия.
+
+# Использовать локальные настройки (открываются настройки)
+# Включить локальную проверку
+# Зона локальной проверки (сторона квадрата)
+# Сколько секунд ждать, после 1 попытки
+# Использовать поиск на всем экране
+# Условие выполнения действия: найден/не найден
+# Действие: ...
+
 
 class MouseClickRight(CommandClasses):
     """ Клик левой кнопкой мыши """
@@ -113,7 +130,16 @@ class MouseClickRight(CommandClasses):
     for_sort = 20
 
     def __init__(self, *args, description):
-        """ Принимает координаты в списке и пользовательское описание команды"""
+        """ Принимает параметры в списке и пользовательское описание команды
+
+        Паваметры:
+        0 - координата x, 1 - координата y, 2 - имя изображения, 3 - использовать локальные настройки (True/False),
+        4 - включить локальную проверку (True/False), 5 - зона локальной проверки (сторона квадрата, int >= 48),
+        6 - сколько секунд ждать, после 1 попытки (int, 0 не проверять), 7 - искать на всем экране (True/False),
+        8 - условие выполнения действия: ('Найдено'/'Не найдено'), 9 - Действие (eres),
+        10 - сообщение, в случае выполнения действия (str).
+
+        """
         super().__init__(description=description)
         # Задаем тип данных
         try:
@@ -126,6 +152,49 @@ class MouseClickRight(CommandClasses):
         self.widget_y = None
         self.label_x = None
         self.label_y = None
+
+        # Для изображения
+        self.image = args[2]
+        self.element_image = None
+        self.icon_edit = None
+        self.icon_del = None
+        self.widget_button = None
+        self.widget_button_edit = None
+        self.widget_button_del = None
+
+        # Дополнительные параметры
+        self.widget_button_more = None  # Виджет кнопки "еще"
+        self.local_settings = bool(args[3])  # Использовать локальные настройки
+        self.local_check = True if args[4] == '' else args[4]  # Включить локальную проверку
+        self.local_check_size = 96 if not args[5] else args[5]  # Зона локальной проверки (сторона квадрата)
+        # Сколько секунд ждать, после 1 попытки. По умолчанию берется из основных настроек
+        self.repeat = args[6] if isinstance(args[6], int) else settings.s_search_attempt
+        # По умолчанию поиск на всем экране включен для мыши и выключен для проверки изображения
+        if self.__class__.__name__ != 'CheckImage':
+            self.full_screen = True if args[7] == '' else args[7]
+        else:
+            self.full_screen = args[7]
+        self.condition = 'Не найдено' if args[8] == '' else args[8]  # Условие выполнения действия: найден/не найден
+        # Действие при отсутствии изображения типа eres
+        try:
+            self.action = eres(str(args[9])) if args[9] else eres(str(settings.s_error_no_element))
+        except ValueError as err:
+            # Метка не найдена или другая ошибка типа данных Llist
+            logger.error(f'{err}\nПереход заменен на Stop.')
+            self.action = 'stop:'
+        self.message = args[5]  # Сообщение при отсутствии изображения
+
+        # Виджеты для дополнительных настроек
+        self.widget_local_settings = None  # Виджет для использования локальных настроек
+        self.widget_local_check = None  # Виджет для включения локальной проверки
+        self.widget_local_check_size = None  # Виджет для ввода размера зоны локальной проверки
+        self.widget_repeat = None  # Виджет для ввода количества повторений
+        self.widget_full_screen = None  # Виджет для включения поиска на всем экране
+        self.widget_condition = None  # Виджет для выбора условия выполнения действия
+        self.widget_action = None  # Виджет для выбора действия
+        self.widget_message = None  # Виджет для ввода сообщения
+        self.window = None  # Окно с дополнительными настройками
+        self.widget_frame = None  # Фрейм для виджетов дополнительных настроек
 
     def __str__(self):
         """ Возвращает название команды, иногда с параметрами.
@@ -142,58 +211,8 @@ class MouseClickRight(CommandClasses):
         self.widget_x = DataInput.CreateInput(self.root, self.x, x=34, y=71)  # Ввод целого числа X
         self.label_y = Label(self.root, text='y=')
         self.label_y.place(x=100, y=71)
-        self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа Y
-        self.paint_description()
+        self.widget_y = DataInput.CreateInput(self.root, self.y, x=124, y=71)  # Ввод целого числа
 
-    def save(self):
-        """ Записывает содержимое виджетов в объект.
-
-         """
-        self.x = self.widget_x.result
-        self.y = self.widget_y.result
-        self.description = self.widget_description.result
-
-    def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды """
-        return {'cmd': self.__class__.__name__, 'val': [self.x, self.y], 'des': self.description}
-
-    def destroy_widgets(self):
-        """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        self.label_x.destroy()
-        self.label_y.destroy()
-        self.widget_x.destroy_widgets()
-        self.widget_y.destroy_widgets()
-        self.widget_description.destroy_widgets()
-
-    def run_command(self):
-        """ Выполнение команды """
-        # В свойстве data ссылка на функцию выполняющую события мыши и клавиатуры
-        self.data.func_execute_event(**self.command_to_dict())
-
-
-class MouseClickLeft(MouseClickRight):
-    """ Клик левой кнопкой мыши """
-    command_name = 'Клик левой кнопкой мыши'
-    command_description = 'x, y - координаты на экране. Изображение - элемент, который программа ожидает "увидеть" ' \
-                         'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
-                         'в соответствии с настройками скрипта.'
-    for_sort = 0
-
-    def __init__(self, *args, description):
-        """ Принимает координаты, изображение в списке и пользовательское описание команды"""
-        # self.description = args[3]
-        super().__init__(*args, description=description)
-        self.image = args[2]
-        self.element_image = None
-        self.icon_edit = None
-        self.icon_del = None
-        self.widget_button = None
-        self.widget_button_edit = None
-        self.widget_button_del = None
-
-    def paint_widgets(self):
-        """ Отрисовка виджетов """
-        super().paint_widgets()  # Статные виджеты для клика мышью
         # Изображение элемента
         img = os.path.join(settings.path_to_elements, self.image) if self.image else ''
         # Если изображение есть, то загружаем его, если нет, то подставляем заглушку
@@ -215,8 +234,92 @@ class MouseClickLeft(MouseClickRight):
         self.widget_button_del.place(x=334, y=106)
         ToolTip(self.widget_button_del, msg="Удалить изображение", delay=0.5)
 
+        """ Отрисовка виджетов для редактирования команды
+        Добавляется мелкая кнопка "еще" правее от координаты y,
+        при нажатии на которую открывается окно с дополнительными настройками
+        """
+        def save_settings():
+            """ Сохранение дополнительных настроек """
+            self.local_settings = self.widget_local_settings.result
+            self.local_check = self.widget_local_check.result
+            self.local_check_size = self.widget_local_check_size.result
+            self.repeat = self.widget_repeat.result
+            self.full_screen = self.widget_full_screen.result
+            self.condition = self.widget_condition.get()
+            self.action = self.widget_action.result
+            self.message = self.widget_message.result
+            self.window.destroy()
+
+        def show_frame():
+            """ Показать фрейм с виджетами дополнительных настроек """
+            if self.widget_local_settings.result:
+                self.widget_frame.place(x=20, y=50)
+            else:
+                self.widget_frame.place_forget()
+
+        def additional_settings_modal():
+            """ Вызов окна с дополнительными настройками """
+            # Создаем окно
+            self.window = Toplevel()
+            self.window.title('Дополнительные настройки')
+            # Разместить окно в центре экрана
+            w = 700  # Ширина окна
+            h = 320  # Высота окна
+            x = (self.window.winfo_screenwidth() - w) / 2
+            y = (self.window.winfo_screenheight() - h) / 2
+            self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+            self.window.transient(self.root)  # Поверх окна
+            self.window.update_idletasks()
+            self.window.resizable(False, False)
+
+            # Создаем виджеты
+            # Чекбокс для включения локальных настроек и фрейм для их виджетов
+            # При переключении чекбокса фрейм показывается/скрывается
+            self.widget_local_settings = DataInput.CreateInput(
+                self.window, self.local_settings, func_event=show_frame, x=20, y=20)
+            Label(self.window, text='Использовать локальные настройки').place(x=50, y=20)
+            self.widget_frame = Frame(self.window, width=w-40, height=h-120)
+            self.widget_frame.place(x=20, y=50)
+            show_frame()
+
+            Label(self.widget_frame, text='Включить локальную проверку').place(x=20, y=20)
+            self.widget_local_check = DataInput.CreateInput(self.widget_frame, self.local_check, x=400, y=20)
+
+            Label(self.widget_frame, text='Зона локальной проверки (сторона квадрата)').place(x=20, y=50)
+            self.widget_local_check_size = DataInput.CreateInput(self.widget_frame, self.local_check_size, x=400, y=50)
+
+            Label(self.widget_frame, text='Сколько секунд ждать, после 1 попытки').place(x=20, y=80)
+            self.widget_repeat = DataInput.CreateInput(self.widget_frame, self.repeat, x=400, y=80)
+
+            Label(self.widget_frame, text='Искать на всем экране').place(x=20, y=110)
+            self.widget_full_screen = DataInput.CreateInput(self.widget_frame, self.full_screen, x=400, y=110)
+
+            # Выпадающий список tkinter с вариантами условий 'Найдено' и 'Не найдено'
+            Label(self.widget_frame, text='Выполнить действие если изображение').place(x=20, y=140)
+            self.widget_condition = ttk.Combobox(
+                self.widget_frame, values=['Найдено', 'Не найдено'], width=11, state='readonly')
+            self.widget_condition.set(self.condition)
+            self.widget_condition.place(x=400, y=140)
+
+            Label(self.widget_frame, text='Какое действие выполнить').place(x=20, y=170)
+            self.widget_action = DataInput.CreateInput(self.widget_frame, self.action, x=400, y=170)
+
+            Label(self.widget_frame, text='Сообщение при выполнении действия').place(x=20, y=200)
+            self.widget_message = DataInput.CreateInput(self.widget_frame, self.message, x=400, y=200)
+
+            Button(self.window, text='Сохранить', command=save_settings).place(x=w-120, y=h-55)
+
+            # Запускаем окно
+            self.window.grab_set()
+            self.window.focus_set()
+            self.window.wait_window()
+
+        self.widget_button_more = Button(self.root, text='ЕЩЕ', command=additional_settings_modal, pady=1)
+        self.widget_button_more.place(x=205, y=71)
+
         self.paint_description()  # Комментарий
 
+    # Методы для работы с изображением элемента
     def load_image(self):
         """ Загрузка изображения элемента """
         if self.data.script_started or self.data.is_listening:
@@ -281,7 +384,6 @@ class MouseClickLeft(MouseClickRight):
         except:
             pass
 
-
     def delete_image(self):
         """ Удаление изображения элемента """
         if self.data.script_started or self.data.is_listening:
@@ -293,16 +395,69 @@ class MouseClickLeft(MouseClickRight):
         self.widget_button.configure(image=self.element_image)
         self.widget_button.update()  # Применяем настройки к кнопке
 
+    def save(self):
+        """ Записывает содержимое виджетов в объект.
+
+         """
+        self.x = self.widget_x.result
+        self.y = self.widget_y.result
+        self.description = self.widget_description.result
+
     def command_to_dict(self):
         """ Возвращает словарь с содержимым команды """
-        return {'cmd': self.__class__.__name__, 'val': [self.x, self.y, self.image], 'des': self.description}
+        return {'cmd': self.__class__.__name__, 'val': [
+            self.x, self.y, self.image, self.repeat, self.action, self.message], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
-        super().destroy_widgets()
+        self.label_x.destroy()
+        self.label_y.destroy()
+        self.widget_x.destroy_widgets()
+        self.widget_y.destroy_widgets()
+        self.widget_description.destroy_widgets()
+
         self.widget_button.destroy()
         self.widget_button_edit.destroy()
         self.widget_button_del.destroy()
+
+        self.widget_button_more.destroy()
+
+    def run_command(self):
+        """ Выполнение команды """
+        try:
+            self.x, self.y = pattern_search(self.image, self.x, self.y)
+        except (TemplateNotFoundError, ElementNotFound) as err:
+            if self.action.react == 'stop':
+                raise NoCommandOrStop(f'Проверка изображения - нет изображения.\nОстановка выполнения скрипта.\n'
+                                      f'"{self.message}"')
+            elif self.action.react == 'ignore':
+                logger.error(f'Проверка изображения - нет изображения.\n"{self.message}"'
+                             f'\nВыполнения скрипта продолжено.')
+            elif self.action.react == 'dialog':
+                # Остановка выполнения скрипта и вывод модального окна
+                self.data.stop_for_dialog(f'Проверка изображения - нет изображения.\n"{self.message}"')
+                if self.data.modal_stop:
+                    raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
+            else:
+                # Продолжение выполнения скрипта, но с другого места
+                label = self.action.label
+                self.data.pointer_command = self.data.work_labels[label.label]
+                logger.warning(f'Проверка изображения - нет изображения.\n"{self.message}"\n'
+                               f'Переход к метке "{label.label}"')
+
+        # Выполнение команды если класс не CheckImage
+        if self.__class__.__name__ != 'CheckImage':
+            # В свойстве data ссылка на функцию выполняющую события мыши и клавиатуры
+            self.data.func_execute_event(**self.command_to_dict())
+
+
+class MouseClickLeft(MouseClickRight):
+    """ Клик левой кнопкой мыши """
+    command_name = 'Клик левой кнопкой мыши'
+    command_description = 'x, y - координаты на экране. Изображение - элемент, который программа ожидает "увидеть" ' \
+                         'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
+                         'в соответствии с настройками скрипта.'
+    for_sort = 0
 
 
 class MouseClickDouble(MouseClickLeft):
@@ -326,103 +481,6 @@ class CheckImage(MouseClickLeft):
                          'в этом месте. Если изображения не будет в этих координатах, будут произведены действия ' \
                          'в соответствии с настройками скрипта.'
     for_sort = 25
-
-    def __init__(self, *args, description):
-        """ Принимает на вход x, y, image """
-        super().__init__(*args, description=description)
-        self.widget_button_more = None  # Виджет кнопки "еще"
-        # Количество повторений проверки изображения
-        self.repeat = args[3] if isinstance(args[3], int) else settings.s_search_attempt
-        # Действие при отсутствии изображения типа eres
-        try:
-            self.action = eres(str(args[4])) if args[4] else eres(str(settings.s_error_no_element))
-        except ValueError as err:
-            # Метка не найдена или другая ошибка типа данных Llist
-            logger.error(f'{err}\nПереход заменен на Stop.')
-            self.action = 'stop:'
-        self.message = args[5]  # Сообщение при отсутствии изображения
-        self.widget_repeat = None  # Виджет для ввода количества повторений
-        self.widget_action = None  # Виджет для выбора действия
-        self.widget_message = None  # Виджет для ввода сообщения
-        self.window = None  # Окно с дополнительными настройками
-
-    def paint_widgets(self):
-        """ Отрисовка виджетов для редактирования команды
-        Добавляется мелкая кнопка "еще" правее от координаты y,
-        при нажатии на которую открывается окно с дополнительными настройками
-        """
-        def save_settings():
-            """ Сохранение настроек """
-            self.repeat = self.widget_repeat.result
-            self.action = self.widget_action.result
-            self.message = self.widget_message.result
-            self.window.destroy()
-
-        def additional_settings_modal():
-            """ Вызов окна с дополнительными настройками """
-            # Создаем окно
-            self.window = Toplevel()
-            self.window.title('Дополнительные настройки')
-            # Разместить окно в центре экрана
-            self.window.geometry('630x170')
-            self.window.transient(self.root)  # Поверх окна
-            self.window.update_idletasks()
-            x = (self.window.winfo_screenwidth() - 630) / 2
-            y = (self.window.winfo_screenheight() - 170) / 2
-            self.window.geometry("+%d+%d" % (x, y))
-            self.window.resizable(False, False)
-
-            # Создаем виджеты
-            Label(self.window, text='Сколько секунд ждать изображение').place(x=20, y=20)
-            self.widget_repeat = DataInput.CreateInput(self.window, self.repeat, x=350, y=20)
-            Label(self.window, text='Действие при отсутствии изображения').place(x=20, y=50)
-            self.widget_action = DataInput.CreateInput(self.window, self.action, x=350, y=50)
-            Label(self.window, text='Сообщение при отсутствии изображения').place(x=20, y=80)
-            self.widget_message = DataInput.CreateInput(self.window, self.message, x=350, y=80)
-            Button(self.window, text='Сохранить', command=save_settings).place(x=505, y=120)
-
-            # Запускаем окно
-            self.window.grab_set()
-            self.window.focus_set()
-            self.window.wait_window()
-
-        super().paint_widgets()
-        self.widget_button_more = Button(self.root, text='ЕЩЕ', command=additional_settings_modal, pady=1)
-        self.widget_button_more.place(x=205, y=71)
-
-    def command_to_dict(self):
-        """ Возвращает словарь с содержимым команды """
-        return {'cmd': self.__class__.__name__, 'val': [
-            self.x, self.y, self.image, self.repeat, self.action, self.message], 'des': self.description}
-
-    def destroy_widgets(self):
-        """ Удаление виджетов """
-        super().destroy_widgets()
-        self.widget_button_more.destroy()
-
-    def run_command(self):
-        """ Выполнение команды """
-        try:
-            print(self.image, self.x, self.y)
-            pattern_search(self.image, self.x, self.y, only_check=self.repeat)
-        except (TemplateNotFoundError, ElementNotFound) as err:
-            if self.action.react == 'stop':
-                raise NoCommandOrStop(f'Проверка изображения - нет изображения.\nОстановка выполнения скрипта.\n'
-                                      f'"{self.message}"')
-            elif self.action.react == 'ignore':
-                logger.error(f'Проверка изображения - нет изображения.\n"{self.message}"'
-                             f'\nВыполнения скрипта продолжено.')
-            elif self.action.react == 'dialog':
-                # Остановка выполнения скрипта и вывод модального окна
-                self.data.stop_for_dialog(f'Проверка изображения - нет изображения.\n"{self.message}"')
-                if self.data.modal_stop:
-                    raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
-            else:
-                # Продолжение выполнения скрипта, но с другого места
-                label = self.action.label
-                self.data.pointer_command = self.data.work_labels[label.label]
-                logger.warning(f'Проверка изображения - нет изображения.\n"{self.message}"\n'
-                               f'Переход к метке "{label.label}"')
 
 
 class KeyDown(CommandClasses):

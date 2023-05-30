@@ -22,7 +22,8 @@ from time import sleep
 from exceptions import TemplateNotFoundError, ElementNotFound
 from settings import settings
 
-
+# TODO Проверить совпадение координат при проверке изображения по скриншоту
+#  и при клике
 # Настройки в settings.py
 
 def screenshot(x_reg: int = 0, y_reg: int = 0, region: int = 0):
@@ -161,7 +162,7 @@ def save_image(x_point: int, y_point: int) -> str:
     return filename
 
 
-def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0, only_check=None) -> tuple:
+def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0) -> tuple:
     """ Подтверждение присутствия нужной кнопки в указанных координатах или поиск ее на экране
 
     Принимает в качестве первого аргумента имя шаблона (изображения кнопки или ее части),
@@ -176,12 +177,8 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0, only_
     в зависимости от настроек.
     Вернет координаты центра найденного элемента или исключение.
     """
-    repeat = settings.s_search_attempt # Сколько раз проверить наличие элемента с паузой 1 сек.
-    allow = settings.s_confirm_element # Разрешить локальный поиск
-    if only_check is not None:
-        allow = True
-        repeat = only_check
-        only_check = True
+    repeat = settings.s_search_attempt  # Сколько раз проверить наличие элемента с паузой 1 сек.
+    allow = settings.s_confirm_element  # Разрешить локальный поиск
 
     if not name_template or repeat == 0:
         # Если нет изображения элемента или попыток 0, то проверка отменяется, подтверждаем наличие элемента
@@ -217,10 +214,6 @@ def pattern_search(name_template: str, x_point: int = 0, y_point: int = 0, only_
         if repeat:
             # После последнего поиска или если он единственный - пауза не нужна
             sleep(1)
-
-    if only_check:
-        # Если нужно только проверить наличие элемента, то возвращаем raise
-        raise ElementNotFound('Элемент не найден в указанном месте.')
 
     if not settings.s_full_screen_search:
         raise ElementNotFound('Элемент не найден в указанной области. Поиск по всему экрану отключен.')

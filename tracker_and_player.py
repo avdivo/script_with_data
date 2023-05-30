@@ -396,26 +396,15 @@ class Player:
                 # Клик правой копкой мыши
                 mouse.press(Btn.right)
                 mouse.release(Btn.right)
-            else:
-                if settings.s_confirm_element or settings.s_full_screen_search:
-                    # Включена проверка места клика по изображению или поиск по всему экрану
-                    # Координаты будут старыми, новыми (при поиске по всему экрану), или будет исключение
-                    try:
-                        mouse.position = pattern_search(val[2], val[0], val[1])
-                    except (TemplateNotFoundError, ElementNotFound) as err:
-                        if self.data.work_settings['s_error_no_element'].react == 'ignore':
-                            logger.error(f'Ошибка:\n{err}\nРеакция - продолжение выполнения скрипта.')
-                        else:
-                            raise (err)
 
-                if cmd == 'MouseClickLeft':
-                    # Клик левой копкой мыши
-                    mouse.press(Btn.left)
-                    mouse.release(Btn.left)
+            if cmd == 'MouseClickLeft':
+                # Клик левой копкой мыши
+                mouse.press(Btn.left)
+                mouse.release(Btn.left)
 
-                elif cmd == 'MouseClickDouble':
-                    # Двойной клик
-                    mouse.click(Btn.left, 2)
+            elif cmd == 'MouseClickDouble':
+                # Двойной клик
+                mouse.click(Btn.left, 2)
 
             sleep(self.data.work_settings['s_click_pause']) # Пауза после клика мыши
 
