@@ -1097,6 +1097,7 @@ class SaveLoad:
             settings.update_settings()
 
             logger.warning(f'Проект {self.new_project_name} открыт.')
+            self.root.title(f'Редактор скриптов ({self.new_project_name})')
             self.save_history()  # Сохраняем историю
             settings.is_saved = True
 

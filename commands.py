@@ -269,7 +269,7 @@ class MouseClickRight(CommandClasses):
             y = (self.window.winfo_screenheight() - h) / 2
             self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
             self.window.transient(self.root)  # Поверх окна
-            self.window.update_idletasks()
+            # self.window.update_idletasks()
             self.window.resizable(False, False)
 
             # Создаем виджеты

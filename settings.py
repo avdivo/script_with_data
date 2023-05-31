@@ -49,11 +49,12 @@ class Settings(object):
         self.s_key_pause = (0.0, 'Пауза между нажатием клавиш клавиатуры')
         self.s_click_pause = (0.5, 'Пауза после клика мыши')
         self.s_command_pause = (0.0, 'Пауза между командами (всеми)')
-        self.s_confirm_element = (True, 'Проверять наличие элемента (кнопки, иконки...)')
-        self.s_search_attempt = (3, 'Сколько раз следует повторить паузу в 1 секунду')
-        self.s_full_screen_search = (True, 'Производить поиск элемента на всем экране')
-        self.s_error_no_element = (eres('dialog:'), "Реакция скрипта на исключение 'Нет элемента'")
-        self.s_error_no_data = (eres('dialog:'), "Реакция скрипта на исключение 'Нет данных'")
+        self.s_confirm_element = (True, 'Включить локальную проверку')
+        self.s_local_check_size = (96, 'Зона локальной проверки (сторона квадрата)')
+        self.s_search_attempt = (3, 'Сколько секунд ждать, после 1 попытки')
+        self.s_full_screen_search = (True, 'Искать на всем экране')
+        self.s_error_no_element = (eres('dialog:'), "Какое действие выполнить если нет изображения")
+        self.s_error_no_data = (eres('dialog:'), "Какое действие выполнить если нет данных")
         self.s_description = ('', 'Описание скрипта')
 
     def update_settings(self):
@@ -98,7 +99,7 @@ class Settings(object):
 
         # Размер окна
         win_w = 700
-        win_h = 325
+        win_h = 350
         self.top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
         self.top.resizable(width=False, height=False)
 
