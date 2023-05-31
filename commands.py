@@ -242,7 +242,8 @@ class MouseClickRight(CommandClasses):
             """ Сохранение дополнительных настроек """
             self.local_settings = self.widget_local_settings.result
             self.local_check = self.widget_local_check.result
-            self.local_check_size = self.widget_local_check_size.result
+            size = self.widget_local_check_size.result
+            self.local_check_size = size if size>47 and size<501 else 96
             self.repeat = self.widget_repeat.result
             self.full_screen = self.widget_full_screen.result
             self.condition = self.widget_condition.get()
@@ -285,7 +286,7 @@ class MouseClickRight(CommandClasses):
             Label(self.widget_frame, text='Включить локальную проверку').place(x=20, y=20)
             self.widget_local_check = DataInput.CreateInput(self.widget_frame, self.local_check, x=400, y=20)
 
-            Label(self.widget_frame, text='Зона локальной проверки (сторона квадрата)').place(x=20, y=50)
+            Label(self.widget_frame, text='Зона локальной проверки (квадрат 48 - 500)').place(x=20, y=50)
             self.widget_local_check_size = DataInput.CreateInput(self.widget_frame, self.local_check_size, x=400, y=50)
 
             Label(self.widget_frame, text='Сколько секунд ждать, после 1 попытки').place(x=20, y=80)
@@ -406,7 +407,8 @@ class MouseClickRight(CommandClasses):
     def command_to_dict(self):
         """ Возвращает словарь с содержимым команды """
         return {'cmd': self.__class__.__name__, 'val': [
-            self.x, self.y, self.image, self.repeat, self.action, self.message], 'des': self.description}
+            self.x, self.y, self.image, self.local_settings, self.local_check, self.local_check_size,
+            self.repeat, self.full_screen, self.condition, self.action, self.message], 'des': self.description}
 
     def destroy_widgets(self):
         """ Удаление виджетов созданных командой в редакторе. И виджета описания, созданного родителем """
@@ -425,7 +427,7 @@ class MouseClickRight(CommandClasses):
     def run_command(self):
         """ Выполнение команды """
         try:
-            self.x, self.y = pattern_search(self.image, self.x, self.y)
+            self.x, self.y = pattern_search(*self.command_to_dict()['val'])  # Список аргументов из словаря команды
         except (TemplateNotFoundError, ElementNotFound) as err:
             if self.action.react == 'stop':
                 raise NoCommandOrStop(f'Проверка изображения - нет изображения.\nОстановка выполнения скрипта.\n'
