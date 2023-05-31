@@ -203,8 +203,21 @@ class MouseClickRight(CommandClasses):
             return self.description
         return self.command_name
 
+    def update_additional_settings(self):
+        """ Обновление дополнительных настроек если они не локальные """
+        if not self.local_settings:
+            self.local_check = settings.s_confirm_element
+            self.local_check_size = settings.s_local_check_size
+            self.repeat = settings.s_search_attempt
+            self.full_screen = settings.s_full_screen_search
+            self.condition = 'Не найдено'
+            self.action = settings.s_error_no_element
+            self.message = ''
+
     def paint_widgets(self):
         """ Отрисовка виджета """
+        self.update_additional_settings()  # Обновление дополнительных настроек если они не локальные
+
         # Виджеты для ввода x, y
         self.label_x = Label(self.root, text='x=')
         self.label_x.place(x=10, y=71)
@@ -241,14 +254,15 @@ class MouseClickRight(CommandClasses):
         def save_settings():
             """ Сохранение дополнительных настроек """
             self.local_settings = self.widget_local_settings.result
-            self.local_check = self.widget_local_check.result
-            size = self.widget_local_check_size.result
-            self.local_check_size = size if size>47 and size<501 else 96
-            self.repeat = self.widget_repeat.result
-            self.full_screen = self.widget_full_screen.result
-            self.condition = self.widget_condition.get()
-            self.action = self.widget_action.result
-            self.message = self.widget_message.result
+            self.local_check = self.widget_local_check.result if self.local_check else settings.s_confirm_element
+            print(self.widget_local_check.result)
+            size = self.widget_local_check_size.result if self.local_check else settings.s_local_check_size
+            self.local_check_size = size if size<501 else settings.first_region
+            self.repeat = self.widget_repeat.result if self.local_check else settings.s_search_attempt
+            self.full_screen = self.widget_full_screen.result if self.local_check else settings.s_full_screen_search
+            self.condition = self.widget_condition.get() if self.local_check else 'Не найдено'
+            self.action = self.widget_action.result if self.local_check else settings.s_error_no_element
+            self.message = self.widget_message.result if self.local_check else ''
             self.window.destroy()
 
         def show_frame():
@@ -265,7 +279,7 @@ class MouseClickRight(CommandClasses):
             self.window.title('Дополнительные настройки')
             # Разместить окно в центре экрана
             w = 700  # Ширина окна
-            h = 320  # Высота окна
+            h = 350  # Высота окна
             x = (self.window.winfo_screenwidth() - w) / 2
             y = (self.window.winfo_screenheight() - h) / 2
             self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
@@ -397,9 +411,7 @@ class MouseClickRight(CommandClasses):
         self.widget_button.update()  # Применяем настройки к кнопке
 
     def save(self):
-        """ Записывает содержимое виджетов в объект.
-
-         """
+        """ Записывает содержимое виджетов в объект. Вызывается при сохранении скрипта """
         self.x = self.widget_x.result
         self.y = self.widget_y.result
         self.description = self.widget_description.result
@@ -426,31 +438,40 @@ class MouseClickRight(CommandClasses):
 
     def run_command(self):
         """ Выполнение команды """
+        self.update_additional_settings()  # Обновление дополнительных настроек если они не локальные
+
         try:
-            self.x, self.y = pattern_search(*self.command_to_dict()['val'])  # Список аргументов из словаря команды
+            if self.local_check or self.full_screen:
+                # Если поиск включен, то выполняем поиск
+                x, y = pattern_search(*self.command_to_dict()['val'])  # Список аргументов из словаря команды
+            else:
+                # Если поиск выключен, то координаты из команды
+                x, y = self.x, self.y
+
+            # Выполнение команды если класс не CheckImage
+            if self.__class__.__name__ != 'CheckImage':
+                # В свойстве data ссылка на функцию выполняющую события мыши и клавиатуры
+
+                self.data.func_execute_event(self.command_to_dict()['cmd'], [x, y])
+
         except (TemplateNotFoundError, ElementNotFound) as err:
+            if self.local_settings:
+                err = self.message if self.message else err
             if self.action.react == 'stop':
-                raise NoCommandOrStop(f'Проверка изображения - нет изображения.\nОстановка выполнения скрипта.\n'
-                                      f'"{self.message}"')
+                raise NoCommandOrStop(err)
             elif self.action.react == 'ignore':
-                logger.error(f'Проверка изображения - нет изображения.\n"{self.message}"'
-                             f'\nВыполнения скрипта продолжено.')
+                logger.error(err)
             elif self.action.react == 'dialog':
                 # Остановка выполнения скрипта и вывод модального окна
-                self.data.stop_for_dialog(f'Проверка изображения - нет изображения.\n"{self.message}"')
+                self.data.stop_for_dialog(err)
                 if self.data.modal_stop:
                     raise NoCommandOrStop('Пользователь остановил выполнение скрипта.')
             else:
                 # Продолжение выполнения скрипта, но с другого места
+                # TODO Исправить ошибку при пустой метке
                 label = self.action.label
                 self.data.pointer_command = self.data.work_labels[label.label]
-                logger.warning(f'Проверка изображения - нет изображения.\n"{self.message}"\n'
-                               f'Переход к метке "{label.label}"')
-
-        # Выполнение команды если класс не CheckImage
-        if self.__class__.__name__ != 'CheckImage':
-            # В свойстве data ссылка на функцию выполняющую события мыши и клавиатуры
-            self.data.func_execute_event(**self.command_to_dict())
+                logger.warning(f'{err}\nПереход к метке "{label.label}"')
 
 
 class MouseClickLeft(MouseClickRight):

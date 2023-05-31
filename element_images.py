@@ -229,6 +229,7 @@ def pattern_search(*args) -> tuple:
     x_reg = x_point - local_check_size // 2
     y_reg = y_point - local_check_size // 2
 
+    print(x_point, y_point, name_template, local_check, local_check_size, repeat, full_screen)
     while repeat and local_check:
         # Проверка включена и попытки еще есть.
         # Делаем скриншот нужного квадрата
@@ -239,6 +240,7 @@ def pattern_search(*args) -> tuple:
 
         if compare_2_images(template, gray_img):
             # Элемент присутствует в этом месте, подтверждаем координаты
+            print('Элемент найден в указанной области.')
             return (x_point, y_point)
 
         repeat -= 1
@@ -248,7 +250,7 @@ def pattern_search(*args) -> tuple:
 
     if not full_screen:
         raise ElementNotFound('Изображение не найдено в указанной области. Поиск по всему экрану отключен.')
-
+    print('Поиск по всему экрану.')
     # Если поиск шаблона в заданных координатах не принес результата any(loc[-1] будет пустым.
     # Поиск элемента на всем экране
 
