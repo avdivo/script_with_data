@@ -41,7 +41,6 @@ class Tracker:
         self.is_listening = False  # Слушатели выключены
         self.img = None  # Хранит изображение под курсором при последнем клике
         self.pressing_keys_set = set()  # Множество нажатых клавиш (для недопущения автоповтора)
-        self.delete_cmd = 0  # Сколько команд удалить после остановки записи, 1 - при остановке кнопкой, 2 - esc
         self.current_key = None  # сюда записывается клавиша нажатая виртуально, чтобы отсеять ее нажатие в реальных
 
         # Скриншот делается для клика мыши, замены изображения в клике, для команды проверки места
@@ -91,7 +90,6 @@ class Tracker:
 
         self.is_listening = True  # Слушатели включены
         self.data.is_listening = True  # Дублируем в data
-        self.delete_cmd = 1  # Предполагается остановка записи кнопкой, нужно удалить 1 команду
         self.queue_events.clear()  # Очищаем очередь событий
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
@@ -105,10 +103,6 @@ class Tracker:
         kb.release(Key.ctrl)
         kb.release(Key.alt)
         kb.release(Key.shift)
-
-        # Вернуть состояние клавиатуры в исходное
-        kb.press(Key.esc)
-        kb.release(Key.esc)
 
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
@@ -163,7 +157,7 @@ class Tracker:
 
             # -------- Комбинации действующие всегда --------
             if res == 'stop':
-                # Остановка записи или воспроизведения при нажатии esc 2 раза.
+                # Остановка записи или воспроизведения при нажатии ctrl 2 раза.
                 self.only_screenshot = ''  # Получение скриншота отменено
                 self.stop_btn()
                 return
@@ -310,7 +304,7 @@ class Tracker:
 
     def on_press(self, key=None):
         """ Обработка события нажатия клавиши """
-        # print(key)
+        print(key)
         key_str = self.get_str_key(key)  # Получаем название клавиши в виде строки
         if key_str == self.current_key:
             # Это виртуальное нажатие, не обрабатываем
