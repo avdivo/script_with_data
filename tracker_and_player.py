@@ -274,6 +274,8 @@ class Tracker:
         """ Клик мыши любой кнопкой"""
         if not self.is_listening:
             return
+        if self.only_screenshot == 'wait':
+            return
         self.img = save_image(args[0], args[1])  # Сохранить изображение элемента на котором был клик
         button = args[2]
         pressed = args[3]

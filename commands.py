@@ -182,7 +182,7 @@ class MouseClickRight(CommandClasses):
             # Метка не найдена или другая ошибка типа данных Llist
             logger.error(f'{err}\nПереход заменен на Stop.')
             self.action = 'stop:'
-        self.message = args[5]  # Сообщение при отсутствии изображения
+        self.message = args[10]  # Сообщение в случае выполнения действия
 
         # Виджеты для дополнительных настроек
         self.widget_local_settings = None  # Виджет для использования локальных настроек
@@ -254,15 +254,14 @@ class MouseClickRight(CommandClasses):
         def save_settings():
             """ Сохранение дополнительных настроек """
             self.local_settings = self.widget_local_settings.result
-            self.local_check = self.widget_local_check.result if self.local_check else settings.s_confirm_element
-            print(self.widget_local_check.result)
-            size = self.widget_local_check_size.result if self.local_check else settings.s_local_check_size
+            self.local_check = self.widget_local_check.result if self.local_settings else settings.s_confirm_element
+            size = self.widget_local_check_size.result if self.local_settings else settings.s_local_check_size
             self.local_check_size = size if size<501 else settings.first_region
-            self.repeat = self.widget_repeat.result if self.local_check else settings.s_search_attempt
-            self.full_screen = self.widget_full_screen.result if self.local_check else settings.s_full_screen_search
-            self.condition = self.widget_condition.get() if self.local_check else 'Не найдено'
-            self.action = self.widget_action.result if self.local_check else settings.s_error_no_element
-            self.message = self.widget_message.result if self.local_check else ''
+            self.repeat = self.widget_repeat.result if self.local_settings else settings.s_search_attempt
+            self.full_screen = self.widget_full_screen.result if self.local_settings else settings.s_full_screen_search
+            self.condition = self.widget_condition.get() if self.local_settings else 'Не найдено'
+            self.action = self.widget_action.result if self.local_settings else settings.s_error_no_element
+            self.message = self.widget_message.result if self.local_settings else ''
             self.window.destroy()
 
         def show_frame():
@@ -274,6 +273,9 @@ class MouseClickRight(CommandClasses):
 
         def additional_settings_modal():
             """ Вызов окна с дополнительными настройками """
+            if self.data.script_started or self.data.is_listening:
+                return
+
             # Создаем окно
             self.window = Toplevel()
             self.window.title('Дополнительные настройки')
@@ -385,9 +387,9 @@ class MouseClickRight(CommandClasses):
                     # Обновляем координаты в виджетах
                     self.widget_x.value.set(self.tracker.mouse_position[0])
                     self.widget_y.value.set(self.tracker.mouse_position[1])
-                    self.root.update()
+                    # self.root.update()
                     pos_not = False  # Координаты уже получены
-
+                self.root.update()
             if self.tracker.only_screenshot:
                 # Если скриншот получен, то меняем им изображение элемента
                 self.image = self.tracker.only_screenshot
