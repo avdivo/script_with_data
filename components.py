@@ -792,11 +792,9 @@ class DataSource:
                            ("All files", "*.*")))
             if new_file:
                 name = os.path.basename(new_file)  # Имя файла
-                print(os.path.dirname(new_file), settings.path_to_data)
-                # Если файл не находится в папке для данных, то копируем его туда
-                # сравниваем пути, учитывя что слэши в пути могут быть разные
                 if os.path.dirname(new_file).replace('/', '\\') != settings.path_to_data.replace('/', '\\'):
-                # if os.path.dirname(new_file) != settings.path_to_data:
+                    # Если файл не находится в папке для данных, то копируем его туда
+                    # сравниваем пути, учитывя, что слэши в пути могут быть разные
                     if os.path.exists(os.path.join(settings.path_to_data, name)):
                         # Есть ли такой файл в папке для данных спрашиваем, заменить ли его
                         if messagebox.askyesno('Замена файла', f'Файл {name} уже существует. Заменить?'):
@@ -888,7 +886,7 @@ class SaveLoad:
             config = self.config_file()
             self.new_project_name = config['name']
             self.new_path_to_project = config['path']
-            self.data_source_file = config['data']
+            self.data_source.data_source_file = config['data']
 
         if self.new_project_name:
             # Если данные о проекте есть, то открываем проект
@@ -1020,7 +1018,8 @@ class SaveLoad:
         script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command],
                             default=lambda o: o.__json__())  # Подготовка скрипта
         sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())  # Подготовка настроек
-        return {'script': script, 'settings': sett}
+        # Еще добавляем имя файла - источника данных
+        return {'script': script, 'settings': sett, 'data_source': self.data_source.data_source_file}
 
     def save_project(self):
         """ Сохранение проекта """
@@ -1031,7 +1030,7 @@ class SaveLoad:
             json.dump(for_save, f)
         # Исправляем файл конфигурации
         self.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
-                         data=self.data_source_file)
+                         data=self.data_source.data_source_file)
         logger.warning(f'Проект {settings.project_name} сохранен.')
         settings.is_saved = True
 
@@ -1101,13 +1100,24 @@ class SaveLoad:
             settings.project_name = self.new_project_name
             settings.update_settings()
 
-            logger.warning(f'Проект {self.new_project_name} открыт.')
+            mess = f'Проект {self.new_project_name} открыт.'
             self.root.title(f'Редактор скриптов ({self.new_project_name})')
             self.save_history()  # Сохраняем историю
             settings.is_saved = True
 
         except Exception as err:
             raise LoadError(f'Ошибка загрузки проекта {err}')
+
+        # Загружаем файл источника данных
+        source = data_dict.get('data_source')
+        try:
+            if source:
+                self.data_source.load_file(source)
+                mess += f'\nИсточник данных {source} загружен.'
+        except:
+            mess += f'\nОшибка загрузки источника данных {source}.'
+            # raise
+        logger.warning(mess)
 
     def rename_project(self):
         """ Переименование проекта """

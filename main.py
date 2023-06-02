@@ -116,19 +116,21 @@ def run_script():
             tracker.reset_kb()  # Сбросить клавиатуру
             raise
 
-
     return
 
 
-def open_file_explorer():
-    """ Открыть изображения элементов в проводнике """
+def open_file_explorer(path, file=None):
+    """ Открыть папку в проводнике или файл в приложении по умолчанию """
+    if data.script_started or data.is_listening:
+        return  # Операция невозможна при выполнении или записи скрипта
+    if file:
+        path = os.path.join(path, file)
     if system.os == 'Windows':
-        os.startfile(settings.path_to_elements)
+        os.startfile(path)
     elif system.os == 'Linux':
-        subprocess.Popen(['xdg-open', settings.path_to_elements])
+        subprocess.Popen(['xdg-open', path])
     else:
-        print('Unsupported OS')
-
+        print('Операционная система не поддерживается')
 
 # создание логгера и обработчика
 logger = logging.getLogger('logger')
@@ -195,7 +197,7 @@ filemenu.add_command(label="Сохранить проект как...", command=
 filemenu.add_command(label="Переименовать проект", command=save_load.rename_project)
 filemenu.add_separator()
 filemenu.add_command(label="Удалить лишние изображения", command=editor.menu_delete_images)
-filemenu.add_command(label="Просмотр изображений", command=open_file_explorer)
+filemenu.add_command(label="Просмотр изображений", command=lambda: open_file_explorer(settings.path_to_elements))
 filemenu.add_separator()
 filemenu.add_command(label="Выход", command=on_closing)
 mainmenu.add_cascade(label="Проект", menu=filemenu)
@@ -204,6 +206,10 @@ menu_data_source = Menu(mainmenu, tearoff=0)
 menu_data_source.add_command(label="Подключить источник данных", command=data_source.menu_data_source)
 menu_data_source.add_command(label="Сбросить источник данных", command=data_source.menu_reset_pointers)
 menu_data_source.add_command(label="Отключить источник данных", command=data_source.menu_delete_data_source)
+menu_data_source.add_command(label="Открыть файл данных", command=lambda: open_file_explorer(
+    settings.path_to_data, data_source.data_source_file))
+menu_data_source.add_command(label="Открыть папку с данными", command=lambda: open_file_explorer(settings.path_to_data))
+
 mainmenu.add_cascade(label="Данные", menu=menu_data_source)
 
 mainmenu.add_command(label="Настройки",
