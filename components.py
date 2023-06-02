@@ -792,13 +792,18 @@ class DataSource:
                            ("All files", "*.*")))
             if new_file:
                 name = os.path.basename(new_file)  # Имя файла
-                # Есть ли такой файл в папке для данных спрашиваем, заменить ли его
-                if os.path.exists(os.path.join(settings.path_to_data, name)):
-                    if messagebox.askyesno('Замена файла', f'Файл {name} уже существует. Заменить?'):
-                        os.remove(os.path.join(settings.path_to_data, name))
-                else:
-                    # Копирование источника данных в папку для данных data
-                    shutil.copy(new_file, settings.path_to_data)
+                print(os.path.dirname(new_file), settings.path_to_data)
+                # Если файл не находится в папке для данных, то копируем его туда
+                # сравниваем пути, учитывя что слэши в пути могут быть разные
+                if os.path.dirname(new_file).replace('/', '\\') != settings.path_to_data.replace('/', '\\'):
+                # if os.path.dirname(new_file) != settings.path_to_data:
+                    if os.path.exists(os.path.join(settings.path_to_data, name)):
+                        # Есть ли такой файл в папке для данных спрашиваем, заменить ли его
+                        if messagebox.askyesno('Замена файла', f'Файл {name} уже существует. Заменить?'):
+                            os.remove(os.path.join(settings.path_to_data, name))
+                    else:
+                        # Копирование источника данных в папку для данных data
+                        shutil.copy(new_file, settings.path_to_data)
                 self.load_file(name)  # Загрузка файла
                 logger.warning(f'Источник данных {self.data_source_file} загружен.')
 
