@@ -233,5 +233,6 @@ return_button = Button(root, command=save_load.return_button, image=icon11, widt
 return_button.place(x=602, y=settings.win_h-43)
 ToolTip(return_button, msg="Вернуть", delay=0.5)
 
+save_load.load_old_project()  # Загрузка последнего проекта
 
 root.mainloop()

@@ -880,6 +880,7 @@ class SaveLoad:
         self.history = deque(maxlen=100)  # Помнит последние 100 состояний скрипта
         self.history_pointer = -1  # Указатель на текущее состояние скрипта
 
+    def load_old_project(self):
         # Проверка файла конфигурации
         if os.path.exists('config.ini'):
             # Если файл конфигурации есть, то читаем его
