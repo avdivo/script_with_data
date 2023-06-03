@@ -22,6 +22,7 @@ import json
 import logging
 import shutil
 import re
+import winsound
 
 from commands import CommandClasses
 from data_input import DataInput
@@ -199,6 +200,12 @@ class DataForWorker:
         # Ниже выпадающий список с метками и блоками и кнопкой Перейти.
         # Еще ниже кнопки Перезапустить, Остановить, Продолжить.
         # При закрытии окна (можно по Esc), скрипт продолжает выполняться.
+
+        # Звуковой сигнал при появлении окна.
+        if system.os == 'Windows':
+            winsound.MessageBeep()
+        else:
+            os.system('play -nq -t alsa synth {} sine {}'.format(0.5, 440))
 
         self.modal_stop = False  # Сообщаем главной программе, продолжать выполнение скрипта
 
