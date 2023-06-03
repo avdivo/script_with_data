@@ -337,6 +337,7 @@ class Player:
     """ Воспроизведение события мыши или клавиатуры """
     data = None  # Ссылка на класс с данными о скрипте
     tracker = None  # Ссылка на класс прослушивания клавиатуры и мыши
+    data_source = None  # Ссылка на объект источник данных
 
     def __init__(self, root, run_script):
         """ Принимает ссылку на главное окно и функцию, которую нужно запустить для выполнения скрипта """
@@ -369,6 +370,12 @@ class Player:
             if obj.__class__.__name__ == 'BlockCmd' or obj.__class__.__name__ == 'LabelCmd':
                 # Это метка или блок, добавляем в словарь
                 self.data.work_labels[obj.value] = self.data.queue_command.index(key)
+
+        # Сбрасываем источник данных
+        if settings.s_reset_data_source:
+            # Сброс разрешен в настройках
+            if self.data_source:
+                self.data_source.menu_reset_pointers()
 
         new_thread = Thread(target=self.run_script)  # Создаём поток
         logger.warning('Выполнение скрипта')
