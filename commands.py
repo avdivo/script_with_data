@@ -639,7 +639,43 @@ class WriteDataFromField(CommandClasses):
         self.data.func_execute_event(cmd=self.__class__.__name__, val=[text])
 
 
-class NextElementField(WriteDataFromField):
+class CycleForField(WriteDataFromField):
+    """ Цикл по полю """
+    command_name = 'Цикл по полю'
+    command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца ' \
+                          'самого длинного поля. Окончание блока - команда Конец цикла.'
+    for_sort = 80
+
+    def __init__(self, *args, description):
+        """ Добавление в список 1 пункта - Все поля
+
+        Цикл предлагает 1 или все поля для итерации. Команда CycleEnd переводит указатель в выбранном поле к
+        следующему элементу. Если его нет, цикл завершается. Если выбрано Все поля, то указатель переводится к
+        следующему элементу во всех полях. Если в каком-то поле элементы закончились, оно пропускается.
+        """
+        super().__init__(*args, description=description)
+        # Добавляем 1 элементом в список полей - Все поля
+        self.values.insert(0, 'Все поля')
+        self.value = args[0] if args[0] else self.values[0]  # Устанавливаем поле которое будет выбрано
+        self.value_var = StringVar()
+
+    def run_command(self):
+        """ Выполнение команды
+
+        Если в полях нет данных сразу кидает исключение.
+        Команда записывает в стек список: свой индекс и имя поля или 'Все поля'.
+        Итерации происходят пока в самом длинном (или выбранном) поле есть элементы.
+        Перевод указателей к следующему элементу происходит в команде CycleEnd.
+        """
+        if self.values[1] == 'Полей нет':
+            raise DataError('Нет данных для чтения.')
+        if self.value != 'Все поля':
+            if self.value not in self.data.data_source:
+                raise DataError(f'Нет поля "{self.value}" у источника данных. ')
+        self.data.stack.append([self.data.pointer_command, self.value])
+
+
+class NextElementField(CycleForField):
     """ Следующий элемент поля """
     command_name = 'Следующий элемент поля'
     command_description = 'Поле таблицы (столбец) представлено в виде списка данных. Эта команда переводит ' \
@@ -649,39 +685,25 @@ class NextElementField(WriteDataFromField):
     def run_command(self):
         """ Выполнение команды
 
-        Находим нужное поле, выясняем его длину, если указатель можно увеличить - делаем, если нельзя
-        бросаем исключение связанное с ошибкой данных.
-
+        Если хоть у одного поля есть еще элементы, то передвигаем в нем указатель.
+        Если ни один указатель не сдвинулся кидаем исключение.
         """
-        if self.value not in self.data.data_source:
-            raise DataError(f'Нет поля "{self.value}" у источника данных. ')
-        pointer = self.data.pointers_data_source[self.value]
-        pointer += 1
-        if pointer >= len(self.data.data_source[self.value]):
-            raise DataError(f'Нет больше данных в поле "{self.value}".')
-        self.data.pointers_data_source[self.value] = pointer
-
-
-class CycleForField(WriteDataFromField):
-    """ Цикл по полю """
-    command_name = 'Цикл по полю'
-    command_description = 'Начало блока команд, которые повторятся столько раз, сколько строк до конца поля. ' \
-                          'Окончание блока - команда Конец цикла.'
-    for_sort = 80
-
-    def run_command(self):
-        """ Выполнение команды
-
-        Цикл выполнится 1 раз в любом случае, входные параметры 0 или 1 не отличаются.
-        Команда просто записывает в стек список: свой индекс и количество итераций.
-        Итерации вычисляются по количеству ячеек до конца заданного поля
-
-        """
-        if self.value not in self.data.data_source:
-            raise DataError(f'Нет поля "{self.value}" у источника данных. ')
-        pointer = self.data.pointers_data_source[self.value]  # Где указатель
-        temp = len(self.data.data_source[self.value]) - pointer  # Сколько ячеек до конца
-        self.data.stack.append([self.data.pointer_command, temp])
+        if self.values[1] == 'Полей нет':
+            raise DataError('Нет данных для чтения.')
+        if self.value == 'Все поля':
+            fields = self.data.data_source.keys()
+        else:
+            if self.value not in self.data.data_source:
+                raise DataError(f'Нет поля "{self.value}" у источника данных. ')
+            fields = [self.value]
+        not_fields = True
+        for field in fields:
+            pointer = self.data.pointers_data_source[field]
+            if pointer + 1 < len(self.data.data_source[field]):
+                self.data.pointers_data_source[field] += 1
+                not_fields = False
+        if not_fields:
+            raise DataError(f'Данных больше нет.')
 
 
 class PauseCmd(CommandClasses):
@@ -868,6 +890,11 @@ class CycleCmd(PauseCmd):
                           'Окончание блока - команда Конец цикла.'
     for_sort = 90
 
+    def __init__(self, *args, description):
+        """ Принимает значение типа целое число и пользовательское описание команды """
+        self.value = int(args[0])
+        super().__init__(*args, description=description, value=self.value)
+
     def __str__(self):
         """ Возвращает название команды, иногда с параметрами.
         Но если есть пользовательское описание - то его """
@@ -922,21 +949,39 @@ class CycleEnd(CommandClasses):
     def run_command(self):
         """ Выполнение команды
 
+        2 варианта выполнения для цикла по счетчику и цикла по полям.
+        Отличаются по типу 2 аргумента, для счетчика int для полей str.
+        1. Цикл по счетчику.
         Выбирает из стека верхний элемент, уменьшает 2 значение на 1 и если еще > 0 записывает результат назад и
         переходит к команде по индексу из 1 значения.
-        Любые ошибки при выполнении игнорирует.
-
+        2. Цикл по полям.
+        Создает и выполняет команду NextElementField, исключение воспринимает как конец цикла.
         """
-        try:
-            temp = self.data.stack.pop()
-            temp[1] -= 1
-            if temp[1] > 0:
+        temp = self.data.stack.pop()
+        if isinstance(temp[1], int):
+            # Цикл по счетчику
+            try:
+                temp[1] -= 1
+                print(temp)
+                if temp[1] > 0:
+                    self.data.stack.append(temp)
+                    # После выполнения этой команды указатель увеличится на 1
+                    # и перейдет на команду следующую за началом цикла
+                    self.data.pointer_command = temp[0]  # Индекс команды начала цикла
+            except:
+                raise
+        else:
+            # Цикл по полям
+            try:
+                # Создаем объект команды перехода и выполняем ее
+                cmd = CommandClasses.create_command(temp[1], command='NextElementField')
+                cmd.run_command()
                 self.data.stack.append(temp)
                 # После выполнения этой команды указатель увеличится на 1
                 # и перейдет на команду следующую за началом цикла
                 self.data.pointer_command = temp[0]  # Индекс команды начала цикла
-        except:
-            raise
+            except:
+                pass
 
 
 class BlockEnd(CycleEnd):

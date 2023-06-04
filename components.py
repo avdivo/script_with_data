@@ -844,9 +844,9 @@ class DataSource:
         """ Сброс указателей источника данных """
         if data.script_started or data.is_listening:
             return  # Операция невозможна при выполнении или записи скрипта
-
-        data.pointers_data_source = dict.fromkeys(data.pointers_data_source, 0)
-        logger.warning('Указатели источника данных сброшены.')
+        if data.pointers_data_source:
+            data.pointers_data_source = dict.fromkeys(data.pointers_data_source, 0)
+            logger.warning('Указатели источника данных сброшены.')
 
     def menu_delete_data_source(self):
         """ Отключение источника данных """
