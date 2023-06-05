@@ -304,7 +304,6 @@ class Tracker:
 
     def on_press(self, key=None):
         """ Обработка события нажатия клавиши """
-        print(key)
         key_str = self.get_str_key(key)  # Получаем название клавиши в виде строки
         if key_str == self.current_key:
             # Это виртуальное нажатие, не обрабатываем

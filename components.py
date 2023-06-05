@@ -838,7 +838,7 @@ class DataSource:
 
         except Exception as err:
             # При ошибках с источником данных
-            raise DataError(f'Ошибка загрузки источника данных {err}')
+            raise DataError(f'Ошибка загрузки источника данных. {err}')
 
     def menu_reset_pointers(self):
         """ Сброс указателей источника данных """
@@ -1106,14 +1106,29 @@ class SaveLoad:
             # Загружаем данные из файла в переменную
             with open(file_path, "r") as f:
                 data_dict = json.load(f)
-            self.change_script_and_settings(data_dict)  # Заменяем скрипт и настройки
 
             # Запоминаем путь к проекту и его имя в настройках
             settings.path_to_project = self.new_path_to_project
             settings.project_name = self.new_project_name
             settings.update_settings()
 
-            mess = f'Проект {self.new_project_name} открыт.'
+            mess = f'Проект {self.new_project_name} открыт.\n'
+            # Если в скрипте используется источник данных, то он долен быть загружен перед скриптом,
+            # поэтому загружаем его сейчас
+            source = data_dict.get('data_source')
+            try:
+                if source:
+                    self.data_source.load_file(source)
+                    mess += f'Источник данных {source} подключен.'
+            except Exception as err:
+                mess += f'{err}\n' \
+                        f'Источник данных должен быть подключен при загрузке. ' \
+                        f'Скрипт может работать некорректно.'
+                # raise
+
+            self.change_script_and_settings(data_dict)  # Заменяем скрипт и настройки
+
+            logger.warning(mess)
             self.root.title(f'Редактор скриптов ({self.new_project_name})')
             self.save_history()  # Сохраняем историю
             settings.is_saved = True
@@ -1121,16 +1136,6 @@ class SaveLoad:
         except Exception as err:
             raise LoadError(f'Ошибка загрузки проекта {err}')
 
-        # Загружаем файл источника данных
-        source = data_dict.get('data_source')
-        try:
-            if source:
-                self.data_source.load_file(source)
-                mess += f'\nИсточник данных {source} загружен.'
-        except:
-            mess += f'\nОшибка загрузки источника данных {source}.'
-            # raise
-        logger.warning(mess)
 
     def rename_project(self):
         """ Переименование проекта """

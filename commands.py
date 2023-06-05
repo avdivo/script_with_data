@@ -654,8 +654,9 @@ class CycleForField(WriteDataFromField):
         следующему элементу во всех полях. Если в каком-то поле элементы закончились, оно пропускается.
         """
         super().__init__(*args, description=description)
-        # Добавляем 1 элементом в список полей - Все поля
-        self.values.insert(0, 'Все поля')
+        # Добавляем первым элементом в список полей - Все поля, если поля вообще есть
+        if self.values[0] != 'Полей нет':
+            self.values.insert(0, 'Все поля')
         self.value = args[0] if args[0] else self.values[0]  # Устанавливаем поле которое будет выбрано
         self.value_var = StringVar()
 
@@ -667,11 +668,12 @@ class CycleForField(WriteDataFromField):
         Итерации происходят пока в самом длинном (или выбранном) поле есть элементы.
         Перевод указателей к следующему элементу происходит в команде CycleEnd.
         """
-        if self.values[1] == 'Полей нет':
+        if self.values[0] == 'Полей нет':
             raise DataError('Нет данных для чтения.')
         if self.value != 'Все поля':
             if self.value not in self.data.data_source:
                 raise DataError(f'Нет поля "{self.value}" у источника данных. ')
+
         self.data.stack.append([self.data.pointer_command, self.value])
 
 
@@ -892,7 +894,7 @@ class CycleCmd(PauseCmd):
 
     def __init__(self, *args, description):
         """ Принимает значение типа целое число и пользовательское описание команды """
-        self.value = int(args[0])
+        self.value = int(args[0]) if isinstance(args[0], int) else 3
         super().__init__(*args, description=description, value=self.value)
 
     def __str__(self):
@@ -962,7 +964,6 @@ class CycleEnd(CommandClasses):
             # Цикл по счетчику
             try:
                 temp[1] -= 1
-                print(temp)
                 if temp[1] > 0:
                     self.data.stack.append(temp)
                     # После выполнения этой команды указатель увеличится на 1
@@ -981,7 +982,7 @@ class CycleEnd(CommandClasses):
                 # и перейдет на команду следующую за началом цикла
                 self.data.pointer_command = temp[0]  # Индекс команды начала цикла
             except:
-                pass
+                raise
 
 
 class BlockEnd(CycleEnd):
