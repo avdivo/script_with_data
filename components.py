@@ -855,8 +855,10 @@ class DataSource:
 
         self.data_source_file = None
         self.value.set('')
-        data.data_source.clear()
-        data.pointers_data_source.clear()
+        if data.data_source:
+            data.data_source.clear()
+        if data.pointers_data_source:
+            data.pointers_data_source.clear()
         # Удаление информации об источнике в конфигурационном файле
         self.save_load.config_file(action='del')
         logger.warning('Источник данных отключен.')
@@ -931,6 +933,7 @@ class SaveLoad:
             settings.is_saved = True  # Изменения в проекте не сохранены
 
             settings.default_settings()  # Сброс настроек по умолчанию
+            self.data_source.menu_delete_data_source()  # Отключение источника данных
 
             # Запись новых настроек в файл конфигурации
             self.config_file(action='set', name=name, path=path)
@@ -1095,6 +1098,8 @@ class SaveLoad:
             this_project = False
         if not this_project:
             raise LoadError('Выбранная папка не является проектом')
+
+        self.data_source.menu_delete_data_source()  # Отключаем источник данных
 
         try:
             file_path = os.path.join(self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')
