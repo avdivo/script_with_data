@@ -94,8 +94,8 @@ class Tracker:
         self.pressing_keys_set.clear()  # Очищаем множество нажатых клавиш
 
         self.mouse_position = None  # Координаты мыши
-
-        logger.error('Идет запись.')
+        if self.only_screenshot != 'wait':
+            logger.error('Идет запись.')
 
     def reset_kb(self):
         """ Вернуть состояние клавиатуры в исходное """

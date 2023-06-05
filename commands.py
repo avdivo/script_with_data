@@ -371,7 +371,7 @@ class MouseClickRight(CommandClasses):
             return
 
         try:
-            logger.warning('Ctrl, Ctrl (правый) - новые координаты и скриншот.\n'
+            logger.error('Ctrl, Ctrl (правый) - новые координаты и скриншот.\n'
                            'Ctrl (правый), Ctrl, Ctrl, Ctrl - только координаты.\n'
                            'Ctrl, Ctrl - отмена.\n'
                            'После первого Ctrl координаты зафиксируются и курсор можно убрать.')

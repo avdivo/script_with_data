@@ -805,7 +805,7 @@ class DataSource:
                     if os.path.exists(os.path.join(settings.path_to_data, name)):
                         # Есть ли такой файл в папке для данных спрашиваем, заменить ли его
                         if messagebox.askyesno('Замена файла', f'Файл {name} уже существует. Заменить?'):
-                            os.remove(os.path.join(settings.path_to_data, name))
+                            shutil.copy(new_file, settings.path_to_data)  # Заменяем файл
                     else:
                         # Копирование источника данных в папку для данных data
                         shutil.copy(new_file, settings.path_to_data)
