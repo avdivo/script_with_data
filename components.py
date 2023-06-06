@@ -1026,9 +1026,8 @@ class SaveLoad:
 
     def data_preparation(self):
         """ Подготовка данных для сохранения """
-        script = json.dumps([data.obj_command[label].command_to_dict() for label in data.queue_command],
-                            default=lambda o: o.__json__())  # Подготовка скрипта
-        sett = json.dumps(settings.get_dict_settings(), default=lambda o: o.__json__())  # Подготовка настроек
+        script = [data.obj_command[label].command_to_dict() for label in data.queue_command]  # Подготовка скрипта
+        sett = settings.get_dict_settings()  # Подготовка настроек
         # Еще добавляем имя файла - источника данных
         return {'script': script, 'settings': sett, 'data_source': self.data_source.data_source_file}
 
@@ -1037,8 +1036,9 @@ class SaveLoad:
         for_save = self.data_preparation()  # Подготовка данных для сохранения
         # сохраняем в файл
         file_path = os.path.join(settings.path_to_script, f'{settings.project_name}.json')
-        with open(file_path, "w") as f:
-            json.dump(for_save, f)
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(for_save, f, default=lambda o: o.__json__(), indent=4)
+
         # Исправляем файл конфигурации
         self.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
                          data=self.data_source.data_source_file)
@@ -1050,8 +1050,13 @@ class SaveLoad:
 
         Принимает словарь с данными скрипта и настроек из файла или истории
         """
-        script = json.loads(data_dict['script'])
-        sett = json.loads(data_dict['settings'])
+        # Для открытия проектов старой версии, до 06.06.2023:
+        # раскомментировать 2 верхние строки и закомментировать 2 нижние
+        # Открыть проект, сохранить его. После этого нужно вернуть строки назад иначе проект не откроется.
+        # script = json.loads(data_dict['script'])
+        # sett = json.loads(data_dict['settings'])
+        script = data_dict['script']
+        sett = data_dict['settings']
 
         # Удаляем старый скрипт и записываем новый
         data.queue_command.clear()  # Очередь команд

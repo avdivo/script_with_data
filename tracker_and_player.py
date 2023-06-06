@@ -106,6 +106,7 @@ class Tracker:
 
     def stop_btn(self):
         """ Обработка нажатия кнопки стоп """
+        # self.root.deiconify()  # Показать главное окно программы
         self.queue_events.clear()  # Очищаем очередь событий
 
         if self.data.script_started:
@@ -351,6 +352,7 @@ class Player:
         ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
     def run_thread(self):
+        # self.root.withdraw()  # Скрыть главное окно программы
         """ Запуск функции выполнения скрипта в отдельном потоке """
         if self.data.script_started or self.data.is_listening:
             return  # Операция невозможна при выполнении или записи скрипта
