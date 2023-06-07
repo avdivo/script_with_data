@@ -29,6 +29,7 @@ from tkinter import messagebox
 from tktooltip import ToolTip
 import logging
 import subprocess
+from tkinter import filedialog as fd
 
 import components
 from settings import settings
@@ -211,6 +212,14 @@ menu_data_source.add_command(label="Открыть файл данных", comma
 menu_data_source.add_command(label="Открыть папку с данными", command=lambda: open_file_explorer(settings.path_to_data))
 
 mainmenu.add_cascade(label="Данные", menu=menu_data_source)
+
+menu_start_scripts = Menu(mainmenu, tearoff=0)
+menu_start_scripts.add_command(label="Быстрый запуск>", command=None)
+menu_start_scripts.add_command(label="Менеджер проектов>", command=None)
+menu_start_scripts.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
+menu_start_scripts.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
+
+mainmenu.add_cascade(label="Запуск скриптов", menu=menu_start_scripts)
 
 mainmenu.add_command(label="Настройки",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))

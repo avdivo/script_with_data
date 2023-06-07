@@ -897,6 +897,7 @@ class SaveLoad:
             self.new_project_name = config['name']
             self.new_path_to_project = config['path']
             self.data_source.data_source_file = config['data']
+            settings.work_dir = config['work_dir']
 
         if self.new_project_name:
             # Если данные о проекте есть, то открываем проект
@@ -982,7 +983,7 @@ class SaveLoad:
                 return
 
         # Открываем диалоговое окно для выбора проекта
-        path = fd.askdirectory(initialdir=self.new_path_to_project, title="Открыть проект")
+        path = fd.askdirectory(initialdir=settings.work_dir, title="Открыть проект")
         if not path:
             return
 
@@ -1206,11 +1207,11 @@ class SaveLoad:
         """
         self.new_project_cancel = True  # Отмена создания нового проекта
         self.new_project_name = ''
-        self.new_path_to_project = ''
+        self.new_path_to_project = settings.work_dir
 
         def choose_path(name, label):
             """ Выбор пути к проекту """
-            path = fd.askdirectory()
+            path = fd.askdirectory(initialdir=self.new_path_to_project, title='Выбор папки для проекта')
             if path:
                 path_mem = self.new_path_to_project
                 self.new_path_to_project = path
@@ -1278,7 +1279,7 @@ class SaveLoad:
         window.focus_set()
         window.wait_window()
 
-    def config_file(self, action='get', name='', path='', data=''):
+    def config_file(self, action='get', name='', path='', data='', work_dir=''):
         """ Изменение файла конфигурации
 
         Действие get, set, del указывает операцию с файлом конфигурации.
@@ -1294,6 +1295,8 @@ class SaveLoad:
                 config['DEFAULT']['path_to_project'] = path
             if data:
                 config['DEFAULT']['data_file'] = data
+            if work_dir:
+                config['DEFAULT']['work_dir'] = work_dir
         elif action == 'del':
             config['DEFAULT']['data_file'] = ''
         else:
@@ -1301,6 +1304,7 @@ class SaveLoad:
             out['name'] = config['DEFAULT'].get('project_name', '')
             out['path'] = config['DEFAULT'].get('path_to_project', '')
             out['data'] = config['DEFAULT'].get('data_file', '')
+            out['work_dir'] = config['DEFAULT'].get('work_dir', '')
             return out
 
         with open('config.ini', 'w') as configfile:
@@ -1361,3 +1365,10 @@ class SaveLoad:
             selected = ['zero']
         self.display_commands.tree.selection_set(selected)
         logger.warning(f'Состояние {self.history_pointer+1}')
+
+    def select_work_dir(self):
+        """ Выбор рабочей папки """
+        new = fd.askdirectory(initialdir=settings.work_dir, title='Выбор рабочей папки')
+        if new:
+            settings.work_dir = new
+            self.config_file(action='set', work_dir=new)

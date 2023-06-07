@@ -7,6 +7,7 @@
 import os
 import tkinter as tk
 from datetime import datetime
+from tkinter import filedialog as fd
 
 from data_input import *
 from data_types import eres
@@ -30,6 +31,7 @@ class Settings(object):
         self.path_to_elements = ''  # Путь к папке с изображениями элементов
         self.created_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата сохранения проекта
         self.updated_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата последнего обновления проекта
+        self.work_dir = ''  # Рабочая папка в которой работает Менеджер проектов и пути по умолчанию
         self.update_settings()
 
         # Настройки изображений элементов
@@ -96,7 +98,7 @@ class Settings(object):
 
     def show_window_settings(self, root, w, h):
         """ Отрытие окна настроек """
-
+        print(self.path_to_project)
         self.top = tk.Toplevel()  # Новое окно
         self.top.title("Настройки")
         self.top.transient(root)  # Поверх окна
