@@ -11,7 +11,7 @@ from configparser import ConfigParser
 from tkinter import *
 from tkinter import ttk, messagebox, simpledialog, Toplevel
 from tkinter import filedialog as fd
-
+from datetime import datetime
 from tktooltip import ToolTip
 from collections import deque
 from time import sleep
@@ -920,6 +920,8 @@ class SaveLoad:
 
     def create_project(self):
         """ Создание проекта """
+        settings.saved_project_date = datetime.now().strftime("%d.%m.%Y") # Дата создания проекта
+        settings.updated_project_date = datetime.now().strftime("%d.%m.%Y") # Дата изменения проекта
         try:
             name = self.new_project_name
             path = self.new_path_to_project
@@ -927,7 +929,8 @@ class SaveLoad:
             os.makedirs(os.path.join(path, name, 'data'))
             os.makedirs(os.path.join(path, name, 'elements_img'))
             with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
-                json.dump({"script": "[]", "settings": "{}"}, f)
+                json.dump({"script": "[]", "settings": "{}", 'data_source': '',
+                           'saved': settings.saved_project_date, 'updated': settings.updated_project_date})
 
             logger.warning(f'Создан новый проект {name}.')
             settings.is_saved = True  # Изменения в проекте не сохранены
@@ -1016,6 +1019,8 @@ class SaveLoad:
                 settings.path_to_project = self.new_path_to_project
                 settings.project_name = self.new_project_name
                 settings.update_settings()
+                settings.saved_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата создания проекта
+
                 # Сохраняем актуальный скрипт в новый проект
                 self.save_project()
 
@@ -1029,10 +1034,12 @@ class SaveLoad:
         script = [data.obj_command[label].command_to_dict() for label in data.queue_command]  # Подготовка скрипта
         sett = settings.get_dict_settings()  # Подготовка настроек
         # Еще добавляем имя файла - источника данных
-        return {'script': script, 'settings': sett, 'data_source': self.data_source.data_source_file}
+        return {'script': script, 'settings': sett, 'data_source': self.data_source.data_source_file,
+                'saved': settings.saved_project_date, 'updated': settings.updated_project_date}
 
     def save_project(self):
         """ Сохранение проекта """
+        settings.updated_project_date = datetime.now().strftime("%d.%m.%Y")  # Когда обновлен проект
         for_save = self.data_preparation()  # Подготовка данных для сохранения
         # сохраняем в файл
         file_path = os.path.join(settings.path_to_script, f'{settings.project_name}.json')
@@ -1132,6 +1139,10 @@ class SaveLoad:
                 # raise
 
             self.change_script_and_settings(data_dict)  # Заменяем скрипт и настройки
+            settings.saved_project_date = data_dict.get('saved')  # Получаем дату создания проекта
+            if not settings.saved_project_date:
+                settings.saved_project_date = datetime.now().strftime("%d.%m.%Y")
+            settings.updated_project_date = data_dict.get('updated')  # Получаем дату изменения проекта
 
             logger.warning(mess)
             self.root.title(f'Редактор скриптов ({self.new_project_name})')

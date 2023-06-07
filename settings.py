@@ -6,6 +6,7 @@
 
 import os
 import tkinter as tk
+from datetime import datetime
 
 from data_input import *
 from data_types import eres
@@ -27,7 +28,8 @@ class Settings(object):
         self.path_to_script = ''  # Путь к файлу скрипта
         self.path_to_data = ''  # Путь к файлам - источникам данных
         self.path_to_elements = ''  # Путь к папке с изображениями элементов
-
+        self.saved_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата сохранения проекта
+        self.updated_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата последнего обновления проекта
         self.update_settings()
 
         # Настройки изображений элементов
@@ -45,6 +47,7 @@ class Settings(object):
 
     def default_settings(self):
         self.is_saved = True  # Проект сохранен (сбрасывается при изменении)
+
         # Все настройки скрипта начинаются с s_
         self.s_key_pause = (0.0, 'Пауза между нажатием клавиш клавиатуры')
         self.s_click_pause = (0.5, 'Пауза после клика мыши')
