@@ -28,7 +28,7 @@ class Settings(object):
         self.path_to_script = ''  # Путь к файлу скрипта
         self.path_to_data = ''  # Путь к файлам - источникам данных
         self.path_to_elements = ''  # Путь к папке с изображениями элементов
-        self.saved_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата сохранения проекта
+        self.created_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата сохранения проекта
         self.updated_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата последнего обновления проекта
         self.update_settings()
 
@@ -103,15 +103,20 @@ class Settings(object):
 
         # Размер окна
         win_w = 700
-        win_h = 380
+        win_h = 400
         self.top.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
         self.top.resizable(width=False, height=False)
 
         # Вывод настроек в окно, запоминаем возвращаемые объекты, чтоб собрать настройки после подтверждения
         self.obj = dict()
         start = 20
-        Label(self.top, text=f'Проект: {os.path.join(self.path_to_project, self.project_name)}').place(x=20, y=start)  # Название настройки
-        start += 25
+        name = Label(self.top, text=f'Проект: {os.path.join(self.path_to_project, self.project_name)}')
+        name.place(x=20, y=start)  # Название настройки
+        name.config(font=("Arial", 10, 'bold'))  # Выделить название жирным
+        date = Label(self.top, text=f'Создан: {self.created_project_date}     Изменен: {self.updated_project_date}')
+        date.place(x=20, y=start + 25)  # Название настройки
+        date.config(font=("Arial", 10, 'bold'))  # Выделить название жирным
+        start += 50
         for var, val in self.__dict__.items():
             if var[:2] != 's_':
                 continue  # Обработка только настроек

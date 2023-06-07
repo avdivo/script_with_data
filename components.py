@@ -920,7 +920,7 @@ class SaveLoad:
 
     def create_project(self):
         """ Создание проекта """
-        settings.saved_project_date = datetime.now().strftime("%d.%m.%Y") # Дата создания проекта
+        settings.created_project_date = datetime.now().strftime("%d.%m.%Y") # Дата создания проекта
         settings.updated_project_date = datetime.now().strftime("%d.%m.%Y") # Дата изменения проекта
         try:
             name = self.new_project_name
@@ -930,7 +930,7 @@ class SaveLoad:
             os.makedirs(os.path.join(path, name, 'elements_img'))
             with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
                 json.dump({"script": "[]", "settings": "{}", 'data_source': '',
-                           'saved': settings.saved_project_date, 'updated': settings.updated_project_date})
+                           'saved': settings.created_project_date, 'updated': settings.updated_project_date})
 
             logger.warning(f'Создан новый проект {name}.')
             settings.is_saved = True  # Изменения в проекте не сохранены
@@ -1019,7 +1019,7 @@ class SaveLoad:
                 settings.path_to_project = self.new_path_to_project
                 settings.project_name = self.new_project_name
                 settings.update_settings()
-                settings.saved_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата создания проекта
+                settings.created_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата создания проекта
 
                 # Сохраняем актуальный скрипт в новый проект
                 self.save_project()
@@ -1035,7 +1035,7 @@ class SaveLoad:
         sett = settings.get_dict_settings()  # Подготовка настроек
         # Еще добавляем имя файла - источника данных
         return {'script': script, 'settings': sett, 'data_source': self.data_source.data_source_file,
-                'saved': settings.saved_project_date, 'updated': settings.updated_project_date}
+                'saved': settings.created_project_date, 'updated': settings.updated_project_date}
 
     def save_project(self):
         """ Сохранение проекта """
@@ -1139,9 +1139,9 @@ class SaveLoad:
                 # raise
 
             self.change_script_and_settings(data_dict)  # Заменяем скрипт и настройки
-            settings.saved_project_date = data_dict.get('saved')  # Получаем дату создания проекта
-            if not settings.saved_project_date:
-                settings.saved_project_date = datetime.now().strftime("%d.%m.%Y")
+            settings.created_project_date = data_dict.get('saved')  # Получаем дату создания проекта
+            if not settings.created_project_date:
+                settings.created_project_date = datetime.now().strftime("%d.%m.%Y")
             settings.updated_project_date = data_dict.get('updated')  # Получаем дату изменения проекта
 
             logger.warning(mess)
