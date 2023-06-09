@@ -47,6 +47,10 @@ class Settings(object):
         # Настройки скрипта по умолчанию
         self.default_settings()
 
+        # Настройки для быстрого запуска
+        self.len_start_code = 4  # Длина кода для быстрого запуска
+
+
     def default_settings(self):
         self.is_saved = True  # Проект сохранен (сбрасывается при изменении)
 
