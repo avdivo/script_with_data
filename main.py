@@ -214,7 +214,7 @@ menu_data_source.add_command(label="Открыть папку с данными"
 mainmenu.add_cascade(label="Данные", menu=menu_data_source)
 
 menu_start_scripts = Menu(mainmenu, tearoff=0)
-menu_start_scripts.add_command(label="Быстрый запуск>", command=lambda: dialog_quick_start(root))
+menu_start_scripts.add_command(label="Быстрый запуск>", command=lambda: dialog_quick_start(root, player.load_and_run))
 menu_start_scripts.add_command(label="Менеджер проектов>", command=None)
 menu_start_scripts.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
 menu_start_scripts.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
@@ -244,7 +244,7 @@ ToolTip(return_button, msg="Вернуть", delay=0.5)
 
 if True:
     # Если включается быстрый запуск, то основное окно не отображается и проект не загружается
-    dialog_quick_start(root)
+    dialog_quick_start(root, player.load_and_run)
 else:
     save_load.load_old_project()  # Загрузка последнего проекта
 

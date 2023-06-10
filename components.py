@@ -891,9 +891,9 @@ class SaveLoad:
 
     def load_old_project(self):
         # Проверка файла конфигурации
-        if os.path.exists('config.ini'):
+        config = self.config_file()
+        if config:
             # Если файл конфигурации есть, то читаем его
-            config = self.config_file()
             self.new_project_name = config['name']
             self.new_path_to_project = config['path']
             self.data_source.data_source_file = config['data']
@@ -987,11 +987,8 @@ class SaveLoad:
         if not path:
             return
 
-        # Последней в пути папка проекта, отделяем ее от пути
-        self.new_project_name = os.path.basename(path)  # получаем имя проекта
-        self.new_path_to_project = os.path.dirname(path)  # получаем путь к проекту
         try:
-            self.open_project()
+            self.open_project(path)
         except LoadError as err:
             logger.error(err)
 
@@ -1095,8 +1092,16 @@ class SaveLoad:
 
         settings.set_settings_from_dict(sett)  # Устанавливаем настройки
 
-    def open_project(self):
-        """ Загрузка проекта """
+    def open_project(self, path=None):
+        """ Загрузка проекта
+
+        Если path не указан, то используем переменные заранее установленные,
+        а если указан, то это должен быть полный путь к проекту, устанавливаем переменные
+        """
+        if path:
+            # Последней в пути папка проекта, отделяем ее от пути
+            self.new_project_name = os.path.basename(path)  # получаем имя проекта
+            self.new_path_to_project = os.path.dirname(path)  # получаем путь к проекту
 
         # Папка проекта должна содержать 2 вложенные папки: data и elements_img и файл скрипта
         # с таким же именем, как и папка проекта, но с расширением .json, проверим это
@@ -1285,6 +1290,9 @@ class SaveLoad:
         Действие get, set, del указывает операцию с файлом конфигурации.
         del - удаление данных только о файле источника данных.
         """
+        if not os.path.exists('config.ini'):
+            return None  # Файл конфигурации не найден
+
         config = ConfigParser()
         """ Получение файла конфигурации """
         config.read('config.ini')
@@ -1305,6 +1313,7 @@ class SaveLoad:
             out['path'] = config['DEFAULT'].get('path_to_project', '')
             out['data'] = config['DEFAULT'].get('data_file', '')
             out['work_dir'] = config['DEFAULT'].get('work_dir', '')
+            out['developer'] = config['DEFAULT'].get('developer', '')
             return out
 
         with open('config.ini', 'w') as configfile:

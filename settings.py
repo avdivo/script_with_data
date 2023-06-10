@@ -21,6 +21,7 @@ class Settings(object):
         return cls.instance
 
     def __init__(self):
+        # Читаем необходимые для начала настройки из файла конфигурации
         # Настройки для программы
         self.data_folder = 'data'  # Папка с данными
         self.elements_folder = 'elements_img'  # Папка с изображениями элементов

@@ -3,11 +3,13 @@
 from tkinter import *
 from tktooltip import ToolTip
 import re
+import os
 
 from settings import settings
 
 
-def dialog_quick_start(root):
+
+def dialog_quick_start(root, run_script_func):
     """ Диалоговое окно для загрузки проекта и запуска скрипта """
     root.withdraw()  # Скрыть главное окно программы
 
@@ -45,8 +47,12 @@ def dialog_quick_start(root):
     button_frame = Frame(window)
     button_frame.pack(side=RIGHT, padx=20, pady=10)
 
+    # Путь к проекту Keep
+    path = os.path.join(settings.work_dir, "Keep")
+    print(path)
     icon1 = PhotoImage(file="icon/play.png")
-    play_button = Button(button_frame, image=icon1, width=50, height=50)
+    play_button = Button(button_frame, command=lambda: run_script_func(path),
+                         image=icon1, width=50, height=50)
     play_button.image = icon1
     play_button.pack(side=LEFT)
     ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
