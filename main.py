@@ -61,7 +61,7 @@ def on_closing():
 
 # Интерфейс
 root = Tk()
-data.root = root  # Передаем ссылку сылку на главное окно
+data.root = root  # Передаем ссылку ссылку на главное окно
 
 root.protocol("WM_DELETE_WINDOW", on_closing)  # Функция выполнится при закрытии окна
 
@@ -242,7 +242,7 @@ return_button = Button(root, command=save_load.return_button, image=icon11, widt
 return_button.place(x=602, y=settings.win_h-43)
 ToolTip(return_button, msg="Вернуть", delay=0.5)
 
-if True:
+if False:
     # Если включается быстрый запуск, то основное окно не отображается и проект не загружается
     dialog_quick_start(root, player.load_and_run)
 else:

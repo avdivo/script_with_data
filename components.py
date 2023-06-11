@@ -784,7 +784,7 @@ class DataSource:
     save_load = None  # Ссылка на объект класса Сохранение/загрузка (реализация паттерна Наблюдатель)
 
     def __init__(self, root):
-        self.data_source_file = None
+        self.data_source_file = ''
         self.value = StringVar()  # Список полей источника данных через запятую (текст)
         Message(root, text='Источник данных', width=370, anchor='w', textvariable=self.value).place(x=0, y=0)
 
@@ -853,14 +853,14 @@ class DataSource:
         if data.script_started or data.is_listening:
             return  # Операция невозможна при выполнении или записи скрипта
 
-        self.data_source_file = None
+        self.data_source_file = ''
         self.value.set('')
         if data.data_source:
             data.data_source.clear()
         if data.pointers_data_source:
             data.pointers_data_source.clear()
         # Удаление информации об источнике в конфигурационном файле
-        self.save_load.config_file(action='del')
+        self.save_load.config_file(action='set', data='')
         logger.warning('Источник данных отключен.')
 
 
@@ -916,6 +916,7 @@ class SaveLoad:
             while os.path.exists(os.path.join(name + str(i))):
                 i += 1
             self.new_project_name = name + str(i)
+            # TODO getcwd поменять на рабочую папку
             self.new_path_to_project = os.getcwd()
             self.create_project()
 
@@ -930,8 +931,9 @@ class SaveLoad:
             os.makedirs(os.path.join(path, name, 'data'))
             os.makedirs(os.path.join(path, name, 'elements_img'))
             with open(os.path.join(path, name, f'{name}.json'), 'w') as f:
-                json.dump({"script": "[]", "settings": "{}", 'data_source': '',
-                           'saved': settings.created_project_date, 'updated': settings.updated_project_date})
+                json.dump({"script": [], "settings": {}, 'data_source': '',
+                           'saved': settings.created_project_date,
+                           'updated': settings.updated_project_date}, f, indent=4)
 
             logger.warning(f'Создан новый проект {name}.')
             settings.is_saved = True  # Изменения в проекте не сохранены
@@ -1196,7 +1198,6 @@ class SaveLoad:
             self.config_file(action='set', name='text')
 
         except Exception as err:
-            raise
             logger.error(f'Ошибка переименования проекта "{err}"')
 
     def dialog_new_project(self, operation='Создание нового проекта'):
@@ -1284,36 +1285,37 @@ class SaveLoad:
         window.focus_set()
         window.wait_window()
 
-    def config_file(self, action='get', name='', path='', data='', work_dir=''):
-        """ Изменение файла конфигурации
+    def config_file(self, action='get', **kwargs):
+        """ Получение и изменение параметров файла конфигурации
 
-        Действие get, set, del указывает операцию с файлом конфигурации.
-        del - удаление данных только о файле источника данных.
+        name - название проекта
+        path - путь к проекту
+        data - файл источника данных
+        work_dir - рабочая директория
+        developer - режим разработчика (True/False)
+
+        get - возвращается словарь с параметрами,
+        set - в файл конфигурации записываются параметры kwargs.
+        Для удаления параметра можно передать пустую строку.
         """
-        if not os.path.exists('config.ini'):
+
+        if not os.path.exists('config.ini') and action == 'get':
             return None  # Файл конфигурации не найден
+
+        cast = {'name': 'project_name', 'path': 'path_to_project', 'data': 'data_file', 'work_dir': 'work_dir',
+                'developer': 'developer'}
 
         config = ConfigParser()
         """ Получение файла конфигурации """
         config.read('config.ini')
         if action == 'set':
-            if name:
-                config['DEFAULT']['project_name'] = name
-            if path:
-                config['DEFAULT']['path_to_project'] = path
-            if data:
-                config['DEFAULT']['data_file'] = data
-            if work_dir:
-                config['DEFAULT']['work_dir'] = work_dir
-        elif action == 'del':
-            config['DEFAULT']['data_file'] = ''
-        else:
+            for arg, key in cast.items():
+                if arg in kwargs:
+                    config['DEFAULT'][key] = kwargs[arg]
+        elif action == 'get':
             out = dict()
-            out['name'] = config['DEFAULT'].get('project_name', '')
-            out['path'] = config['DEFAULT'].get('path_to_project', '')
-            out['data'] = config['DEFAULT'].get('data_file', '')
-            out['work_dir'] = config['DEFAULT'].get('work_dir', '')
-            out['developer'] = config['DEFAULT'].get('developer', '')
+            for arg, key in cast.items():
+                out[arg] = config['DEFAULT'].get(key, '')
             return out
 
         with open('config.ini', 'w') as configfile:
