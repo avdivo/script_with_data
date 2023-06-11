@@ -7,7 +7,6 @@
 # ---------------------------------------------------------------------------
 
 import os
-from configparser import ConfigParser
 from tkinter import *
 from tkinter import ttk, messagebox, simpledialog, Toplevel
 from tkinter import filedialog as fd
@@ -833,7 +832,7 @@ class DataSource:
             data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
 
             # Добавление информации об источнике в конфигурационный файл
-            self.save_load.config_file(action='set', data=name)
+            settings.config_file(action='set', data=name)
             self.data_source_file = name  # Назначаем новый источник данных
 
         except Exception as err:
@@ -860,7 +859,7 @@ class DataSource:
         if data.pointers_data_source:
             data.pointers_data_source.clear()
         # Удаление информации об источнике в конфигурационном файле
-        self.save_load.config_file(action='set', data='')
+        settings.config_file(action='set', data='')
         logger.warning('Источник данных отключен.')
 
 
@@ -891,7 +890,7 @@ class SaveLoad:
 
     def load_old_project(self):
         # Проверка файла конфигурации
-        config = self.config_file()
+        config = settings.config_file()
         if config:
             # Если файл конфигурации есть, то читаем его
             self.new_project_name = config['name']
@@ -942,7 +941,7 @@ class SaveLoad:
             self.data_source.menu_delete_data_source()  # Отключение источника данных
 
             # Запись новых настроек в файл конфигурации
-            self.config_file(action='set', name=name, path=path)
+            settings.config_file(action='set', name=name, path=path)
 
             # Сохраняем новые настройки проекта
             settings.path_to_project = self.new_path_to_project
@@ -1047,7 +1046,7 @@ class SaveLoad:
             json.dump(for_save, f, default=lambda o: o.__json__(), indent=4)
 
         # Исправляем файл конфигурации
-        self.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
+        settings.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
                          data=self.data_source.data_source_file)
         logger.warning(f'Проект {settings.project_name} сохранен.')
         settings.is_saved = True
@@ -1195,7 +1194,7 @@ class SaveLoad:
             settings.update_settings()
 
             # Вносим изменения в файл конфигурации
-            self.config_file(action='set', name='text')
+            settings.config_file(action='set', name='text')
 
         except Exception as err:
             logger.error(f'Ошибка переименования проекта "{err}"')
@@ -1285,42 +1284,6 @@ class SaveLoad:
         window.focus_set()
         window.wait_window()
 
-    def config_file(self, action='get', **kwargs):
-        """ Получение и изменение параметров файла конфигурации
-
-        name - название проекта
-        path - путь к проекту
-        data - файл источника данных
-        work_dir - рабочая директория
-        developer - режим разработчика (True/False)
-
-        get - возвращается словарь с параметрами,
-        set - в файл конфигурации записываются параметры kwargs.
-        Для удаления параметра можно передать пустую строку.
-        """
-
-        if not os.path.exists('config.ini') and action == 'get':
-            return None  # Файл конфигурации не найден
-
-        cast = {'name': 'project_name', 'path': 'path_to_project', 'data': 'data_file', 'work_dir': 'work_dir',
-                'developer': 'developer'}
-
-        config = ConfigParser()
-        """ Получение файла конфигурации """
-        config.read('config.ini')
-        if action == 'set':
-            for arg, key in cast.items():
-                if arg in kwargs:
-                    config['DEFAULT'][key] = kwargs[arg]
-        elif action == 'get':
-            out = dict()
-            for arg, key in cast.items():
-                out[arg] = config['DEFAULT'].get(key, '')
-            return out
-
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
-
     def save_history(self):
         """ Сохранение истории
 
@@ -1382,4 +1345,4 @@ class SaveLoad:
         new = fd.askdirectory(initialdir=settings.work_dir, title='Выбор рабочей папки')
         if new:
             settings.work_dir = new
-            self.config_file(action='set', work_dir=new)
+            settings.config_file(action='set', work_dir=new)

@@ -7,7 +7,7 @@
 import os
 import tkinter as tk
 from datetime import datetime
-from tkinter import filedialog as fd
+from configparser import ConfigParser
 
 from data_input import *
 from data_types import eres
@@ -153,6 +153,42 @@ class Settings(object):
         self.set_settings_from_dict(self.obj)  # Эта же функция используется при чтении настроек из файла
         self.is_saved = False  # Изменения в проекте не сохранены
         self.top.destroy()  # Закрытие окна
+
+    def config_file(self, action='get', **kwargs):
+        """ Получение и изменение параметров файла конфигурации
+
+        name - название проекта
+        path - путь к проекту
+        data - файл источника данных
+        work_dir - рабочая директория
+        developer - режим разработчика (True/False)
+
+        get - возвращается словарь с параметрами,
+        set - в файл конфигурации записываются параметры kwargs.
+        Для удаления параметра можно передать пустую строку.
+        """
+
+        if not os.path.exists('config.ini') and action == 'get':
+            return None  # Файл конфигурации не найден
+
+        cast = {'name': 'project_name', 'path': 'path_to_project', 'data': 'data_file', 'work_dir': 'work_dir',
+                'developer': 'developer'}
+
+        config = ConfigParser()
+        """ Получение файла конфигурации """
+        config.read('config.ini')
+        if action == 'set':
+            for arg, key in cast.items():
+                if arg in kwargs:
+                    config['DEFAULT'][key] = kwargs[arg]
+        elif action == 'get':
+            out = dict()
+            for arg, key in cast.items():
+                out[arg] = config['DEFAULT'].get(key, '')
+            return out
+
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
 
 
 # Создание объекта настроек, передаем ему ссылку на родительское окно и разрешение экрана

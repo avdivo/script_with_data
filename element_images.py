@@ -22,9 +22,6 @@ from time import sleep
 from exceptions import TemplateNotFoundError, ElementNotFound
 from settings import settings
 
-# TODO Проверить совпадение координат при проверке изображения по скриншоту
-#  и при клике
-# Настройки в settings.py
 
 def screenshot(x_reg: int = 0, y_reg: int = 0, region: int = 0):
     """ Скриншот заданного квадрата или всего экрана
