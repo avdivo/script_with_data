@@ -22,17 +22,21 @@ class Settings(object):
 
     def __init__(self):
         # Читаем необходимые для начала настройки из файла конфигурации
+        config = self.config_file()
+
         # Настройки для программы
         self.data_folder = 'data'  # Папка с данными
         self.elements_folder = 'elements_img'  # Папка с изображениями элементов
-        self.path_to_project = ''  # Путь к файлу проекта
+        self.path_to_project = ''  # Путь к папке проекта (без самой папки проекта)
         self.project_name = ''  # Имя проекта
-        self.path_to_script = ''  # Путь к файлу скрипта
+        self.path_to_script = ''  # Путь к файлу скрипта (без имени файла скрипта)
         self.path_to_data = ''  # Путь к файлам - источникам данных
         self.path_to_elements = ''  # Путь к папке с изображениями элементов
         self.created_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата сохранения проекта
         self.updated_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата последнего обновления проекта
-        self.work_dir = ''  # Рабочая папка в которой работает Менеджер проектов и пути по умолчанию
+        # Рабочая папка в которой работает Менеджер проектов и пути по умолчанию
+        # Если она не задана указываем рабочий каталог программы
+        self.work_dir = config['work_dir'] if config['work_dir'] else os.path.dirname(os.path.abspath(__file__))
         self.update_settings()
 
         # Настройки изображений элементов
@@ -159,7 +163,6 @@ class Settings(object):
 
         name - название проекта
         path - путь к проекту
-        data - файл источника данных
         work_dir - рабочая директория
         developer - режим разработчика (True/False)
 
@@ -168,11 +171,7 @@ class Settings(object):
         Для удаления параметра можно передать пустую строку.
         """
 
-        if not os.path.exists('config.ini') and action == 'get':
-            return None  # Файл конфигурации не найден
-
-        cast = {'name': 'project_name', 'path': 'path_to_project', 'data': 'data_file', 'work_dir': 'work_dir',
-                'developer': 'developer'}
+        cast = {'name': 'project_name', 'path': 'path_to_project', 'work_dir': 'work_dir', 'developer': 'developer'}
 
         config = ConfigParser()
         """ Получение файла конфигурации """

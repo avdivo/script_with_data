@@ -832,7 +832,7 @@ class DataSource:
             data.pointers_data_source = dict.fromkeys(fields, 0)  # Конвертация списка в словарь (ставим указатели)
 
             # Добавление информации об источнике в конфигурационный файл
-            settings.config_file(action='set', data=name)
+            # settings.config_file(action='set', data=name)
             self.data_source_file = name  # Назначаем новый источник данных
 
         except Exception as err:
@@ -858,8 +858,6 @@ class DataSource:
             data.data_source.clear()
         if data.pointers_data_source:
             data.pointers_data_source.clear()
-        # Удаление информации об источнике в конфигурационном файле
-        settings.config_file(action='set', data='')
         logger.warning('Источник данных отключен.')
 
 
@@ -891,12 +889,9 @@ class SaveLoad:
     def load_old_project(self):
         # Проверка файла конфигурации
         config = settings.config_file()
-        if config:
-            # Если файл конфигурации есть, то читаем его
-            self.new_project_name = config['name']
-            self.new_path_to_project = config['path']
-            self.data_source.data_source_file = config['data']
-            settings.work_dir = config['work_dir']
+        self.new_project_name = config['name']
+        self.new_path_to_project = config['path']
+        # self.data_source.data_source_file = config['data']
 
         if self.new_project_name:
             # Если данные о проекте есть, то открываем проект
@@ -984,6 +979,7 @@ class SaveLoad:
                 return
 
         # Открываем диалоговое окно для выбора проекта
+        print(settings.work_dir)
         path = fd.askdirectory(initialdir=settings.work_dir, title="Открыть проект")
         if not path:
             return
@@ -1046,8 +1042,7 @@ class SaveLoad:
             json.dump(for_save, f, default=lambda o: o.__json__(), indent=4)
 
         # Исправляем файл конфигурации
-        settings.config_file(action='set', name=settings.project_name, path=settings.path_to_project,
-                         data=self.data_source.data_source_file)
+        settings.config_file(action='set', name=settings.project_name, path=settings.path_to_project)
         logger.warning(f'Проект {settings.project_name} сохранен.')
         settings.is_saved = True
 

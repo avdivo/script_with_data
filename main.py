@@ -54,8 +54,7 @@ def on_closing():
         elif result is None:
             return
 
-    settings.config_file(action='set', name=settings.project_name,
-                          path=settings.path_to_project, data=data_source.data_source_file)
+    settings.config_file(action='set', name=settings.project_name, path=settings.path_to_project)
     root.destroy()
 
 
