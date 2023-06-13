@@ -22,7 +22,7 @@
 Он передается методам объектов команд.
 
 """
-import os
+import os, sys
 from configparser import ConfigParser
 from tkinter import *
 from tkinter import messagebox
@@ -132,6 +132,15 @@ def open_file_explorer(path, file=None):
     else:
         print('Операционная система не поддерживается')
 
+def developer_mode_change():
+    if settings.developer_mode:
+        settings.developer_mode = ''
+        menu_start_scripts.entryconfigure(5, label="Режим разработчика: Выключен")
+    else:
+        settings.developer_mode = 'on'
+        menu_start_scripts.entryconfigure(5, label="Режим разработчика: Включен")
+    settings.config_file(action='set', developer=settings.developer_mode)
+
 # создание логгера и обработчика
 logger = logging.getLogger('logger')
 logger.setLevel(logging.DEBUG)
@@ -213,10 +222,12 @@ menu_data_source.add_command(label="Открыть папку с данными"
 mainmenu.add_cascade(label="Данные", menu=menu_data_source)
 
 menu_start_scripts = Menu(mainmenu, tearoff=0)
-menu_start_scripts.add_command(label="Быстрый запуск>", command=lambda: dialog_quick_start(root, player.load_and_run))
-menu_start_scripts.add_command(label="Менеджер проектов>", command=None)
+menu_start_scripts.add_command(label="Быстрый запуск", command=lambda: dialog_quick_start(root, player.load_and_run))
+menu_start_scripts.add_command(label="Менеджер проектов", command=None)
 menu_start_scripts.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
 menu_start_scripts.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
+onoff = 'Включен' if settings.developer_mode else 'Выключен'
+menu_start_scripts.add_command(label=f"Режим разработчика: {onoff}", command=developer_mode_change)
 
 mainmenu.add_cascade(label="Запуск скриптов", menu=menu_start_scripts)
 
@@ -241,10 +252,10 @@ return_button = Button(root, command=save_load.return_button, image=icon11, widt
 return_button.place(x=602, y=settings.win_h-43)
 ToolTip(return_button, msg="Вернуть", delay=0.5)
 
-if False:
-    # Если включается быстрый запуск, то основное окно не отображается и проект не загружается
-    dialog_quick_start(root, player.load_and_run)
-else:
+if '-e' in sys.argv:
+    # Если программа запущена с параметром -e, то открывается редактор
     save_load.load_old_project()  # Загрузка последнего проекта
+else:
+    dialog_quick_start(root, player.load_and_run)  # Запуск диалога быстрого запуска
 
 root.mainloop()

@@ -1,30 +1,18 @@
-from tkinter import *
+import tkinter as tk
 
-root = Tk()
-root.geometry("200x200")
+root = tk.Tk()
 
-# Создаем переменную, которую будем изменять при нажатии кнопок
-result = StringVar()
+menu_bar = tk.Menu(root)
+menu = tk.Menu(menu_bar, tearoff=0)
 
-# Функция, которая будет запускать процесс и ждать ответа
-def long_running_function():
-    # Тут запускается процесс, который ждет нажатия кнопок
-    # И когда кнопка будет нажата, он устанавливает значение переменной
-    result.set("Button 1 pressed") # здесь нужно установить значение в соответствии с нажатой кнопкой
+menu.add_command(label="enable")
 
-# Создаем кнопки и добавляем им обработчики
-button1 = Button(root, text="Button 1", command=lambda: result.set("Button 1 pressed"))
-button1.pack()
+def change_label():
+    menu.entryconfigure(0, label="disable")
 
-button2 = Button(root, text="Button 2", command=lambda: result.set("Button 2 pressed"))
-button2.pack()
+menu.add_command(label="change label", command=change_label)
 
-# Запускаем функцию и ждем изменения переменной
-long_running_function()
-result.trace("w", lambda name, index, mode, sv=result: root.quit())
-root.wait_variable(result)
-
-# После выхода из цикла ожидания можно использовать значение переменной
-print(result.get())
+menu_bar.add_cascade(label="Menu", menu=menu)
+root.config(menu=menu_bar)
 
 root.mainloop()

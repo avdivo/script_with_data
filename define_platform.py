@@ -8,7 +8,7 @@ class ThisPlatform:
         # Настройка горячих клавиш для интерфейса
         if self.os == 'Windows':
             self.hotkeys = {'Ctrl_A': 65, 'Ctrl_C': 67, 'Ctrl_X': 88, 'Ctrl_V': 86,
-                       'Ctrl_Up': 38, 'Ctrl_Down': 40}  # Windows
+                       'Ctrl_Up': 38, 'Ctrl_Down': 40, 'Ctrl_E': 69}  # Windows
         else:
             self.hotkeys = {'Ctrl_A': 38, 'Ctrl_C': 54, 'Ctrl_X': 53, 'Ctrl_V': 55,
                        'Ctrl_Up': 111, 'Ctrl_Down': 116}  # Linux

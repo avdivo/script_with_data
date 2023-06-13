@@ -23,6 +23,7 @@ class Settings(object):
     def __init__(self):
         # Читаем необходимые для начала настройки из файла конфигурации
         config = self.config_file()
+        self.developer_mode = config['developer']  # Режим разработчика
 
         # Настройки для программы
         self.data_folder = 'data'  # Папка с данными
