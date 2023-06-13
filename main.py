@@ -253,6 +253,7 @@ return_button.place(x=602, y=settings.win_h-43)
 ToolTip(return_button, msg="Вернуть", delay=0.5)
 
 if '-e' in sys.argv:
+# if True:
     # Если программа запущена с параметром -e, то открывается редактор
     save_load.load_old_project()  # Загрузка последнего проекта
 else:
