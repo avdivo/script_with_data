@@ -7,7 +7,7 @@ import os
 
 from settings import settings
 from define_platform import system
-
+from components import data
 
 def dialog_quick_start(root, run_script_func):
     """ Диалоговое окно для загрузки проекта и запуска скрипта """
@@ -16,6 +16,7 @@ def dialog_quick_start(root, run_script_func):
     # Создаем окно
     window = Toplevel(root)
     window.overrideredirect(True)  # Убираем рамку
+    window.wm_attributes("-topmost", True)
     # Разместить окно в центре экрана
     root.update_idletasks()
     window_width = window.winfo_width()
@@ -36,6 +37,26 @@ def dialog_quick_start(root, run_script_func):
     def to_editor(event=None):
         """ Закрыть окно и вернуться в редактор """
         close_program(event, open_editor=True)
+
+    def run(event=None):
+        """ Запустить скрипт """
+        # Ожидание выполнения скрипта
+        def check_work():
+            if data.script_started:
+                root.after(100, check_work)
+            else:
+                window.deiconify()  # Вернуть окно программы
+
+        # code = entry.get()
+        # if not code:
+        #     return
+
+        # Путь к проекту Keep
+        window.withdraw()  # Скрыть окно программы
+        path = os.path.join(settings.work_dir, "Keep")
+        run_script_func(path)
+        check_work()
+
 
     def is_valid(val):
         """ Пускает только целое число длиной не более кода запуска """
@@ -63,11 +84,8 @@ def dialog_quick_start(root, run_script_func):
     button_frame = Frame(window)
     button_frame.pack(side=RIGHT, padx=20, pady=10)
 
-    # Путь к проекту Keep
-    path = os.path.join(settings.work_dir, "Keep")
-    print(path)
     icon1 = PhotoImage(file="icon/play.png")
-    play_button = Button(button_frame, command=lambda: run_script_func(path),
+    play_button = Button(button_frame, command=run,
                          image=icon1, width=50, height=50)
     play_button.image = icon1
     play_button.pack(side=LEFT)
@@ -99,19 +117,10 @@ def dialog_quick_start(root, run_script_func):
     # window.bind("<Control-e>", close_window)
     window.bind("<Control-KeyPress>", keypress)  # Обработка нажатия клавиш на поле ввода
 
-    # Ожидание выполнения скрипта
-    # def check_work():
-    #     global work
-    #     if not work:
-    #         label_text.set("Work is False")
-    #     else:
-    #         root.after(100, check_work)
-
     # Запускаем окно
     window.focus_force()
-    window.wm_attributes("-topmost", True)
-    window.wm_attributes("-type", "dock")
-    # window.wm_attributes("-focus", True)
+    #
+    # window.wm_attributes("-type", "dock")
     # window.focus_set()
     entry.after(100, lambda: entry.focus_set())
     # window.grab_set()

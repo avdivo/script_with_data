@@ -116,7 +116,7 @@ class DataForWorker:
 
         self.func_execute_event = None  # Функция выполняющая событие мыши или клавиатуры
 
-        self.script_started = False  # False - остановит скрипт, True - позволит выполняться
+        self._script_started = False  # False - остановит скрипт, True - позволит выполняться
         self.is_listening = False  # False - не работает слушатель, True - работает слушатель
         self.work_settings = None  # Тут создается копия настроек программы во время выполнения скрипта
 
@@ -130,6 +130,17 @@ class DataForWorker:
 
         # Флаг обозначающий режим ожидания скоиншота под курсором (все функции программы остановлены)
         self.wait_screenshot = False
+
+    @property
+    def script_started(self):
+        """ Флаг запуска скрипта """
+        return self._script_started
+
+    @script_started.setter
+    def script_started(self, value):
+        """ Флаг запуска скрипта дублируем """
+        self._script_started = value
+        settings.script_started = value
 
     def next_id(self):
         """ Генерирует id новой команды """

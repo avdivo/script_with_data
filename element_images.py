@@ -228,6 +228,10 @@ def pattern_search(*args) -> tuple:
 
     while repeat and local_check:
         # Проверка включена и попытки еще есть.
+        if not settings.script_started:
+            # Если скрипт остановлен, то прерываем проверку
+            raise ElementNotFound('Скрипт остановлен.')
+
         # Делаем скриншот нужного квадрата
         image = screenshot(x_reg, y_reg, local_check_size)
 
