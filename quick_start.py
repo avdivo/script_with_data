@@ -109,8 +109,11 @@ def dialog_quick_start(root, run_script_func):
 
     # Запускаем окно
     window.focus_force()
+    window.wm_attributes("-topmost", True)
+    window.wm_attributes("-type", "dock")
+    # window.wm_attributes("-focus", True)
+    # window.focus_set()
     entry.after(100, lambda: entry.focus_set())
     # window.grab_set()
-    # window.focus_set()
     # entry.focus_set()  # Фокус на поле ввода
     # window.wait_window()
