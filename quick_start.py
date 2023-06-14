@@ -7,18 +7,19 @@ import os
 
 from settings import settings
 from define_platform import system
-from components import data
+# from components import data
 
-def dialog_quick_start(root, run_script_func):
+def dialog_quick_start(root, run_script_func, load_old_script_func):
     """ Диалоговое окно для загрузки проекта и запуска скрипта """
     root.withdraw()  # Скрыть главное окно программы
+    settings.run_from = 1  # Скрипт запускается из быстрого запуска
 
     # Создаем окно
     window = Toplevel(root)
     window.overrideredirect(True)  # Убираем рамку
-    window.wm_attributes("-topmost", True)
     # Разместить окно в центре экрана
     root.update_idletasks()
+    window.wm_attributes("-topmost", True)
     window_width = window.winfo_width()
     window_height = window.winfo_height()
     x = (window.winfo_screenwidth() - window_width) // 2
@@ -30,22 +31,28 @@ def dialog_quick_start(root, run_script_func):
         if not open_editor:
             root.destroy()
             return
-        root.deiconify()
+        load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
+        root.deiconify()  # Отобразить окно редактора
 
     window.protocol("WM_DELETE_WINDOW", close_program)  # Функция выполнится при закрытии окна
 
     def to_editor(event=None):
         """ Закрыть окно и вернуться в редактор """
+        settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
         close_program(event, open_editor=True)
 
     def run(event=None):
         """ Запустить скрипт """
         # Ожидание выполнения скрипта
         def check_work():
-            if data.script_started:
+            """ Функция вызывая себя через промежутки времени,
+            проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
+            if settings.script_started:
                 root.after(100, check_work)
             else:
                 window.deiconify()  # Вернуть окно программы
+                window.focus_force()
+                entry.after(100, lambda: entry.focus_set())
 
         # code = entry.get()
         # if not code:

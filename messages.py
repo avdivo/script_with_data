@@ -3,7 +3,6 @@ import time
 import logging
 
 
-
 class Messages(logging.Handler):
     """ Вывод сообщений
 
@@ -26,7 +25,7 @@ class Messages(logging.Handler):
     def write(self, message):
         # здесь можно реализовать вывод сообщения в нужное место с учетом важности
         arr = message.split(':')
-        level, message= arr[0], arr[1]
+        level, message = arr[0], arr[1]
 
         """ Вывод сообщения в поле сообщений """
         if level not in self.rating:
@@ -38,5 +37,6 @@ class Messages(logging.Handler):
         self.message.set(message)
         self.time = time.time()
         self.old_rating = self.rating.index(level)
+
 
 

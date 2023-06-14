@@ -949,9 +949,6 @@ class SaveLoad:
             settings.default_settings()  # Сброс настроек по умолчанию
             self.data_source.menu_delete_data_source()  # Отключение источника данных
 
-            # Запись новых настроек в файл конфигурации
-            settings.config_file(action='set', name=name, path=path)
-
             # Сохраняем новые настройки проекта
             settings.path_to_project = self.new_path_to_project
             settings.project_name = self.new_project_name
@@ -1160,6 +1157,8 @@ class SaveLoad:
                 settings.created_project_date = datetime.now().strftime("%d.%m.%Y")
             settings.updated_project_date = data_dict.get('updated')  # Получаем дату изменения проекта
 
+            # Запись новых настроек в файл конфигурации
+            settings.config_file(action='set', name=self.new_project_name, path=self.new_path_to_project)
             logger.warning(mess)
             self.root.title(f'Редактор скриптов ({self.new_project_name})')
             self.save_history()  # Сохраняем историю

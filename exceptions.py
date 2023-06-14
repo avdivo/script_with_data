@@ -1,4 +1,10 @@
 # Исключения
+import time
+
+# from components import data
+# from settings import settings
+
+
 class Error(Exception):
     """Базовый класс для других исключений"""
     pass
@@ -6,8 +12,12 @@ class Error(Exception):
 
 class TemplateNotFoundError(Error):
     """Шаблон с таким именем не найден в папке с изображениями элементов"""
+    # def __init__(self, message):
+    #     super().__init__(message)
+    #     with open('log.txt', 'w') as f:
+    #         f.write(f"Скрипт {settings.project_name}. "
+    #                 f"{time.strftime('%d.%m.%Y %H:%M')}. {message}. Строка {data.pointer_command + 1}\n")
     pass
-
 
 class ElementNotFound(Error):
     """Элемент не найден в заданной области или на всем экране"""

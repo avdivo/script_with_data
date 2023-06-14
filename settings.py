@@ -21,6 +21,9 @@ class Settings(object):
         return cls.instance
 
     def __init__(self):
+        # Откуда запущен скрипт: редактор - 0, быстрый запуск - 1, менеджер - 2
+        self.run_from = 0
+
         # Читаем необходимые для начала настройки из файла конфигурации
         config = self.config_file()
         self.developer_mode = config['developer']  # Режим разработчика
@@ -173,6 +176,10 @@ class Settings(object):
         set - в файл конфигурации записываются параметры kwargs.
         Для удаления параметра можно передать пустую строку.
         """
+        if self.run_from and action=='set':
+            # Допускается изменение параметров файла конфигурации только из редактора
+            # чтобы запускаемые скрипты не подменяли автозагрузку редактируемого
+            return
 
         cast = {'name': 'project_name', 'path': 'path_to_project', 'work_dir': 'work_dir', 'developer': 'developer'}
 

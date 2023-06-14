@@ -222,7 +222,8 @@ menu_data_source.add_command(label="Открыть папку с данными"
 mainmenu.add_cascade(label="Данные", menu=menu_data_source)
 
 menu_start_scripts = Menu(mainmenu, tearoff=0)
-menu_start_scripts.add_command(label="Быстрый запуск", command=lambda: dialog_quick_start(root, player.load_and_run))
+menu_start_scripts.add_command(label="Быстрый запуск", command=lambda: dialog_quick_start(
+    root, player.load_and_run, save_load.load_old_project))
 menu_start_scripts.add_command(label="Менеджер проектов", command=None)
 menu_start_scripts.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
 menu_start_scripts.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
@@ -257,6 +258,8 @@ if '-e' in sys.argv:
     # Если программа запущена с параметром -e, то открывается редактор
     save_load.load_old_project()  # Загрузка последнего проекта
 else:
-    dialog_quick_start(root, player.load_and_run)  # Запуск диалога быстрого запуска
+    # Запуск диалога быстрого запуска. Передаем ему ссылку на главное окно программы и
+    # и на функции загрузки и выполнения скрипта и загрузки последнего скрипта
+    dialog_quick_start(root, player.load_and_run, save_load.load_old_project)
 
 root.mainloop()
