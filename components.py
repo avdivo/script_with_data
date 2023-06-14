@@ -21,7 +21,10 @@ import json
 import logging
 import shutil
 import re
-import winsound
+try:
+    import winsound  # В Linux этот модуль не ставится
+except:
+    pass
 
 from commands import CommandClasses
 from data_input import DataInput
