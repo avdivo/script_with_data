@@ -104,6 +104,7 @@ def run_script():
             if len(children) <= data.pointer_command+1:
                 raise NoCommandOrStop('Нет команд для выполнения.')
             display_commands.tree.selection_set(children[data.pointer_command + 1])  # Выделяем строку
+            settings.pointer_command = data.pointer_command + 1
             data.run_command()  # Выполнить следующую в очереди команду
         except NoCommandOrStop as err:
             logger.error(err)
