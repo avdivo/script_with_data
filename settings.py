@@ -42,6 +42,7 @@ class Settings(object):
         # Рабочая папка в которой работает Менеджер проектов и пути по умолчанию
         # Если она не задана указываем рабочий каталог программы
         self.work_dir = config['work_dir'] if config['work_dir'] else os.path.dirname(os.path.abspath(__file__))
+        self.projects_list = "projects_list.json"  # Список и описание проектов в рабочей папке
         self.update_settings()
 
         # Настройки изображений элементов

@@ -39,7 +39,8 @@ from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop, DataError, TemplateNotFoundError, ElementNotFound
 from messages import Messages
 from define_platform import system
-from quick_start import dialog_quick_start
+from quick_start import dialog_quick_start, project_manager
+
 
 def on_closing():
     """ Действия при закрытии программы """
@@ -261,6 +262,7 @@ if '-e' in sys.argv:
 else:
     # Запуск диалога быстрого запуска. Передаем ему ссылку на главное окно программы и
     # и на функции загрузки и выполнения скрипта и загрузки последнего скрипта
-    dialog_quick_start(root, player.load_and_run, save_load.load_old_project)
+    project_manager(root, player.load_and_run, save_load.load_old_project)
+    # dialog_quick_start(root, player.load_and_run, save_load.load_old_project)
 
 root.mainloop()
