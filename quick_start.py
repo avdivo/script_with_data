@@ -289,7 +289,7 @@ def project_manager(root, run_script_func, load_old_script_func):
 
     # Создаем окно
     window = Toplevel(root)
-
+    window.title("Менеджер проектов")
     # Размер окна
     win_w = 1100
     win_h = 600
@@ -305,13 +305,14 @@ def project_manager(root, run_script_func, load_old_script_func):
     root.update_idletasks()
 
     # Создаем дерево
+    style = ttk.Style()
+    style.configure('my.Treeview', rowheight=28)
+
     tree = ttk.Treeview(window, show="tree")
     scrollbar = ttk.Scrollbar(tree, orient="vertical", command=tree.yview)
     scrollbar.pack(side="right", fill="y")
-    tree.configure(yscrollcommand=scrollbar.set)
+    tree.configure(yscrollcommand=scrollbar.set, style='my.Treeview')
 
-    style = ttk.Style(window)
-    style.configure('Treeview', rowheight=28)
     # Устанавливаем шрифт для всех элементов
     tree.tag_configure('font', font=('TkDefaultFont', 14, 'bold'))
     tree.tag_configure('font1', font=('TkDefaultFont', 14))
@@ -326,14 +327,42 @@ def project_manager(root, run_script_func, load_old_script_func):
         # Вывод проектов
         project_id = also.get('code')
         string = f"{project_id + '00'}     Создан: {also.get('saved')}     Изменен: {also.get('updated')}     {name}"
-        tree.insert("", project_id, project_id, text=string, tags=('font'))
+        tree.insert("", "end", project_id, text=string, tags=('font'))
         for file_name, code in also.get('data').items():
             # Вывод файлов данных
             data_code = project_id + code
             string = f"{data_code}    {file_name}"
-            tree.insert(project_id, data_code, data_code, text=string, tags='font1')
+            tree.insert(project_id, "end", data_code, text=string, tags='font1')
 
+    def close_program(event=None, open_editor=True):
+        """ Закрыть программу """
+        window.destroy()
+        if not open_editor:
+            root.destroy()
+            return
+        load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
+        root.deiconify()  # Отобразить окно редактора
 
+    window.protocol("WM_DELETE_WINDOW", close_program)  # Функция выполнится при закрытии окна
+
+    def to_editor(event=None):
+        """ Закрыть окно и вернуться в редактор """
+        settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
+        close_program(event, open_editor=True)
+
+    def run(event=None):
+        """ Запустить скрипт """
+
+        # Ожидание выполнения скрипта
+        def check_work():
+            """ Функция вызывая себя через промежутки времени,
+            проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
+            if settings.script_started:
+                root.after(100, check_work)
+            else:
+                window.deiconify()  # Вернуть окно программы
+                window.focus_force()
+                # entry.after(100, lambda: entry.focus_set())
 
 
 
