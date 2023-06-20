@@ -1,4 +1,3 @@
-
 # Модуль для быстрого запуска скриптов и менеджера проектов
 
 from tkinter import *
@@ -10,6 +9,8 @@ import json
 
 from settings import settings
 from define_platform import system
+
+
 # from components import data
 
 def dialog_quick_start(root, run_script_func, load_old_script_func):
@@ -140,6 +141,7 @@ def dialog_quick_start(root, run_script_func, load_old_script_func):
 
 class ProjectList:
     """ Класс для управления списком проектов и сохранением его в файле """
+
     def __init__(self):
         """ Чтение файла со списком проектов, обновление его в соответствии с изменениями в рабочей папке
 
@@ -265,6 +267,7 @@ class ProjectList:
         """ Возвращает первый свободный код для файла данных """
         return self.free_code(self.used_codes_data)
 
+
 def project_manager(root, run_script_func, load_old_script_func):
     """ Диалоговое окно настройки проектов для быстрого запуска
 
@@ -272,6 +275,64 @@ def project_manager(root, run_script_func, load_old_script_func):
     генерирует штрих-коды для быстрого запуска. Позволяет редактировать номера, запускать проекты,
     загружать проекты в редакторе.
     """
+    def on_select(event):
+        """ Обработка события выбора строки в списке """
+        selected_item = event.widget.selection()[0]  # Получаем id команды
+        print(selected_item)
+
+    def update_cast():
+        """ Обновить список проектов """
+        tree.delete(*tree.get_children()) # Очищаем дерево
+
+        # Добавляем элементы в дерево
+        # TODO: Обратить внимание на сортировку
+        for name, also in projects.projects_dict.items():
+            # Вывод проектов
+            project_id = also.get('code')
+            string = f"{project_id + '00'}     Создан: {also.get('saved')}     Изменен: {also.get('updated')}     {name}"
+            tree.insert("", "end", project_id, text=string, tags=('font'))
+            for file_name, code in also.get('data').items():
+                # Вывод файлов данных
+                data_code = project_id + code
+                string = f"{data_code}    {file_name}"
+                tree.insert(project_id, "end", data_code, text=string, tags='font1')
+
+    def close_program(event=None, open_editor=True):
+        """ Закрыть программу """
+        window.destroy()
+        if not open_editor:
+            root.destroy()
+            return
+        load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
+        root.deiconify()  # Отобразить окно редактора
+
+    def to_editor(event=None):
+        """ Закрыть окно и вернуться в редактор """
+        settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
+        close_program(event, open_editor=True)
+
+    def run(event=None):
+        """ Запустить скрипт """
+
+        # Ожидание выполнения скрипта
+        def check_work():
+            """ Функция вызывая себя через промежутки времени,
+            проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
+            if settings.script_started:
+                root.after(100, check_work)
+            else:
+                window.deiconify()  # Вернуть окно программы
+                window.focus_force()
+                # entry.after(100, lambda: entry.focus_set())
+
+    def is_valid(val, max_len):
+        """ Пускает только целое число длиной не более кода запуска """
+        if not val:
+            return True
+        if len(val) <= int(max_len):
+            return bool(re.fullmatch(r'\d+', val))  # Строка состоит только из цифр
+        return False
+
     # Вывод окна Toplevel со следующими параметрами:
     #   Размер окна: 600x600, размещено в центре экрана, с кнопками управления
     #   Заголовок окна: Менеджер проектов
@@ -304,6 +365,8 @@ def project_manager(root, run_script_func, load_old_script_func):
     window.wm_attributes("-topmost", True)
     root.update_idletasks()
 
+    window.protocol("WM_DELETE_WINDOW", close_program)  # Функция выполнится при закрытии окна
+
     # Создаем дерево
     style = ttk.Style()
     style.configure('my.Treeview', rowheight=28)
@@ -318,52 +381,37 @@ def project_manager(root, run_script_func, load_old_script_func):
     tree.tag_configure('font1', font=('TkDefaultFont', 14))
 
     tree.place(x=10, y=10, width=win_w - 20, height=win_h - 100)
+    tree.bind("<<TreeviewSelect>>", on_select)  # Обработка выбора строки в списке
 
     # Создаем список проектов
     projects = ProjectList()
 
-    # Добавляем элементы в дерево
-    for name, also in projects.projects_dict.items():
-        # Вывод проектов
-        project_id = also.get('code')
-        string = f"{project_id + '00'}     Создан: {also.get('saved')}     Изменен: {also.get('updated')}     {name}"
-        tree.insert("", "end", project_id, text=string, tags=('font'))
-        for file_name, code in also.get('data').items():
-            # Вывод файлов данных
-            data_code = project_id + code
-            string = f"{data_code}    {file_name}"
-            tree.insert(project_id, "end", data_code, text=string, tags='font1')
+    update_cast()  # Обновить список проектов в окне
 
-    def close_program(event=None, open_editor=True):
-        """ Закрыть программу """
-        window.destroy()
-        if not open_editor:
-            root.destroy()
-            return
-        load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
-        root.deiconify()  # Отобразить окно редактора
+    # Создание полей ввода
+    check = (window.register(is_valid), "%P")  # Назначаем функцию валидации полей ввода
 
-    window.protocol("WM_DELETE_WINDOW", close_program)  # Функция выполнится при закрытии окна
+    code = Entry(window, font=("Helvetica", 20), width=2, validatecommand=(*check, 2), validate="key")
+    code.place(x=20, y=win_h-67)
 
-    def to_editor(event=None):
-        """ Закрыть окно и вернуться в редактор """
-        settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
-        close_program(event, open_editor=True)
+    code_run = Entry(window, font=("Helvetica", 20), width=4, validatecommand=(*check, 4), validate="key")
+    code_run.place(x=win_w-100, y=win_h-67)
 
-    def run(event=None):
-        """ Запустить скрипт """
-
-        # Ожидание выполнения скрипта
-        def check_work():
-            """ Функция вызывая себя через промежутки времени,
-            проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
-            if settings.script_started:
-                root.after(100, check_work)
-            else:
-                window.deiconify()  # Вернуть окно программы
-                window.focus_force()
-                # entry.after(100, lambda: entry.focus_set())
-
+    # Создаем и настраиваем кнопки
+    button_change = Button(window, text="Изменить", width=50, height=50, command=None)
+    button_change.place(x=0, y=580)
+    button_run = Button(window, text="Запустить проект", width=50, height=50, command=None)
+    button_run.place(x=50, y=580)
+    button_edit = Button(window, text="Открыть в редакторе", width=50, height=50, command=None)
+    button_edit.place(x=100, y=580)
+    button_barcode = Button(window, text="Получить штрих-код", width=50, height=50, command=None)
+    button_barcode.place(x=150, y=580)
+    button_quick_run = Button(window, text="Быстрый запуск", width=50, height=50, command=None)
+    button_quick_run.place(x=200, y=580)
+    button_open_folder = Button(window, text="Открыть рабочую папку", width=50, height=50, command=None)
+    button_open_folder.place(x=250, y=580)
+    button_change_folder = Button(window, text="Поменять рабочую папку", width=50, height=50, command=None)
+    button_change_folder.place(x=300, y=580)
 
 
     # Запускаем окно
@@ -374,7 +422,6 @@ def project_manager(root, run_script_func, load_old_script_func):
 
 
 def a(window):
-
     # Создаем и настраиваем tree
     tree = ttk.Treeview(window, columns=("code", "saved", "updated", "description"), height=20)
     tree.column("#0", width=200, minwidth=200, stretch=NO)
@@ -395,32 +442,27 @@ def a(window):
     tree.configure(yscrollcommand=scrollbar.set)
 
     # Создаем и настраиваем кнопки
-    button_change =Button(window, text="Изменить", width=50, height=50, command=None)
+    button_change = Button(window, text="Изменить", width=50, height=50, command=None)
     button_change.place(x=0, y=580)
-    button_run =Button(window, text="Запустить проект", width=50, height=50, command=None)
+    button_run = Button(window, text="Запустить проект", width=50, height=50, command=None)
     button_run.place(x=50, y=580)
-    button_edit =Button(window, text="Открыть в редакторе", width=50, height=50, command=None)
+    button_edit = Button(window, text="Открыть в редакторе", width=50, height=50, command=None)
     button_edit.place(x=100, y=580)
-    button_barcode =Button(window, text="Получить штрих-код", width=50, height=50, command=None)
+    button_barcode = Button(window, text="Получить штрих-код", width=50, height=50, command=None)
     button_barcode.place(x=150, y=580)
-    button_quick_run =Button(window, text="Быстрый запуск", width=50, height=50, command=None)
+    button_quick_run = Button(window, text="Быстрый запуск", width=50, height=50, command=None)
     button_quick_run.place(x=200, y=580)
-    button_open_folder =Button(window, text="Открыть рабочую папку", width=50, height=50, command=None)
+    button_open_folder = Button(window, text="Открыть рабочую папку", width=50, height=50, command=None)
     button_open_folder.place(x=250, y=580)
-    button_change_folder =Button(window, text="Поменять рабочую папку", width=50, height=50, command=None)
+    button_change_folder = Button(window, text="Поменять рабочую папку", width=50, height=50, command=None)
     button_change_folder.place(x=300, y=580)
 
     # Создаем и настраиваем поле ввода для кода проекта или файла данных
-    entry_code =Entry(window, width=2, font=("Arial", 20))
+    entry_code = Entry(window, width=2, font=("Arial", 20))
     entry_code.place(x=350, y=580)
     entry_code.bind("<Return>", None)
 
     # Создаем и настраиваем поле ввода для кода проекта
-    entry_project_code =Entry(window, width=4, font=("Arial", 20))
+    entry_project_code = Entry(window, width=4, font=("Arial", 20))
     entry_project_code.place(x=400, y=580)
     entry_project_code.bind("<Return>", None)
-
-
-
-
-
