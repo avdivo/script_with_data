@@ -6,6 +6,7 @@ from tktooltip import ToolTip
 import re
 import os
 import json
+import subprocess
 
 from settings import settings
 from define_platform import system
@@ -157,6 +158,11 @@ class ProjectList:
                                 },
               }
         """
+        self.active_project = ''  # Название проекта активного в данный момент
+        self.active_file = ''  # Имя активного файла в активном проекте
+        self.project_code = ''  # Код проекта
+        self.file_code = ''  # Код файла
+        self.only_project = None  # Содержит True, если файла данных нет, только проект. None - ничего не активно
 
         projects_from_file = {}  # Словарь с описанием проектов
         if os.path.isfile(os.path.join(settings.work_dir, settings.projects_list)):
@@ -267,6 +273,37 @@ class ProjectList:
         """ Возвращает первый свободный код для файла данных """
         return self.free_code(self.used_codes_data)
 
+    def project_activation_by_number(self, code: str):
+        """ Активирует проект и файл данных с заданным номером
+
+        Принимает код проекта в расширенном виде (дополненный кодом файла). Длина его должна быть
+        как в настройках. Устанавливает в свойствах активный проект и файл данных. Если файла данных нет
+        его код состоит из нулей.
+
+        """
+        self.project_code = code[:len(code)//2]  # Код проекта
+        self.file_code = code[len(code) // 2:]  # Код файла данных
+
+        self.active_project = ''
+        self.active_file = ''
+        self.only_project = None  # Ничего не активно
+
+        # Ищем имя проекта по коду
+        for name in self.projects_dict:
+            if self.projects_dict[name].get('code') == self.project_code:
+                self.active_project = name
+                self.only_project = True  # Активен только проект, без файла данных
+                break
+
+        if self.only_project:
+            # Ищем имя файла данных в активном проекте по коду если проект выбран
+            for file, code in self.projects_dict[self.active_project].get('data').items():
+                if code == self.file_code:
+                    self.active_file = file
+                    self.only_project = False  # Активен проект, и есть файл данных
+                    break
+        return
+
 
 def project_manager(root, run_script_func, load_old_script_func):
     """ Диалоговое окно настройки проектов для быстрого запуска
@@ -278,7 +315,11 @@ def project_manager(root, run_script_func, load_old_script_func):
     def on_select(event):
         """ Обработка события выбора строки в списке """
         selected_item = event.widget.selection()[0]  # Получаем id команды
-        print(selected_item)
+        projects.project_activation_by_number(selected_item)  # Делаем проект и файл активными
+        if projects.only_project is None:
+            return
+        code_value.set(projects.project_code if projects.only_project else projects.file_code)
+        code_run_value.set(selected_item)
 
     def update_cast():
         """ Обновить список проектов """
@@ -288,12 +329,13 @@ def project_manager(root, run_script_func, load_old_script_func):
         # TODO: Обратить внимание на сортировку
         for name, also in projects.projects_dict.items():
             # Вывод проектов
-            project_id = also.get('code')
-            string = f"{project_id + '00'}     Создан: {also.get('saved')}     Изменен: {also.get('updated')}     {name}"
+            # Добавляем в id проекта нули вместо кода файла, длиной в соответствии с настройками
+            project_id = also.get('code') + ('0' * (settings.len_start_code // 2))
+            string = f"{project_id}     Создан: {also.get('saved')}     Изменен: {also.get('updated')}     {name}"
             tree.insert("", "end", project_id, text=string, tags=('font'))
             for file_name, code in also.get('data').items():
                 # Вывод файлов данных
-                data_code = project_id + code
+                data_code = also.get('code') + code
                 string = f"{data_code}    {file_name}"
                 tree.insert(project_id, "end", data_code, text=string, tags='font1')
 
@@ -333,6 +375,30 @@ def project_manager(root, run_script_func, load_old_script_func):
             return bool(re.fullmatch(r'\d+', val))  # Строка состоит только из цифр
         return False
 
+    def on_key_release_code_run(*args):
+        """ При вводе кода выделяем подходящую строку в списке """
+        print(args)
+        val = code_run_value.get()
+        print(tree.exists(val))
+
+
+        # if val and tree.exists(val):
+        #     tree.selection_set(val)
+        #     tree.see(val)
+        #     tree.focus_set()
+        #     tree.focus(val)
+
+
+    def open_file_explorer():
+        """ Открыть рабочую папку в проводнике """
+        if system.os == 'Windows':
+            os.startfile(settings.work_dir)
+        elif system.os == 'Linux':
+            subprocess.Popen(['xdg-open', settings.work_di])
+        else:
+            print('Операционная система не поддерживается')
+
+
     # Вывод окна Toplevel со следующими параметрами:
     #   Размер окна: 600x600, размещено в центре экрана, с кнопками управления
     #   Заголовок окна: Менеджер проектов
@@ -361,9 +427,9 @@ def project_manager(root, run_script_func, load_old_script_func):
     window.geometry(f'{win_w}x{win_h}+{(w - win_w) // 2}+{(h - win_h) // 2}')  # Рисуем окно
     window.resizable(width=False, height=False)
 
-    # Разместить окно в центре экрана
-    window.wm_attributes("-topmost", True)
     root.update_idletasks()
+    # Разместить окно в центре экрана
+    # window.wm_attributes("-topmost", True)
 
     window.protocol("WM_DELETE_WINDOW", close_program)  # Функция выполнится при закрытии окна
 
@@ -391,33 +457,68 @@ def project_manager(root, run_script_func, load_old_script_func):
     # Создание полей ввода
     check = (window.register(is_valid), "%P")  # Назначаем функцию валидации полей ввода
 
-    code = Entry(window, font=("Helvetica", 20), width=2, validatecommand=(*check, 2), validate="key")
-    code.place(x=20, y=win_h-67)
+    code_value = StringVar()  # Код в поле ввода для изменения кода
+    code = Entry(window, font=("Helvetica", 26), width=2, validatecommand=(*check, 2), validate="key",
+                 textvariable=code_value)
+    code.place(x=20, y=win_h-72)
 
-    code_run = Entry(window, font=("Helvetica", 20), width=4, validatecommand=(*check, 4), validate="key")
-    code_run.place(x=win_w-100, y=win_h-67)
+    code_run_value = StringVar()  # Код в поле ввода для запуска скрипта
+    code_run = Entry(window, font=("Helvetica", 26), width=4, validatecommand=(*check, 4), validate="key",
+                     textvariable=code_run_value)
+    code_run.place(x=win_w-125, y=win_h-72)
+    code_run.bind("<<Modified>>", on_key_release_code_run)  # Событие изменения текста в поле ввода
+    code_run_value.trace("w", on_key_release_code_run)
+    y = win_h-72
+    x = 90
 
     # Создаем и настраиваем кнопки
-    button_change = Button(window, text="Изменить", width=50, height=50, command=None)
-    button_change.place(x=0, y=580)
-    button_run = Button(window, text="Запустить проект", width=50, height=50, command=None)
-    button_run.place(x=50, y=580)
-    button_edit = Button(window, text="Открыть в редакторе", width=50, height=50, command=None)
-    button_edit.place(x=100, y=580)
-    button_barcode = Button(window, text="Получить штрих-код", width=50, height=50, command=None)
-    button_barcode.place(x=150, y=580)
-    button_quick_run = Button(window, text="Быстрый запуск", width=50, height=50, command=None)
-    button_quick_run.place(x=200, y=580)
-    button_open_folder = Button(window, text="Открыть рабочую папку", width=50, height=50, command=None)
-    button_open_folder.place(x=250, y=580)
-    button_change_folder = Button(window, text="Поменять рабочую папку", width=50, height=50, command=None)
-    button_change_folder.place(x=300, y=580)
+    icon1 = PhotoImage(file="icon/apply.png")
+    button_change = Button(window, image=icon1, width=50, height=50, command=None)
+    button_change.image = icon1
+    button_change.place(x=x, y=y)
+    ToolTip(button_change, msg="Изменить код", delay=0.5)
+    x += 150
+    icon2 = PhotoImage(file="icon/play.png")
+    button_run = Button(window, image=icon2, width=50, height=50, command=None)
+    button_run.image = icon2
+    button_run.place(x=x, y=y)
+    ToolTip(button_run, msg="Запустить", delay=0.5)
+    x += 150
+    icon4 = PhotoImage(file="icon/barcode.png")
+    button_barcode = Button(window, image=icon4, width=50, height=50, command=None)
+    button_barcode.image = icon4
+    button_barcode.place(x=x, y=y)
+    ToolTip(button_barcode, msg="Получить штрих-код", delay=0.5)
+    x += 150
+    icon3 = PhotoImage(file="icon/edit.png")
+    button_edit = Button(window, image=icon3, width=50, height=50, command=None)
+    button_edit.image = icon3
+    button_edit.place(x=x, y=y)
+    ToolTip(button_edit, msg="Открыть в редакторе", delay=0.5)
+    x += 70
+    icon5 = PhotoImage(file="icon/to_quick_start.png")
+    button_quick_run = Button(window, image=icon5, width=50, height=50, command=None)
+    button_quick_run.image = icon5
+    button_quick_run.place(x=x, y=y)
+    ToolTip(button_quick_run, msg="Открыть окно быстрого запуска", delay=0.5)
+    x += 150
+    icon6 = PhotoImage(file="icon/folder.png")
+    button_open_folder = Button(window, image=icon6, width=50, height=50, command=open_file_explorer)
+    button_open_folder.image = icon6
+    button_open_folder.place(x=x, y=y)
+    ToolTip(button_open_folder, msg="Открыть рабочую папку", delay=0.5)
+    x += 70
+    icon7 = PhotoImage(file="icon/change.png")
+    button_change_folder = Button(window, image=icon7, width=50, height=50, command=None)
+    button_change_folder.image = icon7
+    button_change_folder.place(x=x, y=y)
+    ToolTip(button_change_folder, msg="Сменить рабочую папку", delay=0.5)
 
 
     # Запускаем окно
-    window.focus_force()
+    # window.focus_force()
     # window.focus_set()
-    # entry.after(100, lambda: entry.focus_set())
+    code_run.after(100, lambda: code_run.focus_set())
     # window.grab_set()
 
 
