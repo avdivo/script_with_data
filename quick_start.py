@@ -2,6 +2,7 @@
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from tktooltip import ToolTip
 import re
 import os
@@ -212,7 +213,6 @@ class ProjectList:
                 else:
                     # Если проект новый, то получаем его номер и добавляем в список занятых номеров
                     project_code = self.free_code_for_project()
-                    self.used_codes_projects.append(int(project_code))
 
                 if project_code:
                     # Если номер проекта получен (проект новый или изменился), то формируем словарь проекта
@@ -224,7 +224,7 @@ class ProjectList:
                         "data": {},
                     }
 
-                # Код ниже для обработки файлов данных проекта
+                # Код ниже для обработки файлов данных проекта ----------------------------------
                 # Считываем список файлов с данными только табличного типа
                 data_files = [name for name in os.listdir(os.path.join(path, settings.data_folder))
                               if name.endswith(('.xls', '.xlsx', '.csv'))]
@@ -241,13 +241,16 @@ class ProjectList:
                     else:
                         # Если не было, то получаем номер для него, добавляем в словарь проекта и в список занятых номеров
                         file_code = self.free_code_for_data()
-                        self.used_codes_data.append(int(file_code))
                         self.projects_dict[name]["data"][file_name] = file_code
 
             except Exception as e:
                 print(f"Ошибка при обработке проекта {name}: {e}")
                 continue  # Игнорируем проекты при обработке которых возникли ошибки
 
+        self.save()  # Сохраняем список проектов в файл
+
+    def save(self):
+        """ Сохраняет список проектов в файл """
         with open(os.path.join(settings.work_dir, settings.projects_list), "w", encoding="utf-8") as f:
             json.dump(self.projects_dict, f, indent=4)
 
@@ -266,12 +269,16 @@ class ProjectList:
         raise ValueError("Нет свободных номеров")
 
     def free_code_for_project(self):
-        """ Возвращает первый свободный код для проекта """
-        return self.free_code(self.used_codes_projects)
+        """ Возвращает первый свободный код для проекта и добавляет его в список используемых """
+        code = self.free_code(self.used_codes_projects)
+        self.used_codes_projects.append(int(code))
+        return code
 
     def free_code_for_data(self):
-        """ Возвращает первый свободный код для файла данных """
-        return self.free_code(self.used_codes_data)
+        """ Возвращает первый свободный код для файла данных и добавляет его в список используемых """
+        code = self.free_code(self.used_codes_data)
+        self.used_codes_data.append(int(code))
+        return code
 
     def project_activation_by_number(self, code: str):
         """ Активирует проект и файл данных с заданным номером
@@ -301,8 +308,107 @@ class ProjectList:
                 if code == self.file_code:
                     self.active_file = file
                     self.only_project = False  # Активен проект, и есть файл данных
+                    # Обновляем список занятых кодов для файлов проекта
+                    self.used_codes_data.clear()
+                    self.used_codes_data = [
+                        int(number) for number in self.projects_dict[self.active_project].get('data').values()]
                     break
         return
+
+    def change_project_code(self, val):
+        """ Изменение кода проекта
+
+        Если код текущего проекта как заменяющий - то не меняется.
+        Если код еще не использован для других проектов, то просто назначаем текущему.
+        Если код используется, то тому проекту, которым он используется назначаем свободный код,
+        а текущему назначаем заменяющий.
+        Возвращаем результат bool удалось или нет.
+        """
+        if self.project_code == val:
+            return False # Выходим, если активный проект и так имеет этот код
+        self.used_codes_projects.remove(int(self.project_code))  # Освобождаем код активного проекта
+
+        if int(val) in self.used_codes_projects:
+            # Код используется для другого проекта, заменяем его свободным
+            # Ищем имя проекта который занимает нужный код
+            found_name = None
+            for name, value in self.projects_dict.items():
+                if value['code'] == val:
+                    found_name = name
+                    break
+            if found_name is None:
+                return False  # Такого быть не должно, если номер есть, а проект не найден
+
+            # Получаем свободный код для проекта
+            try:
+                new_code = self.free_code_for_project()
+            except:
+                # Не удалось получить свободный код
+                messagebox.showerror('Не удалось получит код', 'Вероятно нет свободного кода для замещения, '
+                                                               'удалите не используемые проекты из рабочей папки. '
+                                                               'Или обратитесь к разработчику.')
+                self.used_codes_projects.append(int(self.project_code))  # Возвращаем код активного проекта
+                return False
+
+            # Заменяем код использующего нужный код проекта на новый
+            self.projects_dict[found_name]['code'] = new_code
+
+        self.projects_dict[self.active_project]['code'] = val  # Назначаем новый код активному проекту
+        self.project_code = val  # Меняем номер активного проекта
+        return True
+
+    def change_file_code(self, val):
+        """ Изменение кода файла данных
+
+        Если код текущего файла как заменяющий - то не меняется.
+        Если код еще не использован для других файлов, то просто назначаем текущему.
+        Если код используется, то тому файлу, которым он используется назначаем свободный код,
+        а текущему назначаем заменяющий.
+        Возвращаем результат bool удалось или нет.
+        """
+        if self.file_code == val:
+            return False  # Выходим, если активный файл и так имеет этот код
+
+        if int(val) in self.used_codes_data:
+            # Код используется для другого файла, заменяем его свободным
+            self.used_codes_data.remove(int(self.file_code))  # Освобождаем код активного файла
+            found_name = None
+            for name, code in self.projects_dict[self.active_project]['data'].items():
+                if code == val:
+                    found_name = name
+                    break
+            if found_name is None:
+                return False  # Такого быть не должно, если номер есть, а файл не найден
+
+            # Получаем свободный код для файла
+            try:
+                new_code = self.free_code_for_data()
+            except:
+                # Не удалось получить свободный код
+                messagebox.showerror('Не удалось получит код', 'Вероятно нет свободного кода для замещения, '
+                                                               'удалите не используемые файлы данных из проекта. '
+                                                               'Или обратитесь к разработчику.')
+                self.used_codes_data.append(int(self.file_code))  # Возвращаем код активного файла
+                return False
+
+            # Заменяем код использующего нужный код файла на новый
+            self.projects_dict[self.active_project]['data'][found_name] = new_code
+
+        self.projects_dict[self.active_project]['data'][self.active_file] = val  # Назначаем новый код
+        self.file_code = val  # Меняем номер активного файла
+        return True
+
+    def get_fool_code(self):
+        """ Получение полного кода проекта и файла данных
+
+        Если нет активного проекта, то возвращаем None
+        Если нет активного файла, дополняем код проекта нулями до количества  символов в настройеах
+        """
+        if self.only_project is None or not self.active_project:
+            return None
+        if not self.active_file:
+            return self.project_code + '0' * len(self.project_code)
+        return self.project_code + self.file_code
 
 
 def project_manager(root, run_script_func, load_old_script_func):
@@ -318,8 +424,36 @@ def project_manager(root, run_script_func, load_old_script_func):
         projects.project_activation_by_number(selected_item)  # Делаем проект и файл активными
         if projects.only_project is None:
             return
+        # Выводим код в поле для смены кода
         code_value.set(projects.project_code if projects.only_project else projects.file_code)
-        code_run_value.set(selected_item)
+
+    def change_code():
+        """ Изменение кода проекта или файла
+
+         Берется 2 значный код из поля для изменения, он может указывать нв проект или файл
+         в зависимости от активной строки. Этот код присваивается выделенному элементу.
+         Если код занят другим проектом или файлом, то другому элементу подбирается свободное
+         значение, а указанное присваивается выбранному.
+         """
+        if projects.only_project is None:
+            return  # Выходим, если ничего не выбрано
+        val = code_value.get()
+        if len(val) < 2:
+            return   # Выходим, если длина меньше 2 символов
+
+        if projects.only_project:
+            # Работа с кодом проекта
+            if not projects.change_project_code(val):
+                return  # Если не удалось изменить, выходим
+        else:
+            # Работа с кодом файла
+            if not projects.change_file_code(val):
+                return  # Если не удалось изменить, выходим
+
+        new_code = projects.get_fool_code()  # Получаем новый код
+        projects.save()  # Сохраняем изменения
+        update_cast()  # Обновляем список проектов
+        tree.selection_set(new_code)  # Выделяем новый элемент
 
     def update_cast():
         """ Обновить список проектов """
@@ -376,18 +510,18 @@ def project_manager(root, run_script_func, load_old_script_func):
         return False
 
     def on_key_release_code_run(*args):
-        """ При вводе кода выделяем подходящую строку в списке """
-        print(args)
+        """ При вводе кода выделяем подходящую строку в списке
+
+        При вводе цифры дополняем оставшиеся знаки нулями и
+        производим поиск по этому значению.
+        """
         val = code_run_value.get()
-        print(tree.exists(val))
-
-
-        # if val and tree.exists(val):
-        #     tree.selection_set(val)
-        #     tree.see(val)
-        #     tree.focus_set()
-        #     tree.focus(val)
-
+        val = val + '0' * (settings.len_start_code - len(val))
+        if val and tree.exists(val):
+            tree.selection_set(val)
+            tree.see(val)
+            # tree.focus_set()
+            # tree.focus(val)
 
     def open_file_explorer():
         """ Открыть рабочую папку в проводнике """
@@ -397,7 +531,6 @@ def project_manager(root, run_script_func, load_old_script_func):
             subprocess.Popen(['xdg-open', settings.work_di])
         else:
             print('Операционная система не поддерживается')
-
 
     # Вывод окна Toplevel со следующими параметрами:
     #   Размер окна: 600x600, размещено в центре экрана, с кнопками управления
@@ -437,7 +570,7 @@ def project_manager(root, run_script_func, load_old_script_func):
     style = ttk.Style()
     style.configure('my.Treeview', rowheight=28)
 
-    tree = ttk.Treeview(window, show="tree")
+    tree = ttk.Treeview(window, show="tree", selectmode='browse')
     scrollbar = ttk.Scrollbar(tree, orient="vertical", command=tree.yview)
     scrollbar.pack(side="right", fill="y")
     tree.configure(yscrollcommand=scrollbar.set, style='my.Treeview')
@@ -451,7 +584,6 @@ def project_manager(root, run_script_func, load_old_script_func):
 
     # Создаем список проектов
     projects = ProjectList()
-
     update_cast()  # Обновить список проектов в окне
 
     # Создание полей ввода
@@ -473,7 +605,7 @@ def project_manager(root, run_script_func, load_old_script_func):
 
     # Создаем и настраиваем кнопки
     icon1 = PhotoImage(file="icon/apply.png")
-    button_change = Button(window, image=icon1, width=50, height=50, command=None)
+    button_change = Button(window, image=icon1, width=50, height=50, command=change_code)
     button_change.image = icon1
     button_change.place(x=x, y=y)
     ToolTip(button_change, msg="Изменить код", delay=0.5)
