@@ -601,13 +601,15 @@ def project_manager(root, run_script_func, load_old_script_func):
                  textvariable=code_value)
     code.place(x=20, y=win_h-72)
     code.bind("<Return>", change_code)  # Событие Enter в поле ввода
+    code.bind("<FocusIn>", lambda event: code.select_range(0, END))  # Выделение текста в поле при получении фокуса
 
     code_run_value = StringVar()  # Код в поле ввода для запуска скрипта
     code_run = Entry(window, font=("Helvetica", 26), width=4, validatecommand=(*check, 4), validate="key",
                      textvariable=code_run_value)
     code_run.place(x=win_w-125, y=win_h-72)
-    code_run.bind("<<Modified>>", on_key_release_code_run)  # Событие изменения текста в поле ввода
-    code_run_value.trace("w", on_key_release_code_run)
+    code_run_value.trace("w", on_key_release_code_run)  # Событие изменения текста в поле ввода
+    code_run.bind("<Return>", None)  # Событие Enter в поле ввода
+    code_run.bind("<FocusIn>", lambda event: code_run.delete(0, END))  # Очистка поля ввода при получении фокуса
     y = win_h-72
     x = 90
 
