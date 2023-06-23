@@ -262,7 +262,7 @@ if '-e' in sys.argv:
 else:
     # Запуск диалога быстрого запуска. Передаем ему ссылку на главное окно программы и
     # и на функции загрузки и выполнения скрипта и загрузки последнего скрипта
-    project_manager(root, player.load_and_run, save_load.load_old_project)
+    project_manager(root, player.load_and_run, save_load.load_old_project, save_load.open_project)
     # dialog_quick_start(root, player.load_and_run, save_load.load_old_project)
 
 root.mainloop()

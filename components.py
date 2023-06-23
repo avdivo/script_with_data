@@ -1099,11 +1099,12 @@ class SaveLoad:
 
         settings.set_settings_from_dict(sett)  # Устанавливаем настройки
 
-    def open_project(self, path=None):
+    def open_project(self, path=None, data_source=None):
         """ Загрузка проекта
 
         Если path не указан, то используем переменные заранее установленные,
-        а если указан, то это должен быть полный путь к проекту, устанавливаем переменные
+        а если указан, то это должен быть полный путь к проекту, устанавливаем переменные.
+        При явном указании источника данных (файла), открывается указанный. По умолчанию из настроек.
         """
         if path:
             # Последней в пути папка проекта, отделяем ее от пути
@@ -1140,7 +1141,9 @@ class SaveLoad:
             mess = f'Проект {self.new_project_name} открыт.\n'
             # Если в скрипте используется источник данных, то он долен быть загружен перед скриптом,
             # поэтому загружаем его сейчас
-            source = data_dict.get('data_source')
+            source = data_dict.get('data_source')  # Источник данных из настроек
+            if data_source is not None:
+                source = data_source  # Если источник указан явно, открываем его
             try:
                 if source:
                     self.data_source.load_file(source)

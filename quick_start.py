@@ -2,12 +2,14 @@
 
 from tkinter import *
 from tkinter import ttk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from tktooltip import ToolTip
 import re
 import os
 import json
 import subprocess
+import barcode
+from barcode.writer import ImageWriter
 
 from settings import settings
 from define_platform import system
@@ -56,7 +58,7 @@ def dialog_quick_start(root, run_script_func, load_old_script_func):
             """ Функция вызывая себя через промежутки времени,
             проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
             if settings.script_started:
-                root.after(100, check_work)
+                root.after(500, check_work)
             else:
                 window.deiconify()  # Вернуть окно программы
                 window.focus_force()
@@ -85,7 +87,6 @@ def dialog_quick_start(root, run_script_func, load_old_script_func):
     def keypress(event):
         """ Обработка нажатия клавиш на поле ввода """
         code = event.keycode
-        print(code)
         if code == system.hotkeys['Ctrl_E']:
             # Ctrl+e
             to_editor()
@@ -159,6 +160,9 @@ class ProjectList:
                                 },
               }
         """
+        self.reinit()
+
+    def reinit(self):
         self.active_project = ''  # Название проекта активного в данный момент
         self.active_file = ''  # Имя активного файла в активном проекте
         self.project_code = ''  # Код проекта
@@ -418,12 +422,13 @@ class ProjectList:
         return self.project_code + self.file_code
 
 
-def project_manager(root, run_script_func, load_old_script_func):
+def project_manager(root, run_script_func, load_old_script_func, open_project_func):
     """ Диалоговое окно настройки проектов для быстрого запуска
 
     Автоматически сканирует рабочую папку, генерирует номера скриптов, ведет список проектов,
     генерирует штрих-коды для быстрого запуска. Позволяет редактировать номера, запускать проекты,
     загружать проекты в редакторе.
+    Для работы с редактором принимает функции для запуска скрипты, открытия старого проекта и открытия любого проекта.
     """
     def on_select(event):
         """ Обработка события выбора строки в списке """
@@ -464,8 +469,7 @@ def project_manager(root, run_script_func, load_old_script_func):
 
     def update_cast():
         """ Обновить список проектов """
-        tree.delete(*tree.get_children()) # Очищаем дерево
-
+        tree.delete(*tree.get_children())  # Очищаем дерево
         # Добавляем элементы в дерево
         # TODO: Обратить внимание на сортировку
         for name, also in projects.projects_dict.items():
@@ -486,7 +490,10 @@ def project_manager(root, run_script_func, load_old_script_func):
         if not open_editor:
             root.destroy()
             return
-        load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
+        if projects.only_project is None:
+            load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
+        else:
+            open_project_func(projects.active_project, projects.active_file)  # Открытие выбранного проекта в редакторе
         root.deiconify()  # Отобразить окно редактора
 
     def to_editor(event=None):
@@ -494,19 +501,45 @@ def project_manager(root, run_script_func, load_old_script_func):
         settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
         close_program(event, open_editor=True)
 
+    def to_quick_start():
+        """ Закрыть окно и перейти в окно быстрого запуска """
+        window.destroy()
+        dialog_quick_start(root, run_script_func, load_old_script_func)
+
+    def select_work_dir():
+        """ Выбор рабочей папки """
+        new = filedialog.askdirectory(initialdir=settings.work_dir, title='Выбор рабочей папки')
+        if new:
+            settings.work_dir = new
+            # Сохраняем новую рабочую папку в файл настроек, но поскольку изменение файла настроек
+            # разрешено только из редактора, временно действуем от имени редактора
+            settings.run_from = 0
+            settings.config_file(action='set', work_dir=new)
+            settings.run_from = 2
+            # Сканируем новую рабочую папку и обновляем список проектов, создавая новый объект класса ProjectsList
+            projects.reinit()
+            update_cast()  # Обновить список проектов в окне
+
     def run(event=None):
         """ Запустить скрипт """
+        if projects.only_project is None:
+            return  # Проект не выбран
 
         # Ожидание выполнения скрипта
         def check_work():
             """ Функция вызывая себя через промежутки времени,
             проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
             if settings.script_started:
-                root.after(100, check_work)
+                root.after(500, check_work)
             else:
                 window.deiconify()  # Вернуть окно программы
                 window.focus_force()
-                # entry.after(100, lambda: entry.focus_set())
+                code_run.after(100, lambda: code_run.focus_set())
+
+        window.withdraw()  # Скрыть окно программы
+        path = os.path.join(settings.work_dir, projects.active_project)  # Путь к проекту
+        run_script_func(path, projects.active_file)  # Запускаем скрипт передавая путь к нему и источник данных
+        check_work()
 
     def is_valid(val, max_len):
         """ Пускает только целое число длиной не более кода запуска """
@@ -538,6 +571,20 @@ def project_manager(root, run_script_func, load_old_script_func):
             subprocess.Popen(['xdg-open', settings.work_di])
         else:
             print('Операционная система не поддерживается')
+
+    def save_barcode():
+        """ Сохранить штрихкод """
+        if projects.only_project is None:
+            return  # Выходим, если ничего не выбрано
+
+        code = projects.get_fool_code()
+        filename = filedialog.asksaveasfilename(
+            initialdir=settings.work_dir, title="Сохранение штрих-кода", initialfile=f'{code}',
+            filetypes=(("png files", "*.png"), ("all files", "*.*")))
+
+        if filename:
+            ean = barcode.get('ean8', f'{code}0000', writer=ImageWriter())
+            filename = ean.save(filename)
 
     # Вывод окна Toplevel со следующими параметрами:
     #   Размер окна: 600x600, размещено в центре экрана, с кнопками управления
@@ -608,7 +655,7 @@ def project_manager(root, run_script_func, load_old_script_func):
                      textvariable=code_run_value)
     code_run.place(x=win_w-125, y=win_h-72)
     code_run_value.trace("w", on_key_release_code_run)  # Событие изменения текста в поле ввода
-    code_run.bind("<Return>", None)  # Событие Enter в поле ввода
+    code_run.bind("<Return>", run)  # Событие Enter в поле ввода (запуск скрипта)
     code_run.bind("<FocusIn>", lambda event: code_run.delete(0, END))  # Очистка поля ввода при получении фокуса
     y = win_h-72
     x = 90
@@ -621,25 +668,25 @@ def project_manager(root, run_script_func, load_old_script_func):
     ToolTip(button_change, msg="Изменить код", delay=0.5)
     x += 150
     icon2 = PhotoImage(file="icon/play.png")
-    button_run = Button(window, image=icon2, width=50, height=50, command=None)
+    button_run = Button(window, image=icon2, width=50, height=50, command=run)
     button_run.image = icon2
     button_run.place(x=x, y=y)
     ToolTip(button_run, msg="Запустить", delay=0.5)
     x += 150
     icon4 = PhotoImage(file="icon/barcode.png")
-    button_barcode = Button(window, image=icon4, width=50, height=50, command=None)
+    button_barcode = Button(window, image=icon4, width=50, height=50, command=save_barcode)
     button_barcode.image = icon4
     button_barcode.place(x=x, y=y)
     ToolTip(button_barcode, msg="Получить штрих-код", delay=0.5)
     x += 150
     icon3 = PhotoImage(file="icon/edit.png")
-    button_edit = Button(window, image=icon3, width=50, height=50, command=None)
+    button_edit = Button(window, image=icon3, width=50, height=50, command=to_editor)
     button_edit.image = icon3
     button_edit.place(x=x, y=y)
     ToolTip(button_edit, msg="Открыть в редакторе", delay=0.5)
     x += 70
     icon5 = PhotoImage(file="icon/to_quick_start.png")
-    button_quick_run = Button(window, image=icon5, width=50, height=50, command=None)
+    button_quick_run = Button(window, image=icon5, width=50, height=50, command=to_quick_start)
     button_quick_run.image = icon5
     button_quick_run.place(x=x, y=y)
     ToolTip(button_quick_run, msg="Открыть окно быстрого запуска", delay=0.5)
@@ -651,7 +698,7 @@ def project_manager(root, run_script_func, load_old_script_func):
     ToolTip(button_open_folder, msg="Открыть рабочую папку", delay=0.5)
     x += 70
     icon7 = PhotoImage(file="icon/change.png")
-    button_change_folder = Button(window, image=icon7, width=50, height=50, command=None)
+    button_change_folder = Button(window, image=icon7, width=50, height=50, command=select_work_dir)
     button_change_folder.image = icon7
     button_change_folder.place(x=x, y=y)
     ToolTip(button_change_folder, msg="Сменить рабочую папку", delay=0.5)
@@ -662,50 +709,3 @@ def project_manager(root, run_script_func, load_old_script_func):
     # window.focus_set()
     code_run.after(100, lambda: code_run.focus_set())
     # window.grab_set()
-
-
-def a(window):
-    # Создаем и настраиваем tree
-    tree = ttk.Treeview(window, columns=("code", "saved", "updated", "description"), height=20)
-    tree.column("#0", width=200, minwidth=200, stretch=NO)
-    tree.column("code", width=50, minwidth=50, stretch=NO)
-    tree.column("saved", width=100, minwidth=100, stretch=NO)
-    tree.column("updated", width=100, minwidth=100, stretch=NO)
-    tree.column("description", width=150, minwidth=150, stretch=NO)
-    tree.heading("#0", text="Проекты", anchor=W)
-    tree.heading("code", text="Код", anchor=W)
-    tree.heading("saved", text="Создан", anchor=W)
-    tree.heading("updated", text="Обновлен", anchor=W)
-    tree.heading("description", text="Описание", anchor=W)
-    tree.place(x=0, y=0)
-
-    # Создаем и настраиваем полосу прокрутки для tree
-    scrollbar = ttk.Scrollbar(window, orient=VERTICAL, command=tree.yview)
-    scrollbar.place(x=580, y=0, height=580)
-    tree.configure(yscrollcommand=scrollbar.set)
-
-    # Создаем и настраиваем кнопки
-    button_change = Button(window, text="Изменить", width=50, height=50, command=None)
-    button_change.place(x=0, y=580)
-    button_run = Button(window, text="Запустить проект", width=50, height=50, command=None)
-    button_run.place(x=50, y=580)
-    button_edit = Button(window, text="Открыть в редакторе", width=50, height=50, command=None)
-    button_edit.place(x=100, y=580)
-    button_barcode = Button(window, text="Получить штрих-код", width=50, height=50, command=None)
-    button_barcode.place(x=150, y=580)
-    button_quick_run = Button(window, text="Быстрый запуск", width=50, height=50, command=None)
-    button_quick_run.place(x=200, y=580)
-    button_open_folder = Button(window, text="Открыть рабочую папку", width=50, height=50, command=None)
-    button_open_folder.place(x=250, y=580)
-    button_change_folder = Button(window, text="Поменять рабочую папку", width=50, height=50, command=None)
-    button_change_folder.place(x=300, y=580)
-
-    # Создаем и настраиваем поле ввода для кода проекта или файла данных
-    entry_code = Entry(window, width=2, font=("Arial", 20))
-    entry_code.place(x=350, y=580)
-    entry_code.bind("<Return>", None)
-
-    # Создаем и настраиваем поле ввода для кода проекта
-    entry_project_code = Entry(window, width=4, font=("Arial", 20))
-    entry_project_code.place(x=400, y=580)
-    entry_project_code.bind("<Return>", None)
