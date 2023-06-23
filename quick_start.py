@@ -337,11 +337,13 @@ class ProjectList:
                     found_name = name
                     break
             if found_name is None:
+                self.used_codes_projects.append(int(self.project_code))  # Возвращаем код активного проекта
                 return False  # Такого быть не должно, если номер есть, а проект не найден
 
             # Получаем свободный код для проекта
             try:
                 new_code = self.free_code_for_project()
+                self.used_codes_projects.remove(int(val))  # Освобождаем код проекта у которого берем код
             except:
                 # Не удалось получить свободный код
                 messagebox.showerror('Не удалось получит код', 'Вероятно нет свободного кода для замещения, '
@@ -355,6 +357,7 @@ class ProjectList:
 
         self.projects_dict[self.active_project]['code'] = val  # Назначаем новый код активному проекту
         self.project_code = val  # Меняем номер активного проекта
+        self.used_codes_projects.append(int(val))  # Добавляем новый код в список занятых
         return True
 
     def change_file_code(self, val):
@@ -368,21 +371,24 @@ class ProjectList:
         """
         if self.file_code == val:
             return False  # Выходим, если активный файл и так имеет этот код
+        self.used_codes_data.remove(int(self.file_code))  # Освобождаем код активного файла
 
         if int(val) in self.used_codes_data:
             # Код используется для другого файла, заменяем его свободным
-            self.used_codes_data.remove(int(self.file_code))  # Освобождаем код активного файла
+            # Ищем имя файла который занимает нужный код
             found_name = None
             for name, code in self.projects_dict[self.active_project]['data'].items():
                 if code == val:
                     found_name = name
                     break
             if found_name is None:
+                self.used_codes_data.append(int(self.file_code))  # Возвращаем код активного файла
                 return False  # Такого быть не должно, если номер есть, а файл не найден
 
             # Получаем свободный код для файла
             try:
                 new_code = self.free_code_for_data()
+                self.used_codes_data.remove(int(val))  # Освобождаем код файла у которого берем код
             except:
                 # Не удалось получить свободный код
                 messagebox.showerror('Не удалось получит код', 'Вероятно нет свободного кода для замещения, '
@@ -396,6 +402,7 @@ class ProjectList:
 
         self.projects_dict[self.active_project]['data'][self.active_file] = val  # Назначаем новый код
         self.file_code = val  # Меняем номер активного файла
+        self.used_codes_data.append(int(val))  # Добавляем новый код в список занятых
         return True
 
     def get_fool_code(self):
@@ -427,7 +434,7 @@ def project_manager(root, run_script_func, load_old_script_func):
         # Выводим код в поле для смены кода
         code_value.set(projects.project_code if projects.only_project else projects.file_code)
 
-    def change_code():
+    def change_code(event=None):
         """ Изменение кода проекта или файла
 
          Берется 2 значный код из поля для изменения, он может указывать нв проект или файл
@@ -593,6 +600,7 @@ def project_manager(root, run_script_func, load_old_script_func):
     code = Entry(window, font=("Helvetica", 26), width=2, validatecommand=(*check, 2), validate="key",
                  textvariable=code_value)
     code.place(x=20, y=win_h-72)
+    code.bind("<Return>", change_code)  # Событие Enter в поле ввода
 
     code_run_value = StringVar()  # Код в поле ввода для запуска скрипта
     code_run = Entry(window, font=("Helvetica", 26), width=4, validatecommand=(*check, 4), validate="key",
