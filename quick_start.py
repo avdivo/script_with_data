@@ -150,8 +150,11 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
 class ProjectList:
     """ Класс для управления списком проектов и сохранением его в файле """
 
-    def __init__(self):
+    def __init__(self, read_only=False):
         """ Чтение файла со списком проектов, обновление его в соответствии с изменениями в рабочей папке
+
+            Аргумент read_only говорит о том, что список не будет обновляться, из него нужно только получить
+            данные. Поэтому нужно только считать список проектов.
 
             Формат словаря:
               { "project_name": {
@@ -165,9 +168,10 @@ class ProjectList:
                                 },
               }
         """
-        self.reinit()
 
-    def reinit(self):
+        self.reinit(read_only)
+
+    def reinit(self, read_only):
         self.active_project = ''  # Название проекта активного в данный момент
         self.active_file = ''  # Имя активного файла в активном проекте
         self.project_code = ''  # Код проекта
@@ -178,6 +182,11 @@ class ProjectList:
         if os.path.isfile(os.path.join(settings.work_dir, settings.projects_list)):
             with open(os.path.join(settings.work_dir, settings.projects_list), "r", encoding="utf-8") as file:
                 projects_from_file = json.load(file)
+
+        if read_only:
+            # Только заполняем словарь проектов и выходим
+            self.projects_dict = projects_from_file
+            return
 
         # Сканирование рабочей папки и составление списка проектов
         projects_list = []

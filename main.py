@@ -38,7 +38,7 @@ from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop, DataError, TemplateNotFoundError, ElementNotFound
 from messages import Messages
 from define_platform import system
-from quick_start import dialog_quick_start, project_manager
+from quick_start import dialog_quick_start, project_manager, ProjectList
 
 
 def on_closing():
@@ -258,41 +258,51 @@ return_button = Button(root, command=save_load.return_button, image=icon11, widt
 return_button.place(x=602, y=settings.win_h-43)
 ToolTip(return_button, msg="Вернуть", delay=0.5)
 
+# -----------------------------------------------
+# Запуск программы
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                  description='Программа для создания, редактирования и воспроизведения '
                                              'последовательности действий пользователя.')
 parser.add_argument('-c', '--code', action='store_true', help='Открыть окно старта по коду проекта.\n'
                                                         'Без ключей откроется это же окно.')
-parser.add_argument('-e', '--editor', action='store_true', help='Открыть в режиме редактора.')
-parser.add_argument('-m', '--manager', action='store_true', help='Открыть в режиме менеджера проектов.')
+parser.add_argument('-e', '--editor', action='store_true', help='Открыть редактор c последним проектом.')
+parser.add_argument('-m', '--manager', action='store_true', help='Открыть менеджер проектов.')
 parser.add_argument('-r', '--run', nargs='+', metavar=('<Project>', '<File>'), help='Запуск скрипта.\n'
                                           'Первый аргумент - полный путь к проекту,\n'
-                                          'второй - имя файла данных (не объязательно).\nПример: '
-                                          '-run C:\Scripts\Script_1 data.xlsx\n'
+                                          'второй - имя файла данных (не обязательно).\nПример: '
+                                          '--run C:\Scripts\Script_1 data.xlsx\n'
                                           'Для запуска скрипта из текущей рабочей папки\nможно указать 1 аргумент - '
-                                          'цифровой код проекта.\nПример: -run 0101')
+                                          'цифровой код проекта.\nПример: --run 0101')
 
-args = parser.parse_args()
+args = parser.parse_args()  # Получение аргументов командной строки
+
 if args.code:
-    print('code')
-elif args.editor:
-    print('editor')
+    # Если программа запущена с ключом -c (--code) , то открывается окно быстрого запуска
+    dialog_quick_start(root, player.load_and_run, save_load.load_old_project, save_load.open_project)
+
 elif args.manager:
-    print('manager')
-elif args.run:
-    print(args.run[0], args.run[1])
-else:
-    print('code')
-
-
-if '-e' in sys.argv:
-# if True:
-    # Если программа запущена с параметром -e, то открывается редактор
-    save_load.load_old_project()  # Загрузка последнего проекта
-else:
-    # Запуск диалога быстрого запуска. Передаем ему ссылку на главное окно программы и
-    # и на функции загрузки и выполнения скрипта и загрузки последнего скрипта
+    # Если программа запущена с ключом -m (--manager) , то открывается менеджер проектов
     project_manager(root, player.load_and_run, save_load.load_old_project, save_load.open_project)
-    # dialog_quick_start(root, player.load_and_run, save_load.load_old_project)
+
+elif args.editor:
+    save_load.load_old_project()  # Загрузка последнего проекта в редакторе
+
+elif args.run:
+    project = args.run[0]
+    file = args.run[1] if len(args.run) == 2 else ''
+    if len(args.run) == 1:
+        # Если аргумент 1, то это код проекта или путь к проекту. Код проекта - это число типа int
+        if project.isdigit():
+            print(type(args.run[0]))
+            # Если аргумент - число, то это код проекта, получаем путь к проекту по коду и файл данных
+            projects = ProjectList(read_only=True).project_activation_by_number(args.run[0])
+            project = projects.active_project
+            file = projects.active_file
+    # Если аргумент - строка, то это путь к проекту. Тут уже только строки
+    player.load_and_run(project, file)  # Запуск скрипта
+
+else:
+    # Если программа запущена без ключей, то открывается окно быстрого запуска
+    dialog_quick_start(root, player.load_and_run, save_load.load_old_project, save_load.open_project)
 
 root.mainloop()
