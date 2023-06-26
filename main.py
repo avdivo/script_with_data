@@ -23,18 +23,17 @@
 
 """
 import os, sys
-from configparser import ConfigParser
 from tkinter import *
 from tkinter import messagebox
 from tktooltip import ToolTip
 import logging
 import subprocess
-from tkinter import filedialog as fd
+import argparse
 
 import components
 from settings import settings
 from commands import CommandClasses
-from components import Editor, DisplayCommands, DataSource, SaveLoad, data
+from components import Editor, DisplayCommands, SaveLoad, data
 from tracker_and_player import Tracker, Player
 from exceptions import NoCommandOrStop, DataError, TemplateNotFoundError, ElementNotFound
 from messages import Messages
@@ -225,8 +224,9 @@ mainmenu.add_cascade(label="Данные", menu=menu_data_source)
 
 menu_start_scripts = Menu(mainmenu, tearoff=0)
 menu_start_scripts.add_command(label="Быстрый запуск", command=lambda: dialog_quick_start(
-    root, player.load_and_run, save_load.load_old_project))
-menu_start_scripts.add_command(label="Менеджер проектов", command=None)
+    root, player.load_and_run, save_load.load_old_project, save_load.open_project))
+menu_start_scripts.add_command(label="Менеджер проектов", command=lambda: project_manager(
+    root, player.load_and_run, save_load.load_old_project, save_load.open_project))
 menu_start_scripts.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
 menu_start_scripts.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
 onoff = 'Включен' if settings.developer_mode else 'Выключен'
@@ -236,6 +236,9 @@ mainmenu.add_cascade(label="Запуск скриптов", menu=menu_start_scri
 
 mainmenu.add_command(label="Настройки",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
+mainmenu.add_command(label="Менеджер проектов", command=lambda: project_manager(
+    root, player.load_and_run, save_load.load_old_project, save_load.open_project))
+
 
 # TODO: Добавить иконки в меню
 # save_icon = PhotoImage(file="icon/copy.png")
@@ -254,6 +257,33 @@ ToolTip(undo_button, msg="Отменить", delay=0.5)
 return_button = Button(root, command=save_load.return_button, image=icon11, width=160, height=34)
 return_button.place(x=602, y=settings.win_h-43)
 ToolTip(return_button, msg="Вернуть", delay=0.5)
+
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+                                 description='Программа для создания, редактирования и воспроизведения '
+                                             'последовательности действий пользователя.')
+parser.add_argument('-c', '--code', action='store_true', help='Открыть окно старта по коду проекта.\n'
+                                                        'Без ключей откроется это же окно.')
+parser.add_argument('-e', '--editor', action='store_true', help='Открыть в режиме редактора.')
+parser.add_argument('-m', '--manager', action='store_true', help='Открыть в режиме менеджера проектов.')
+parser.add_argument('-r', '--run', nargs='+', metavar=('<Project>', '<File>'), help='Запуск скрипта.\n'
+                                          'Первый аргумент - полный путь к проекту,\n'
+                                          'второй - имя файла данных (не объязательно).\nПример: '
+                                          '-run C:\Scripts\Script_1 data.xlsx\n'
+                                          'Для запуска скрипта из текущей рабочей папки\nможно указать 1 аргумент - '
+                                          'цифровой код проекта.\nПример: -run 0101')
+
+args = parser.parse_args()
+if args.code:
+    print('code')
+elif args.editor:
+    print('editor')
+elif args.manager:
+    print('manager')
+elif args.run:
+    print(args.run[0], args.run[1])
+else:
+    print('code')
+
 
 if '-e' in sys.argv:
 # if True:

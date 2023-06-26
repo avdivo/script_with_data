@@ -17,7 +17,7 @@ from define_platform import system
 
 # from components import data
 
-def dialog_quick_start(root, run_script_func, load_old_script_func):
+def dialog_quick_start(root, run_script_func, load_old_script_func, open_project_func):
     """ Диалоговое окно для загрузки проекта и запуска скрипта """
     root.withdraw()  # Скрыть главное окно программы
     settings.run_from = 1  # Скрипт запускается из быстрого запуска
@@ -49,6 +49,11 @@ def dialog_quick_start(root, run_script_func, load_old_script_func):
         """ Закрыть окно и вернуться в редактор """
         settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
         close_program(event, open_editor=True)
+
+    def to_project_manager(event=None):
+        """ Закрыть окно и перейти в менеджер проектов """
+        window.destroy()
+        project_manager(root, run_script_func, load_old_script_func, open_project_func)
 
     def run(event=None):
         """ Запустить скрипт """
@@ -114,7 +119,7 @@ def dialog_quick_start(root, run_script_func, load_old_script_func):
         ToolTip(editor_button, msg="Перейти в редактор", delay=0.5)
 
         icon3 = PhotoImage(file="icon/settings.png")
-        settings_button = Button(button_frame, image=icon3, width=50, height=50)
+        settings_button = Button(button_frame, image=icon3, width=50, height=50, command=to_project_manager)
         settings_button.image = icon3
         settings_button.pack(side=LEFT)
         ToolTip(settings_button, msg="Настройка быстрого запуска", delay=0.5)
@@ -484,7 +489,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
                 string = f"{data_code}    {file_name}"
                 tree.insert(project_id, "end", data_code, text=string, tags='font1')
 
-    def close_program(event=None, open_editor=True):
+    def close_program(event=None, open_editor=False):
         """ Закрыть программу """
         window.destroy()
         if not open_editor:
@@ -504,7 +509,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     def to_quick_start():
         """ Закрыть окно и перейти в окно быстрого запуска """
         window.destroy()
-        dialog_quick_start(root, run_script_func, load_old_script_func)
+        dialog_quick_start(root, run_script_func, load_old_script_func, open_project_func)
 
     def select_work_dir():
         """ Выбор рабочей папки """
@@ -647,6 +652,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     code = Entry(window, font=("Helvetica", 26), width=2, validatecommand=(*check, 2), validate="key",
                  textvariable=code_value)
     code.place(x=20, y=win_h-72)
+    ToolTip(code, msg="Код проекта или файла данных", delay=0.5)
     code.bind("<Return>", change_code)  # Событие Enter в поле ввода
     code.bind("<FocusIn>", lambda event: code.select_range(0, END))  # Выделение текста в поле при получении фокуса
 
@@ -654,6 +660,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     code_run = Entry(window, font=("Helvetica", 26), width=4, validatecommand=(*check, 4), validate="key",
                      textvariable=code_run_value)
     code_run.place(x=win_w-125, y=win_h-72)
+    ToolTip(code_run, msg="Поиск и запуск по коду", delay=0.5)
     code_run_value.trace("w", on_key_release_code_run)  # Событие изменения текста в поле ввода
     code_run.bind("<Return>", run)  # Событие Enter в поле ввода (запуск скрипта)
     code_run.bind("<FocusIn>", lambda event: code_run.delete(0, END))  # Очистка поля ввода при получении фокуса
