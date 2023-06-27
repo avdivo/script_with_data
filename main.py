@@ -119,6 +119,24 @@ def run_script():
 
     return
 
+def run(project, file):
+    """ Запуск скрипта без окон. Ожидание завершения и закрытие программы
+
+    Получает параметры для запуска скрипта. Загружает, сапрячет основное окно,
+    выполняет скрипт, закрывает программу.
+    """
+    def check_work():
+        """ Функция вызывая себя через промежутки времени,
+        проверяет каждый раз не завершилось ли выполнение скрипта, чтобы отобразить окно """
+        if settings.script_started:
+            root.after(500, check_work)
+        else:
+            # root.destroy()  # Закрытие программы
+            exit()
+
+    root.withdraw()  # Скрыть окно программы
+    player.load_and_run(project, file)  # Запускаем скрипт передавая путь к нему и источник данных
+    check_work()  # Ожидаем завершения программы
 
 def open_file_explorer(path, file=None):
     """ Открыть папку в проводнике или файл в приложении по умолчанию """
@@ -293,13 +311,14 @@ elif args.run:
     if len(args.run) == 1:
         # Если аргумент 1, то это код проекта или путь к проекту. Код проекта - это число типа int
         if project.isdigit():
-            print(type(args.run[0]))
             # Если аргумент - число, то это код проекта, получаем путь к проекту по коду и файл данных
-            projects = ProjectList(read_only=True).project_activation_by_number(args.run[0])
+            projects = ProjectList(read_only=True)
+            projects.project_activation_by_number(args.run[0])
             project = projects.active_project
             file = projects.active_file
     # Если аргумент - строка, то это путь к проекту. Тут уже только строки
-    player.load_and_run(project, file)  # Запуск скрипта
+    run(project, file)  # Запуск скрипта
+
 
 else:
     # Если программа запущена без ключей, то открывается окно быстрого запуска

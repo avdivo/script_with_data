@@ -27,12 +27,6 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
     window.overrideredirect(True)  # Убираем рамку
     # Разместить окно в центре экрана
     window.wm_attributes("-topmost", True)
-    root.update_idletasks()
-    window_width = window.winfo_width()
-    window_height = window.winfo_height()
-    x = (window.winfo_screenwidth() - window_width) // 2
-    y = (window.winfo_screenheight() - window_height) // 2
-    window.geometry("+%d+%d" % (x, y))
 
     def close_program(event=None, open_editor=False):
         """ Закрыть программу """
@@ -68,15 +62,21 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
                 window.deiconify()  # Вернуть окно программы
                 window.focus_force()
                 entry.after(100, lambda: entry.focus_set())
+                entry.delete(0, END)  # Очистить поле ввода
 
-        # code = entry.get()
-        # if not code:
-        #     return
+        code = entry.get()  # Получаем содержимое поля ввода
+        if len(code) < settings.len_start_code//2:
+            # Если не введен даже код проекта то выходим
+            return
 
-        # Путь к проекту Keep
+        code += '0' * (settings.len_start_code - len(code))  # Дополняем код нулями до длины полного кода
+        projects = ProjectList(read_only=True)  # Создать объект с проектами
+        projects.project_activation_by_number(code)  # Делаем проект и файл активными по коду
+        if projects.only_project is None:
+            return  # Выйти, если проект не выбран
+
         window.withdraw()  # Скрыть окно программы
-        path = os.path.join(settings.work_dir, "Keep")
-        run_script_func(path)
+        run_script_func(projects.active_project, projects.active_file)  # Запуск скрипта
         check_work()
 
     def is_valid(val):
@@ -99,6 +99,7 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
     check = (window.register(is_valid), "%P")  # Назначаем функцию валидации
     entry = Entry(window, font=("Helvetica", 20), width=4, validatecommand=check, validate="key")
     entry.pack(side=LEFT, padx=20, pady=10)
+    entry.bind("<Return>", run)  # Событие Enter в поле ввода (запуск скрипта)
 
     button_frame = Frame(window)
     button_frame.pack(side=RIGHT, padx=20, pady=10)
@@ -129,6 +130,14 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
     close_button.image = icon4
     close_button.pack(side=LEFT)
     ToolTip(close_button, msg="Закрыть", delay=0.5)
+
+    # Перемещение окна в центр экрана
+    root.update_idletasks()
+    window_width = window.winfo_width()
+    window_height = window.winfo_height()
+    x = (window.winfo_screenwidth() - window_width) // 2
+    y = (window.winfo_screenheight() - window_height) // 2
+    window.geometry("+%d+%d" % (x, y))
 
     # Клавиша esc закрывает это окно и делает видимым главное
     window.bind("<Escape>", close_program)
@@ -177,6 +186,8 @@ class ProjectList:
         self.project_code = ''  # Код проекта
         self.file_code = ''  # Код файла
         self.only_project = None  # Содержит True, если файла данных нет, только проект. None - ничего не активно
+        self.used_codes_projects = []
+        self.used_codes_data = []
 
         projects_from_file = {}  # Словарь с описанием проектов
         if os.path.isfile(os.path.join(settings.work_dir, settings.projects_list)):
@@ -201,7 +212,6 @@ class ProjectList:
 
         # Составляем список (типа int) занятых номеров проектов
         # Если проекта уже нет в папке, то его номер освобождается
-        self.used_codes_projects = []
         for name in projects_list:
             number = projects_from_file.get(name, {}).get("code", "")
             if number:
@@ -515,6 +525,13 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         settings.run_from = 0  # Теперь скрипт будет запускаться от имени редактора
         close_program(event, open_editor=True)
 
+    def keypress(event):
+        """ Обработка нажатия клавиш на поле ввода """
+        code = event.keycode
+        if code == system.hotkeys['Ctrl_E']:
+            # Ctrl+e
+            to_editor()
+
     def to_quick_start():
         """ Закрыть окно и перейти в окно быстрого запуска """
         window.destroy()
@@ -633,6 +650,8 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     # window.wm_attributes("-topmost", True)
 
     window.protocol("WM_DELETE_WINDOW", close_program)  # Функция выполнится при закрытии окна
+    window.bind("<Escape>", close_program)  # Клавиша esc закрывает - Закрыть программу
+    window.bind("<Control-KeyPress>", keypress)  # Обработка нажатия клавиш
 
     # Создаем дерево
     style = ttk.Style()
