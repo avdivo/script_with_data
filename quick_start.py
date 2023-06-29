@@ -548,7 +548,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
             settings.config_file(action='set', work_dir=new)
             settings.run_from = 2
             # Сканируем новую рабочую папку и обновляем список проектов, создавая новый объект класса ProjectsList
-            projects.reinit()
+            projects.reinit(False)
             update_cast()  # Обновить список проектов в окне
 
     def run(event=None):
@@ -635,6 +635,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     # Создаем окно
     window = Toplevel(root)
     window.title("Менеджер проектов")
+    window.iconbitmap('icon.ico')
     # Размер окна
     win_w = 1100
     win_h = 600

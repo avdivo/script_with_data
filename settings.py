@@ -118,6 +118,7 @@ class Settings(object):
         print(self.path_to_project)
         self.top = tk.Toplevel()  # Новое окно
         self.top.title("Настройки")
+        self.top.iconbitmap('icon.ico')
         self.top.transient(root)  # Поверх окна
 
         # Размер окна

@@ -22,7 +22,7 @@
 Он передается методам объектов команд.
 
 """
-import os, sys
+import os
 from tkinter import *
 from tkinter import messagebox
 from tktooltip import ToolTip
@@ -72,6 +72,11 @@ h = root.winfo_screenheight()
 # Рисуем окно
 root.title("Редактор скриптов")
 root.geometry(f'{settings.win_w}x{settings.win_h}+{(w-settings.win_w)//2}+{(h-settings.win_h)//2}')
+# иконка
+if system == 'Windows':
+    root.iconbitmap('icon.ico')
+else:
+    root.iconphoto(True, PhotoImage(file='icon.png'))
 
 INDENT = 400  # Отступ второй колонки от левого края окна
 

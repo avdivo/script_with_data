@@ -1123,7 +1123,7 @@ class SaveLoad:
                 self.new_path_to_project, self.new_project_name, f'{self.new_project_name}.json')):
             this_project = False
         if not this_project:
-            raise LoadError('Выбранная папка не является проектом')
+            raise LoadError(f'Выбранная папка не является проектом {self.new_path_to_project}, {self.new_project_name}')
 
         self.data_source.menu_delete_data_source()  # Отключаем источник данных
 

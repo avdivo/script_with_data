@@ -10,7 +10,6 @@ from pynput.mouse import Listener as MouseListener, Controller as mouse_Controll
 from pynput.keyboard import Listener as KeyboardListener, Controller as kb_Controller, Key
 import logging
 import pyautogui
-
 from threading import Thread
 
 from settings import settings
@@ -360,7 +359,6 @@ class Player:
         self.run_thread()  # Запуск выполнения скрипта
 
     def run_thread(self):
-        # self.root.withdraw()  # Скрыть главное окно программы
         """ Запуск функции выполнения скрипта в отдельном потоке """
         if self.data.script_started or self.data.is_listening:
             return  # Операция невозможна при выполнении или записи скрипта
