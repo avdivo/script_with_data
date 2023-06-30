@@ -615,7 +615,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
 
         if filename:
             ean = barcode.get('ean8', f'{code}0000', writer=ImageWriter())
-            filename = ean.save(filename)
+            ean.save(filename)
 
     # Вывод окна Toplevel со следующими параметрами:
     #   Размер окна: 600x600, размещено в центре экрана, с кнопками управления
