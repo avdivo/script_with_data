@@ -39,9 +39,14 @@ class Settings(object):
         self.path_to_elements = ''  # Путь к папке с изображениями элементов
         self.created_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата сохранения проекта
         self.updated_project_date = datetime.now().strftime("%d.%m.%Y")  # Дата последнего обновления проекта
+
         # Рабочая папка в которой работает Менеджер проектов и пути по умолчанию
         # Если она не задана указываем рабочий каталог программы
         self.work_dir = config['work_dir'] if config['work_dir'] else os.path.dirname(os.path.abspath(__file__))
+        # Если такого пути нет, то указываем рабочий каталог программы
+        if not os.path.exists(self.work_dir):
+            self.work_dir = os.path.dirname(os.path.abspath(__file__))
+
         self.projects_list = "projects_list.json"  # Список и описание проектов в рабочей папке
         self.update_settings()
 

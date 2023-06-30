@@ -350,7 +350,7 @@ class Player:
         play_button.place(x=262, y=settings.win_h - 43)
         ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
 
-    def load_and_run(self, path, data_source):
+    def load_and_run(self, path=None, data_source=None):
         """ Загрузка проекта и запуск скрипта
 
         Принимает путь к проекту

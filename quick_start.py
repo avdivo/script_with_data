@@ -76,7 +76,7 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
             return  # Выйти, если проект не выбран
 
         window.withdraw()  # Скрыть окно программы
-        run_script_func(projects.active_project, projects.active_file)  # Запуск скрипта
+        run_script_func(path=projects.get_path_to_project(), data_source=projects.active_file)  # Запуск скрипта
         check_work()
 
     def is_valid(val):
@@ -445,6 +445,12 @@ class ProjectList:
             return self.project_code + '0' * len(self.project_code)
         return self.project_code + self.file_code
 
+    def get_path_to_project(self):
+        """ Получение пути к проекту """
+        if self.only_project is None or not self.active_project:
+            return None
+        return os.path.join(settings.work_dir, self.active_project)
+
 
 def project_manager(root, run_script_func, load_old_script_func, open_project_func):
     """ Диалоговое окно настройки проектов для быстрого запуска
@@ -517,7 +523,8 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         if projects.only_project is None:
             load_old_script_func()  # Загрузка последнего редактированного проекта в редактор
         else:
-            open_project_func(projects.active_project, projects.active_file)  # Открытие выбранного проекта в редакторе
+            # Открытие выбранного проекта в редакторе
+            open_project_func(path=projects.get_path_to_project(), data_source=projects.active_file)
         root.deiconify()  # Отобразить окно редактора
 
     def to_editor(event=None):
@@ -568,8 +575,8 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
                 code_run.after(100, lambda: code_run.focus_set())
 
         window.withdraw()  # Скрыть окно программы
-        path = os.path.join(settings.work_dir, projects.active_project)  # Путь к проекту
-        run_script_func(path, projects.active_file)  # Запускаем скрипт передавая путь к нему и источник данных
+        # Запускаем скрипт передавая путь к нему и источник данных
+        run_script_func(path=projects.get_path_to_project(), data_source=projects.active_file)
         check_work()
 
     def is_valid(val, max_len):
