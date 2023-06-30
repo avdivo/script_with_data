@@ -741,7 +741,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
 
 
     # Запускаем окно
-    # window.focus_force()
+    window.focus_force()
     # window.focus_set()
     code_run.after(100, lambda: code_run.focus_set())
     # window.grab_set()
