@@ -480,8 +480,8 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         if projects.only_project is None:
             return  # Выходим, если ничего не выбрано
         val = code_value.get()
-        if len(val) < 2:
-            return   # Выходим, если длина меньше 2 символов
+        if len(val) < 2 or val == '00':
+            return   # Выходим, если длина меньше 2 символов или там нули
 
         if projects.only_project:
             # Работа с кодом проекта
@@ -615,6 +615,23 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         if projects.only_project is None:
             return  # Выходим, если ничего не выбрано
 
+        import sys
+        # получить путь к текущему исполняемому файлу
+        executable_path = sys.argv[0]
+        print(executable_path)
+
+        # получить абсолютный путь к текущему исполняемому файлу
+        absolute_path = os.path.abspath(executable_path)
+        print(absolute_path)
+
+        # получить путь к исполняемому файлу pythonw.exe
+        pythonw_path = sys.executable
+        pythonw_path = os.path.join(os.path.dirname(pythonw_path), 'pythonw.exe')  # для Windows
+        print(pythonw_path)
+
+
+
+
         code = projects.get_fool_code()
         filename = filedialog.asksaveasfilename(
             initialdir=settings.work_dir, title="Сохранение штрих-кода", initialfile=f'{code}',
@@ -710,17 +727,17 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     button_change.place(x=x, y=y)
     ToolTip(button_change, msg="Изменить код", delay=0.5)
     x += 150
-    icon2 = PhotoImage(file="icon/play.png")
-    button_run = Button(window, image=icon2, width=50, height=50, command=run)
-    button_run.image = icon2
-    button_run.place(x=x, y=y)
-    ToolTip(button_run, msg="Запустить", delay=0.5)
-    x += 150
     icon4 = PhotoImage(file="icon/barcode.png")
     button_barcode = Button(window, image=icon4, width=50, height=50, command=save_barcode)
     button_barcode.image = icon4
     button_barcode.place(x=x, y=y)
     ToolTip(button_barcode, msg="Получить штрих-код", delay=0.5)
+    x += 70
+    icon8 = PhotoImage(file="icon/label.png")
+    button_label = Button(window, image=icon8, width=50, height=50, command=save_barcode)
+    button_label.image = icon8
+    button_label.place(x=x, y=y)
+    ToolTip(button_label, msg="Создать ярлык на рабочем столе", delay=0.5)
     x += 150
     icon3 = PhotoImage(file="icon/edit.png")
     button_edit = Button(window, image=icon3, width=50, height=50, command=to_editor)
@@ -745,6 +762,12 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     button_change_folder.image = icon7
     button_change_folder.place(x=x, y=y)
     ToolTip(button_change_folder, msg="Сменить рабочую папку", delay=0.5)
+    x += 150
+    icon2 = PhotoImage(file="icon/play.png")
+    button_run = Button(window, image=icon2, width=50, height=50, command=run)
+    button_run.image = icon2
+    button_run.place(x=x, y=y)
+    ToolTip(button_run, msg="Запустить", delay=0.5)
 
 
     # Запускаем окно
