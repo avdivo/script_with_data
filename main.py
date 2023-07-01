@@ -137,10 +137,11 @@ def run(project, file):
             root.after(500, check_work)
         else:
             # root.destroy()  # Закрытие программы
-            exit()
-
-    root.withdraw()  # Скрыть окно программы
-    player.load_and_run(project, file)  # Запускаем скрипт передавая путь к нему и источник данных
+            # exit()
+            pass
+    # TODO Разобраться с закрытием программы при появлении окна ошибки
+    # root.withdraw()  # Скрыть окно программы
+    player.load_and_run(path=project, data_source=file)  # Запускаем скрипт передавая путь к нему и источник данных
     check_work()  # Ожидаем завершения программы
 
 def open_file_explorer(path, file=None):
@@ -319,7 +320,7 @@ elif args.run:
             # Если аргумент - число, то это код проекта, получаем путь к проекту по коду и файл данных
             projects = ProjectList(read_only=True)
             projects.project_activation_by_number(args.run[0])
-            project = projects.active_project
+            project = projects.get_path_to_project()
             file = projects.active_file
     # Если аргумент - строка, то это путь к проекту. Тут уже только строки
     run(project, file)  # Запуск скрипта
