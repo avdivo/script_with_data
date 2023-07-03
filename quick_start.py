@@ -12,6 +12,7 @@ import json
 import subprocess
 import barcode
 from barcode.writer import ImageWriter
+from PIL import Image
 
 from settings import settings
 from define_platform import system
@@ -624,7 +625,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
 
         if filename:
             ean = barcode.get('ean8', f'{code}0000', writer=ImageWriter())
-            ean.save(filename)
+            ean.save(filename, options={'font_path': 'DejaVuSansMono.ttf'})
 
     def create_a_desktop_shortcut():
         """ Создать ярлык на рабочем столе """
