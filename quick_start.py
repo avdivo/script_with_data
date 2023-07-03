@@ -5,7 +5,9 @@ from tkinter import ttk
 from tkinter import messagebox, filedialog
 from tktooltip import ToolTip
 import re
-import os
+import os, sys
+from win32com.client import Dispatch
+import winshell
 import json
 import subprocess
 import barcode
@@ -615,23 +617,6 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         if projects.only_project is None:
             return  # Выходим, если ничего не выбрано
 
-        import sys
-        # получить путь к текущему исполняемому файлу
-        executable_path = sys.argv[0]
-        print(executable_path)
-
-        # получить абсолютный путь к текущему исполняемому файлу
-        absolute_path = os.path.abspath(executable_path)
-        print(absolute_path)
-
-        # получить путь к исполняемому файлу pythonw.exe
-        pythonw_path = sys.executable
-        pythonw_path = os.path.join(os.path.dirname(pythonw_path), 'pythonw.exe')  # для Windows
-        print(pythonw_path)
-
-
-
-
         code = projects.get_fool_code()
         filename = filedialog.asksaveasfilename(
             initialdir=settings.work_dir, title="Сохранение штрих-кода", initialfile=f'{code}',
@@ -641,17 +626,47 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
             ean = barcode.get('ean8', f'{code}0000', writer=ImageWriter())
             ean.save(filename)
 
-    # Вывод окна Toplevel со следующими параметрами:
-    #   Размер окна: 600x600, размещено в центре экрана, с кнопками управления
-    #   Заголовок окна: Менеджер проектов
-    #   В верхней части окна расположен список tree пустой. Шириной на все окно, высотой 500.
-    #   В нижней части окна расположены элементы управления одной строкой, разбитые на группы:
-    #   1. Поле ввода для 2 цифр кода проекта или файла данных, рядом кнопка Изменить
-    #   2. 3 кнопки: Запустить проект, Открыть в редакторе, Получить штрих-код
-    #   3. 3 кнопки: Быстрого запуск, Открыть рабочую папку, Поменять рабочую папку
-    #   4. Поле ввода на 4 цифры для кода проекта.
-    #   Все кнопки размером 50x50, с изображением вместо текста
-    #   Поля ввода с крупным шрифтом - 20 пт
+    def create_a_desktop_shortcut():
+        """ Создать ярлык на рабочем столе """
+        if projects.only_project is None:
+            return
+        # Получить абсолютный путь к текущему исполняемому файлу
+        # если файл exe, то получим путь к нему, если py, то к pythonw.exe
+        executable_path = sys.argv[0]
+        target = os.path.abspath(executable_path)
+        work_dir = os.path.dirname(os.path.abspath(__file__))  # Рабочая папка (где исполняется программа)
+        desktop = winshell.desktop()
+        icon = os.path.join(work_dir, 'icon/icon.ico')
+        arguments = f' --run {projects.get_fool_code()}'  # Добавляем ключи запуска скрипта
+        if target.endswith('.py'):
+            # Если исполняемый файл не exe, то получить путь к pythonw.exe
+            arguments = f'{target} {arguments}'
+            target = os.path.join(os.path.dirname(sys.executable), 'pythonw.exe')
+        # Путь и название ярлыка (название проекта и файла)
+        path = os.path.join(desktop,
+                            f"{projects.active_project} {projects.active_file} ({projects.get_fool_code()}).lnk")
+
+        shell = Dispatch('WScript.Shell')
+        shortcut = shell.CreateShortCut(path)
+        shortcut.TargetPath = target
+        shortcut.Arguments = arguments
+        shortcut.WorkingDirectory = work_dir
+        shortcut.IconLocation = icon
+        shortcut.save()
+
+        # Создание объекта ярлыка
+        # shortcut = winshell.CreateShortcut(
+        #     Path=winshell.desktop(),
+        #     Target=target,
+        #     Arguments=arguments
+        # )
+        #
+        # # # Название ярлыка
+        # shortcut.DisplayName = name
+        #
+        # # Сохранение ярлыка
+        # shortcut.Save()
+
 
     root.withdraw()  # Скрыть главное окно программы
     settings.run_from = 2  # Скрипт запускается из менеджера проектов
@@ -659,7 +674,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     # Создаем окно
     window = Toplevel(root)
     window.title("Менеджер проектов")
-    window.iconbitmap('icon.ico')
+    window.iconbitmap('icon/icon.ico')
     # Размер окна
     win_w = 1100
     win_h = 600
@@ -734,7 +749,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     ToolTip(button_barcode, msg="Получить штрих-код", delay=0.5)
     x += 70
     icon8 = PhotoImage(file="icon/label.png")
-    button_label = Button(window, image=icon8, width=50, height=50, command=save_barcode)
+    button_label = Button(window, image=icon8, width=50, height=50, command=create_a_desktop_shortcut)
     button_label.image = icon8
     button_label.place(x=x, y=y)
     ToolTip(button_label, msg="Создать ярлык на рабочем столе", delay=0.5)

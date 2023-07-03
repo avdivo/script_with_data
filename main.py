@@ -74,9 +74,9 @@ root.title("Редактор скриптов")
 root.geometry(f'{settings.win_w}x{settings.win_h}+{(w-settings.win_w)//2}+{(h-settings.win_h)//2}')
 # иконка
 if system == 'Windows':
-    root.iconbitmap('icon.ico')
+    root.iconbitmap('icon/icon.ico')
 else:
-    root.iconphoto(True, PhotoImage(file='icon.png'))
+    root.iconphoto(True, PhotoImage(file='icon/icon.png'))
 
 INDENT = 400  # Отступ второй колонки от левого края окна
 
