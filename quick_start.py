@@ -637,7 +637,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         target = os.path.abspath(executable_path)
         work_dir = os.path.dirname(os.path.abspath(__file__))  # Рабочая папка (где исполняется программа)
         desktop = winshell.desktop()
-        icon = os.path.join(work_dir, 'icon/icon.ico')
+        icon = os.path.join(work_dir, 'icon/run.ico')
         arguments = f' --run {projects.get_fool_code()}'  # Добавляем ключи запуска скрипта
         if target.endswith('.py'):
             # Если исполняемый файл не exe, то получить путь к pythonw.exe
@@ -655,27 +655,13 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
         shortcut.IconLocation = icon
         shortcut.save()
 
-        # Создание объекта ярлыка
-        # shortcut = winshell.CreateShortcut(
-        #     Path=winshell.desktop(),
-        #     Target=target,
-        #     Arguments=arguments
-        # )
-        #
-        # # # Название ярлыка
-        # shortcut.DisplayName = name
-        #
-        # # Сохранение ярлыка
-        # shortcut.Save()
-
-
     root.withdraw()  # Скрыть главное окно программы
     settings.run_from = 2  # Скрипт запускается из менеджера проектов
 
     # Создаем окно
     window = Toplevel(root)
     window.title("Менеджер проектов")
-    window.iconbitmap('icon/icon.ico')
+    window.iconbitmap('icon/pm.ico')
     # Размер окна
     win_w = 1100
     win_h = 600

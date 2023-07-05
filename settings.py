@@ -122,7 +122,7 @@ class Settings(object):
         """ Отрытие окна настроек """
         self.top = tk.Toplevel()  # Новое окно
         self.top.title("Настройки")
-        self.top.iconbitmap('icon/icon.ico')
+        self.top.iconbitmap('icon/edit.ico')
         self.top.transient(root)  # Поверх окна
 
         # Размер окна

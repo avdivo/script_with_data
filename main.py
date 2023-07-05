@@ -74,9 +74,9 @@ root.title("Редактор скриптов")
 root.geometry(f'{settings.win_w}x{settings.win_h}+{(w-settings.win_w)//2}+{(h-settings.win_h)//2}')
 # иконка
 if system == 'Windows':
-    root.iconbitmap('icon/icon.ico')
+    root.iconbitmap('icon/edit.ico')
 else:
-    root.iconphoto(True, PhotoImage(file='icon/icon.png'))
+    root.iconphoto(True, PhotoImage(file='icon/ed.png'))
 
 INDENT = 400  # Отступ второй колонки от левого края окна
 
@@ -136,11 +136,10 @@ def run(project, file):
         if settings.script_started:
             root.after(500, check_work)
         else:
-            # root.destroy()  # Закрытие программы
+            root.destroy()  # Закрытие программы
             # exit()
-            pass
-    # TODO Разобраться с закрытием программы при появлении окна ошибки
-    # root.withdraw()  # Скрыть окно программы
+
+    root.withdraw()  # Скрыть окно программы
     player.load_and_run(path=project, data_source=file)  # Запускаем скрипт передавая путь к нему и источник данных
     check_work()  # Ожидаем завершения программы
 
