@@ -255,9 +255,9 @@ menu_start_scripts.add_command(label="Открыть рабочую папку",
 onoff = 'Включен' if settings.developer_mode else 'Выключен'
 menu_start_scripts.add_command(label=f"Режим разработчика: {onoff}", command=developer_mode_change)
 
-mainmenu.add_cascade(label="Запуск скриптов", menu=menu_start_scripts)
+mainmenu.add_cascade(label="Опции", menu=menu_start_scripts)
 
-mainmenu.add_command(label="Настройки",
+mainmenu.add_command(label="Настройки скрипта",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
 mainmenu.add_command(label="Менеджер проектов", command=lambda: project_manager(
     root, player.load_and_run, save_load.load_old_project, save_load.open_project))

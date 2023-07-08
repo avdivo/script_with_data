@@ -112,7 +112,7 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
                          image=icon1, width=50, height=50)
     play_button.image = icon1
     play_button.pack(side=LEFT)
-    ToolTip(play_button, msg="Выполнение скрипта", delay=0.5)
+    ToolTip(play_button, msg="Выполнить скрипт", delay=0.5)
 
     if settings.developer_mode:
         # В режиме разработчика отображаются дополнительные кнопки
@@ -769,7 +769,7 @@ def project_manager(root, run_script_func, load_old_script_func, open_project_fu
     button_run = Button(window, image=icon2, width=50, height=50, command=run)
     button_run.image = icon2
     button_run.place(x=x, y=y)
-    ToolTip(button_run, msg="Запустить", delay=0.5)
+    ToolTip(button_run, msg="Выполнить скрипт", delay=0.5)
 
 
     # Запускаем окно
