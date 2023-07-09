@@ -47,7 +47,7 @@ class CommandClasses(ABC):
     def paint_description(self):
         # Комментарий
         self.widget_description = DataInput.CreateInput(self.root, self.description, x=10, y=37, width=31, length=50)
-        ToolTip(self.widget_description.widget, msg="Комментарий", delay=0.5)
+        ToolTip(self.widget_description.widget, msg="Псевдоним", delay=0.5)
 
     @classmethod
     def create_command(cls, *args, command: str, description=''):
