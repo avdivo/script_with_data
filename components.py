@@ -524,11 +524,11 @@ class DisplayCommands:
 
         up_button = Button(frame, command=self.up, image=self.icon_up, width=80, height=34)
         up_button.place(x=10, y=10)
-        ToolTip(up_button, msg="Переместить вверх", delay=0.5)
+        ToolTip(up_button, msg="Сдвинуть вверх", delay=0.5)
 
         copy_button = Button(frame, command=self.copy, image=self.icon6, width=120, height=34)
         copy_button.place(x=105, y=10)
-        ToolTip(copy_button, msg="Переместить вниз", delay=0.5)
+        ToolTip(copy_button, msg="Копировать команды", delay=0.5)
 
         cut_button = Button(frame, command=self.cut, image=self.icon7, width=120, height=34)
         cut_button.place(x=240, y=10)
@@ -536,7 +536,7 @@ class DisplayCommands:
 
         down_button = Button(frame, command=self.down, image=self.icon_down, width=80, height=34)
         down_button.place(x=10, y=58)
-        ToolTip(down_button, msg="Копировать команды", delay=0.5)
+        ToolTip(down_button, msg="Сдвинуть вниз", delay=0.5)
 
         paste_button = Button(frame, command=self.paste, image=self.icon8, width=120, height=34)
         paste_button.place(x=105, y=58)

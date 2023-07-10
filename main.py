@@ -156,14 +156,27 @@ def open_file_explorer(path, file=None):
     else:
         print('Операционная система не поддерживается')
 
+
 def developer_mode_change():
+    """ Изменение режима разработчика через меню """
     if settings.developer_mode:
         settings.developer_mode = ''
-        menu_start_scripts.entryconfigure(5, label="Режим разработчика: Выключен")
+        menu_options.entryconfigure(6, label="Режим разработчика: Выключен")
     else:
         settings.developer_mode = 'on'
-        menu_start_scripts.entryconfigure(5, label="Режим разработчика: Включен")
+        menu_options.entryconfigure(6, label="Режим разработчика: Включен")
     settings.config_file(action='set', developer=settings.developer_mode)
+
+
+def minimize_window_on_recording_change():
+    """ Изменение режима окна редактора при записи через меню """
+    if settings.minimize_window_on_recording:
+        settings.minimize_window_on_recording = ''
+        menu_options.entryconfigure(8, label="Свернуть окно при записи: Нет")
+    else:
+        settings.minimize_window_on_recording = 'yes'
+        menu_options.entryconfigure(8, label="Свернуть окно при записи: Да")
+    settings.config_file(action='set', minimize_window=settings.minimize_window_on_recording)
 
 # создание логгера и обработчика
 logger = logging.getLogger('logger')
@@ -245,17 +258,21 @@ menu_data_source.add_command(label="Открыть папку с данными"
 
 mainmenu.add_cascade(label="Данные", menu=menu_data_source)
 
-menu_start_scripts = Menu(mainmenu, tearoff=0)
-menu_start_scripts.add_command(label="Быстрый запуск", command=lambda: dialog_quick_start(
+menu_options = Menu(mainmenu, tearoff=0)
+menu_options.add_command(label="Быстрый запуск", command=lambda: dialog_quick_start(
     root, player.load_and_run, save_load.load_old_project, save_load.open_project))
-menu_start_scripts.add_command(label="Менеджер проектов", command=lambda: project_manager(
+menu_options.add_command(label="Менеджер проектов", command=lambda: project_manager(
     root, player.load_and_run, save_load.load_old_project, save_load.open_project))
-menu_start_scripts.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
-menu_start_scripts.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
+menu_options.add_separator()
+menu_options.add_command(label="Выбрать рабочую папку", command=save_load.select_work_dir)
+menu_options.add_command(label="Открыть рабочую папку", command=lambda: open_file_explorer(settings.work_dir))
+menu_options.add_separator()
 onoff = 'Включен' if settings.developer_mode else 'Выключен'
-menu_start_scripts.add_command(label=f"Режим разработчика: {onoff}", command=developer_mode_change)
-
-mainmenu.add_cascade(label="Опции", menu=menu_start_scripts)
+menu_options.add_command(label=f"Режим разработчика: {onoff}", command=developer_mode_change)
+menu_options.add_separator()
+onoff = 'Да' if settings.minimize_window_on_recording else 'Нет'
+menu_options.add_command(label=f"Свернуть окно при записи: {onoff}", command=minimize_window_on_recording_change)
+mainmenu.add_cascade(label="Опции", menu=menu_options)
 
 mainmenu.add_command(label="Настройки скрипта",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))

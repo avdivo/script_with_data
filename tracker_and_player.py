@@ -96,6 +96,10 @@ class Tracker:
         if self.only_screenshot != 'wait':
             logger.error('Идет запись.')
 
+        if settings.minimize_window_on_recording:
+            # Свернуть окно редактора
+            self.root.iconify()
+
     def reset_kb(self):
         """ Вернуть состояние клавиатуры в исходное """
         # Отпустить все клавиши

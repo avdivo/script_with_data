@@ -5,15 +5,20 @@ ean = barcode.get('ean8', '09010000', writer=ImageWriter())
 filename = ean.save('ean13_barcode')
 
 
-class one:
-    def __init__(self, n):
-        self.a = {1:n}
+import tkinter as tk
 
-def ch():
-    global d
-    d = one(2)
+root = tk.Tk()
 
-d = one(1)
-print(d.a[1])
-ch()
-print(d.a[1])
+menubar = tk.Menu(root)
+file_menu = tk.Menu(menubar, tearoff=False)
+file_menu.add_command(label="Open")
+file_menu.add_command(label="Save")
+file_menu.add_command(label="Exit")
+
+# Для изменения первой строки меню
+file_menu.entryconfigure(0, label="New")
+
+menubar.add_cascade(label="File", menu=file_menu)
+root.config(menu=menubar)
+
+root.mainloop()

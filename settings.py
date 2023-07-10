@@ -29,6 +29,9 @@ class Settings(object):
         config = self.config_file()
         self.developer_mode = config['developer']  # Режим разработчика
 
+        # Сворачивать или нет окно редактора при начале записи
+        self.minimize_window_on_recording = config['minimize_window']
+
         # Настройки для программы
         self.data_folder = 'data'  # Папка с данными
         self.elements_folder = 'elements_img'  # Папка с изображениями элементов
@@ -178,6 +181,7 @@ class Settings(object):
         path - путь к проекту
         work_dir - рабочая директория
         developer - режим разработчика (True/False)
+        minimize_window - Сворачивать или нет окно редактора при начале записи
 
         get - возвращается словарь с параметрами,
         set - в файл конфигурации записываются параметры kwargs.
@@ -188,7 +192,8 @@ class Settings(object):
             # чтобы запускаемые скрипты не подменяли автозагрузку редактируемого
             return
 
-        cast = {'name': 'project_name', 'path': 'path_to_project', 'work_dir': 'work_dir', 'developer': 'developer'}
+        cast = {'name': 'project_name', 'path': 'path_to_project', 'work_dir': 'work_dir', 'developer': 'developer',
+                'minimize_window': 'minimize_window'}
 
         config = ConfigParser()
         """ Получение файла конфигурации """
