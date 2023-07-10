@@ -71,7 +71,7 @@ class Tracker:
 
         stop_button = Button(command=self.stop_btn, image=self.icon2, width=100, height=34)
         stop_button.place(x=137, y=settings.win_h - 43)
-        ToolTip(stop_button, msg="Останова записи", delay=0.5)
+        ToolTip(stop_button, msg="Стоп", delay=0.5)
 
     def rec_btn(self):
         """ Обработка нажатия кнопки записи """
