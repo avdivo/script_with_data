@@ -21,7 +21,7 @@ class Hotkeys:
                         'select rus': ['KeyDown-ctrl', 'KeyDown-ф', 'KeyUp-ф', 'KeyUp-ctrl'],
                         'language_change': ['KeyDown-alt', 'KeyDown-shift', 'KeyUp-shift', 'KeyUp-alt'],
                         'new_tab': ['KeyDown-ctrl', 'KeyDown-t', 'KeyUp-t', 'KeyUp-ctrl'],
-                        'new_browse_tab rus': ['KeyDown-ctrl', 'KeyDown-е', 'KeyUp-е', 'KeyUp-ctrl'],
+                        'new_tab rus': ['KeyDown-ctrl', 'KeyDown-е', 'KeyUp-е', 'KeyUp-ctrl'],
                         'next_tab': ['KeyDown-ctrl', 'KeyDown-tab', 'KeyUp-tab', 'KeyUp-ctrl'],
                         'next_window': ['KeyDown-alt', 'KeyDown-tab', 'KeyUp-tab', 'KeyUp-alt'],
                         'roll_up_windows Ubuntu': ['KeyDown-ctrl', 'KeyDown-alt', 'KeyDown-d',
