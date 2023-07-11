@@ -451,7 +451,7 @@ class Player:
             # определить операционную систему и реализовать вывод русского текста в Linux
             if system.os == 'Windows':
                 # Для Windows
-                kb.type(val[0])
+                kb.type(str(val[0]))
             else:
                 # Вывод русского текста в Linux
                 try:

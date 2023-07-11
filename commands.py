@@ -982,7 +982,8 @@ class CycleEnd(CommandClasses):
                 # и перейдет на команду следующую за началом цикла
                 self.data.pointer_command = temp[0]  # Индекс команды начала цикла
             except:
-                raise
+                pass
+                # raise
 
 
 class BlockEnd(CycleEnd):
