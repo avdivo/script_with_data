@@ -41,8 +41,14 @@ class DataInput:
     @property
     def result(self):
         """ Возвращает результат нужного типа """
+        val = self.value.get()
+
+        if self.type == float:
+            # float может быть с точкой или запятой, приводим все к точке
+            val = val.replace(',', '.')
+
         try:
-            res = self.type(self.value.get())
+            res = self.type(val)
         except ValueError:
             # При типе int и float пустая строка выдает ошибку
             res = self.type(0)
