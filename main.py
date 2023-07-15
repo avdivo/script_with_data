@@ -167,7 +167,7 @@ def developer_mode_change():
         menu_options.entryconfigure(6, label="Режим разработчика: Включен")
     settings.config_file(action='set', developer=settings.developer_mode)
 
-# hhh11
+# hhh11jjj
 def minimize_window_on_recording_change():
     """ Изменение режима окна редактора при записи через меню """
     if settings.minimize_window_on_recording:
