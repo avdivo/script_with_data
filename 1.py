@@ -1,24 +1,22 @@
-import barcode
-from barcode.writer import ImageWriter
+# Есть  13 номеров 1-13.
+# Напиши все возможные комбинации групп по 3 номера,
+# чтобы не было 2 групп в которых одинаковые номера
 
-ean = barcode.get('ean8', '09010000', writer=ImageWriter())
-filename = ean.save('ean13_barcode')
+import itertools
 
+# 1. Создаем список из 13 номеров
+names = ['Елена', 'Ира', 'Ксюша', 'Саша', 'Юля', 'Юльчатай', 'Надя', 'Оля', 'Катя', 'Ольга', 'Эля', 'Сауле', 'Настя']
+numbers = list(range(1, 14))
+s = 0
 
-import tkinter as tk
+for j in range(2, 14):
+    # 2. Создаем список из всех возможных комбинаций по 3 номера
+    combinations = list(itertools.combinations(names, j))
 
-root = tk.Tk()
+    for i, comb in enumerate(combinations):
+        print(i+1, comb)
+        pass
+    s += i+1
+    print(i+1)
 
-menubar = tk.Menu(root)
-file_menu = tk.Menu(menubar, tearoff=False)
-file_menu.add_command(label="Open")
-file_menu.add_command(label="Save")
-file_menu.add_command(label="Exit")
-
-# Для изменения первой строки меню
-file_menu.entryconfigure(0, label="New")
-
-menubar.add_cascade(label="File", menu=file_menu)
-root.config(menu=menubar)
-
-root.mainloop()
+print(s)
