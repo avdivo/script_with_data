@@ -87,7 +87,7 @@ def compare_2_images(small, big):
 
     return False
 
-#  h_image(x_point: int,    y_point: i
+#  h_image(x_point: int,    y_poin
     """ Сохранение изображения кнопки/иконки (элемента) если он еще не сохранен
 
     Функция принимает в качестве аргументов координаты точки на экране.
