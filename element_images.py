@@ -87,7 +87,7 @@ def compare_2_images(small, big):
 
     return False
 
-
+#  h
 def save_image(x_point: int, y_point: int) -> str:
     """ Сохранение изображения кнопки/иконки (элемента) если он еще не сохранен
 
