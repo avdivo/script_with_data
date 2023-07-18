@@ -29,6 +29,7 @@ from tktooltip import ToolTip
 import logging
 import subprocess
 import argparse
+import webbrowser
 
 import components
 from settings import settings
@@ -278,6 +279,9 @@ mainmenu.add_command(label="Настройки скрипта",
                      command=lambda root=root, w=w, h=h: settings.show_window_settings(root, w, h))
 mainmenu.add_command(label="Менеджер проектов", command=lambda: project_manager(
     root, player.load_and_run, save_load.load_old_project, save_load.open_project))
+# Пункт меню Справка со ссылкой на документацию
+mainmenu.add_command(label="Справка", command=lambda: webbrowser.open_new_tab(
+    'https://docs.google.com/document/d/e/2PACX-1vQhrCHBCpbiJAZRfhWK8Q3ti1B626rUXBhFZSHlKdnfV8RfYCmawJkD6lfx6DqdgbZVdX6hoFBkwYVp/pub'))
 
 
 # TODO: Добавить иконки в меню

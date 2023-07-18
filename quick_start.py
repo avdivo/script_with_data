@@ -120,13 +120,13 @@ def dialog_quick_start(root, run_script_func, load_old_script_func, open_project
         editor_button = Button(button_frame, command=to_editor, image=icon2, width=50, height=50)
         editor_button.image = icon2
         editor_button.pack(side=LEFT)
-        ToolTip(editor_button, msg="Перейти в редактор", delay=0.5)
+        ToolTip(editor_button, msg="Перейти в редактор скриптов", delay=0.5)
 
         icon3 = PhotoImage(file="icon/settings.png")
         settings_button = Button(button_frame, image=icon3, width=50, height=50, command=to_project_manager)
         settings_button.image = icon3
         settings_button.pack(side=LEFT)
-        ToolTip(settings_button, msg="Настройка быстрого запуска", delay=0.5)
+        ToolTip(settings_button, msg="Перейти в Менеджер проектов", delay=0.5)
 
     icon4 = PhotoImage(file="icon/close.png")
     close_button = Button(button_frame, image=icon4, width=50, height=50, command=close_program)
