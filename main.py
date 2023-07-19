@@ -281,7 +281,7 @@ mainmenu.add_command(label="Менеджер проектов", command=lambda: 
     root, player.load_and_run, save_load.load_old_project, save_load.open_project))
 # Пункт меню Справка со ссылкой на документацию
 mainmenu.add_command(label="Справка", command=lambda: webbrowser.open_new_tab(
-    'https://docs.google.com/document/d/e/2PACX-1vQhrCHBCpbiJAZRfhWK8Q3ti1B626rUXBhFZSHlKdnfV8RfYCmawJkD6lfx6DqdgbZVdX6hoFBkwYVp/pub'))
+    'https://docs.google.com/document/d/1EG9BfxyQhN1i7vmblNY7w_wCkJSiApSfPphHcrab0bk/edit?usp=sharing'))
 
 
 # TODO: Добавить иконки в меню
