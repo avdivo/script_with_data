@@ -290,7 +290,7 @@ mainmenu.add_command(label="Справка", command=lambda: webbrowser.open_new
 # mainmenu.entryconfigure(4, image=save_icon)
 
 
-# История ----------------------------------------
+# История ---------------------------------------
 icon10 = PhotoImage(file="icon/undo.png")
 icon11 = PhotoImage(file="icon/return.png")
 
