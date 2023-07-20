@@ -1,0 +1,10 @@
+;Расположенный ниже комментарий содержит команды SFX-сценария
+
+
+Path=C:\swd
+Overwrite=1
+Title=Редактор скриптов SWD
+
+Shortcut=D, ".\main.exe --editor", , "Запуск редактора скриптов", "Редактор SWD", .\icon\edit.ico
+Shortcut=D, ".\main.exe --code", , "Запуск скрипта по штрих-коду", "Быстрый старт SWD", .\icon\qs.ico
+Shortcut=D, ".\main.exe --manager", , "Менеджер проектов", "Менеджер проектов SWD", .\icon\pm.ico
